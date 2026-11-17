@@ -53,6 +53,8 @@ of that SAME guest allocation. They are not an OS copy or a guest/host transfer.
 ## Initial environment and context invariants
 
 - Target x86-64 Linux GNU; WASIp1 ordinary files; p1 implies p2 internally.
+  The feature also compiles legacy P0 compatibility code; this profile exposes
+  only the selected wasi_snapshot_preview1 imports through the linker.
 - Fixed unshared guest memory; no guest threads or reentrant custom imports.
 - Initially authorized, live descriptors in an initialized per-instance table.
 - One exclusive root without adversarial external namespace mutation or special
