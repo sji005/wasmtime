@@ -43,7 +43,7 @@ fn ranges_memory_checks_typed_copy_destination() {
 
     let engine = Engine::default();
     let mut store = Store::new(&engine, ());
-    let memory = Memory::new(&mut store, MemoryType::new(1, None)).unwrap();
+    let memory = Memory::new(&mut store, MemoryType::new(1, None).unwrap()).unwrap();
     let (ranges, _) = memory.data_ranges_and_store_data_mut(&mut store);
     let mut guest = GuestMemory::Ranges(ranges);
     let last_word = GuestPtr::<u32>::new(65532).as_array(1);

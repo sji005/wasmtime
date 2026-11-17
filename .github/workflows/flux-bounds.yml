@@ -6,7 +6,9 @@ on:
     branches: ['flux/**']
     paths:
       - 'crates/wiggle/**'
-      - 'verification/flux/**'
+      - 'verification/flux/*.rs'
+      - 'verification/flux/*.py'
+      - 'verification/flux/*.sh'
       - 'Cargo.toml'
       - 'Cargo.lock'
       - '.github/workflows/flux-bounds.yml'

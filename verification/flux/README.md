@@ -78,12 +78,11 @@ library and compiled its test harness to `wasm32-wasip1`. Node's Preview 1 WASI
 runner passed both tests: all 55,473 small range combinations and nine
 machine-word boundary cases. Formatting and whitespace checks passed.
 
-Flux proofs, mutation rejection, the complete Wiggle build, and Wiggle's
-integration tests have not yet run. Native Flux needs the Linux environment
-above. GitHub's connector rejected branch creation with a 403, despite reporting
-push permission. No successful remote workflow is claimed here.
-The command-line push also failed because no GitHub credential is saved in this
-Windows account. Changes are committed locally on `flux/wiggle-bounds`.
+SSH authentication works as `sji005`, and the branch is published on the fork.
+The Linux workflow passed the standalone tests and the complete Wiggle build
+with Flux's compiler version. Its first run caught a test-setup API mismatch,
+which is corrected. Flux proofs, mutation rejection, and the integration-test
+result are still pending. No successful proof is claimed here yet.
 
 This does not prove all of `fd_read`. The intended first proof is only byte-range
 arithmetic. Remaining work includes element counts, alignment, guest-memory
