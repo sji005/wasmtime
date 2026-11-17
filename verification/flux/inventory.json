@@ -755,6 +755,14 @@
     "run": "https://github.com/sji005/wasmtime/actions/runs/43987832550",
     "source_sha256": "4692ba10d0c4187968e69045f494e025e5f8c97eb2007b9d4e37edac9b4976e0"
   },
+  "expanded_binding_evidence": {
+    "run": "https://github.com/sji005/wasmtime/actions/runs/43993427124",
+    "code_revision": "14321e36f1f27e289d88f970003706d478460542",
+    "metadata": "verification/flux/evidence/fd-read/evidence.json",
+    "wrapper": "verification/flux/evidence/fd-read/fd-read-glue.rs",
+    "sha256": "5a5a017cb12bbed33fd785dedeaac0afadd57354bd73df5416e9a95dd164f2c6",
+    "proof_status": "captured_unproved"
+  },
   "fd_read": {
     "nodes": [
       {
@@ -967,8 +975,13 @@
         "effects": [
           "MemWrite(nread: 4 bytes)"
         ],
-        "obligation": "Expand actual fd_read glue; validate result pointer, store ordering, aliases and traps.",
-        "proof_status": "unproved"
+        "obligation": "Actual wrapper captured. Prove result-pointer validity, store ordering, aliases and traps.",
+        "proof_status": "unproved",
+        "expanded_evidence": {
+          "path": "verification/flux/evidence/fd-read/fd-read-glue.rs",
+          "line": 159,
+          "anchor": "memory.write(wiggle::GuestPtr::<Size>::new(arg3 as u32),"
+        }
       },
       {
         "id": "primitive_store",
@@ -1108,7 +1121,7 @@
     "excluded_or_unresolved": [
       "stdin/custom HostInputStream dispatch",
       "lazy initial descriptor provisioning effects",
-      "expanded fd_read glue not yet captured",
+      "Flux proof of expanded fd_read glue",
       "transitive scheduler/logging/allocation syscalls",
       "shared memory",
       "reentrancy/cancellation proof",
@@ -1130,6 +1143,8 @@
     "crates/wiggle/generate/src/wasmtime.rs": "321ba0c244565bca845906d96a7e258455d67353da21c5155ecfca42365b64e9",
     "crates/wiggle/src/bounds.rs": "4692ba10d0c4187968e69045f494e025e5f8c97eb2007b9d4e37edac9b4976e0",
     "crates/wiggle/src/guest_type.rs": "5d6532a5a1827bb02502a64db41ae609c34d4fb8c390cb63605b265d3032488f",
-    "crates/wiggle/src/lib.rs": "1ad320f88734b76749c530d9af32b33d9484c7c77bf6df02c630a9da73e9f47d"
+    "crates/wiggle/src/lib.rs": "1ad320f88734b76749c530d9af32b33d9484c7c77bf6df02c630a9da73e9f47d",
+    "verification/flux/evidence/fd-read/evidence.json": "1492948b6fea941d7a15460fcbe9a5c460143e3a52e2c332272ce0002eaad607",
+    "verification/flux/evidence/fd-read/fd-read-glue.rs": "5a5a017cb12bbed33fd785dedeaac0afadd57354bd73df5416e9a95dd164f2c6"
   }
 }

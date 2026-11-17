@@ -19,7 +19,7 @@ specifications, compiler assumptions, or the need to connect a model to code.
 | B05 | FileExt::read_at -> std FileDesc::read_at -> libc::pread64 | Pinned std source inspected, unproved boundary | Add a narrow external contract: authorized live handle, bounded possible destination writes on all outcomes, success count, and framing. Kernel/libc implementation remains trusted. |
 | B06 | Owned Vec allocation, initialized source, truncation and copy-back | Inspected, unproved | Separate host-scratch region policy; real source and destination bounds/lifetimes; prove nonempty raw-copy bridge or narrowly specify it. |
 | B07 | Tokio spawn_blocking, Arc<File>, suspension and cancellation | Inspected, unproved | Running blocking tasks can outlive an abort request. Establish closure ownership and absence of escaping guest borrows. |
-| B08 | Generated nread pointer/store and primitive u32 atomic bridge | Inspected, unproved | Capture actual expanded bindings; validate width, alignment, order, aliasing and traps. |
+| B08 | Generated nread pointer/store and primitive u32 atomic bridge | Actual wrapper captured and checksummed; unproved | Prove the captured wrapper and primitive store: width, alignment, order, aliasing and traps. |
 | B09 | Every real operation represented by the trace | Unproved | Resolve all selected branches/macros/dispatch/dependencies. A safe manually constructed trace can omit an unsafe real operation. |
 | B10 | Filesystem and network confinement | Policy proposal only | Verify actual resolver/endpoint checks and dependencies under the selected configuration; audit extensions beyond WAVE. |
 

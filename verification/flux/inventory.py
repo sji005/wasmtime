@@ -14,6 +14,8 @@ TARGET = ROOT / "verification/flux/inventory.json"
 WITX = "crates/wasi/witx/p1/wasi_snapshot_preview1.witx"
 P1 = "crates/wasi/src/p1.rs"
 PROVED_BOUNDS_SHA256 = "4692ba10d0c4187968e69045f494e025e5f8c97eb2007b9d4e37edac9b4976e0"
+GLUE = "verification/flux/evidence/fd-read/fd-read-glue.rs"
+GLUE_METADATA = "verification/flux/evidence/fd-read/evidence.json"
 
 
 def source(path):
@@ -29,6 +31,10 @@ def location(path, anchor):
 
 def build():
     import re
+
+    glue_evidence = json.loads(source(GLUE_METADATA))
+    if hashlib.sha256(source(GLUE).encode()).hexdigest() != glue_evidence["wrapper_sha256"]:
+        raise ValueError("Saved expanded wrapper checksum mismatch")
 
     witx = source(WITX)
     exports = list(re.finditer(r'\(@interface\s+func\s+\(export "([^"]+)"\)', witx))
@@ -91,10 +97,12 @@ def build():
         node("typed_destination", "crates/wiggle/src/lib.rs", "pub(crate) fn validate_size_align_mut<T>(", "copy_back_and_generated_store",
              [], "Checked element-size multiplication, conversion, range, alignment, and Ranges borrow."),
         node("generated_store", "crates/wiggle/generate/src/funcs.rs", "Instruction::Store { ty } =>", "successful_return",
-             ["MemWrite(nread: 4 bytes)"], "Expand actual fd_read glue; validate result pointer, store ordering, aliases and traps."),
+             ["MemWrite(nread: 4 bytes)"], "Actual wrapper captured. Prove result-pointer validity, store ordering, aliases and traps."),
         node("primitive_store", "crates/wiggle/src/guest_type.rs", "fn write(mem: &mut GuestMemory, ptr: GuestPtr<Self>, val: Self) -> Result<(), GuestError> {\n                // See", "generated_nread_store",
              ["MemWrite(checked scalar)"], "Macro-generated u32 store; atomic cast/store bridge and alignment remain unproved."),
     ]
+    next(n for n in nodes if n["id"] == "generated_store")["expanded_evidence"] = location(
+        GLUE, "memory.write(wiggle::GuestPtr::<Size>::new(arg3 as u32),")
     edges = [
         ["caller_memory", "iovec_selection", "generated fd_read ABI dispatch"],
         ["iovec_selection", "generated_iovec_record", "each descriptor actually traversed"],
@@ -116,7 +124,7 @@ def build():
         ["generated_store", "primitive_store", "memory.write::<u32>"],
         ["primitive_store", "typed_destination", "validate scalar destination"],
     ]
-    paths = sorted({WITX, P1, "Cargo.toml", "Cargo.lock", "crates/wasi/Cargo.toml", "crates/wasi/witx/p1/typenames.witx", *[n["source"]["path"] for n in nodes]})
+    paths = sorted({WITX, P1, GLUE, GLUE_METADATA, "Cargo.toml", "Cargo.lock", "crates/wasi/Cargo.toml", "crates/wasi/witx/p1/typenames.witx", *[n["source"]["path"] for n in nodes]})
     return {
         "schema_version": 1,
         "claim": "ABI accounting and partial reviewed source graph; not verified hostcall coverage or graph completeness",
@@ -128,13 +136,17 @@ def build():
         "export_count": len(rows), "exports": rows,
         "arithmetic_evidence": {"run": "https://github.com/sji005/wasmtime/actions/runs/43987832550",
                                 "source_sha256": PROVED_BOUNDS_SHA256},
+        "expanded_binding_evidence": {"run": "https://github.com/sji005/wasmtime/actions/runs/43993427124",
+                                      "code_revision": "14321e36f1f27e289d88f970003706d478460542",
+                                      "metadata": GLUE_METADATA, "wrapper": GLUE,
+                                      "sha256": glue_evidence["wrapper_sha256"], "proof_status": "captured_unproved"},
         "fd_read": {"nodes": nodes, "edges": edges,
                     "external_chain": [
                         {"layer": "Wasmtime", "operation": "read_at_cursor_unspecified -> FileExt::read_at"},
                         {"layer": "pinned Rust std", "path": "library/std/src/sys/fs/unix.rs", "line": 1496, "operation": "File::read_at -> FileDesc::read_at"},
                         {"layer": "pinned Rust std", "path": "library/std/src/sys/fd/unix.rs", "line": 191, "operation": "libc::pread64(fd, ptr, min(len, READ_LIMIT), offset)"},
                         {"layer": "libc / Linux", "operation": "pread64 wrapper and kernel boundary", "status": "contract and deployed glibc binding not verified"}],
-                    "excluded_or_unresolved": ["stdin/custom HostInputStream dispatch", "lazy initial descriptor provisioning effects", "expanded fd_read glue not yet captured", "transitive scheduler/logging/allocation syscalls", "shared memory", "reentrancy/cancellation proof", "kernel and libc implementation"]},
+                    "excluded_or_unresolved": ["stdin/custom HostInputStream dispatch", "lazy initial descriptor provisioning effects", "Flux proof of expanded fd_read glue", "transitive scheduler/logging/allocation syscalls", "shared memory", "reentrancy/cancellation proof", "kernel and libc implementation"]},
         "source_sha256_lf_utf8": {path: hashlib.sha256(source(path).encode()).hexdigest() for path in paths},
     }
 

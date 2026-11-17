@@ -15,6 +15,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("expanded", type=Path)
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--reference", type=Path)
     args = parser.parse_args()
     text = args.expanded.read_text(encoding="utf-8")
     candidates = list(re.finditer(r"(?m)^([ \t]*)pub async fn fd_read\s*\(", text))
@@ -53,6 +54,10 @@ def main():
         "observed_output": "Size store through arg3 after the fd_read trait call; Size is u32 in typenames.witx",
         "remaining": ["Flux proof of expanded wrapper", "exact control-flow/error framing", "pointer validity, alignment and aliases", "actual allocation binding"],
     }
+    if args.reference:
+        expected = json.loads(args.reference.read_text(encoding="utf-8"))
+        if evidence["wrapper_sha256"] != expected["wrapper_sha256"]:
+            raise SystemExit("Expanded fd_read wrapper changed: review and refresh the saved evidence")
     (args.output_dir / "evidence.json").write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8", newline="\n")
     print(json.dumps(evidence, indent=2))
     print("PASS: actual expanded fd_read ABI and nread store captured")

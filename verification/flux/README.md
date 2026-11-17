@@ -10,6 +10,9 @@ adds a checked effect-policy MODEL and review artifacts:
 - [Machine-readable inventory](inventory.json): all 46 P1 exports accounted for,
   partial fd_read graph, source anchors and hashes. No hostcall is marked proved.
 - [Trust ledger](TRUST.md): external specifications and concrete binding gaps.
+- [Captured generated fd_read wrapper](evidence/fd-read/fd-read-glue.rs) with
+  checksum metadata. CI checks fresh expansion against this reviewed snapshot;
+  the generated function remains unproved.
 
 The [effect experiment](https://github.com/sji005/wasmtime/actions/runs/43991159857)
 passed: 7 checked functions (including the shared production range helper),

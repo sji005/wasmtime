@@ -118,8 +118,13 @@ and a guest write. Do not model those errors as rollback.
 
 The WASI result also requires a guest `nread` store. The inspected generator's
 `Instruction::Store` emits `memory.write`, ultimately a u32 guest store.
-Actual expanded fd_read glue still needs to be captured to close the graph.
-Its result pointer may be invalid or overlap earlier data/metadata. Reason from
+The [actual expanded wrapper](evidence/fd-read/fd-read-glue.rs) and its
+[checksum metadata](evidence/fd-read/evidence.json) were captured in the
+[passing run](https://github.com/sji005/wasmtime/actions/runs/43993427124).
+It writes `Size` through `arg3` in the `Ok` branch after the trait call. The
+`Err` branch downcasts the error without that store. CI compares fresh expansion
+to the saved wrapper checksum. These are source observations, not a Flux proof
+of the wrapper. Its result pointer may be invalid or overlap earlier data/metadata. Reason from
 the actual evaluation order rather than assuming disjointness or no prior
 effects when the final store traps.
 

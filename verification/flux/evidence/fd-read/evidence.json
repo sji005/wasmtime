@@ -1,0 +1,26 @@
+{
+  "claim": "Expanded ABI syntax inspected; function and memory effects remain unproved",
+  "target": "x86_64-unknown-linux-gnu",
+  "features": [
+    "p1",
+    "p2"
+  ],
+  "selection": "WasiSnapshotPreview1 trait; legacy P0 wrapper excluded",
+  "public_fd_read_wrappers_seen": 2,
+  "rustc_commit": "1a2c4797ef2570bd76ca5dee34449169bc7dc457",
+  "expanded_source_line": 48958,
+  "wrapper_sha256": "5a5a017cb12bbed33fd785dedeaac0afadd57354bd73df5416e9a95dd164f2c6",
+  "abi_arguments": {
+    "arg0": "fd",
+    "arg1": "iovs pointer",
+    "arg2": "iovs count",
+    "arg3": "nread output pointer"
+  },
+  "observed_output": "Size store through arg3 after the fd_read trait call; Size is u32 in typenames.witx",
+  "remaining": [
+    "Flux proof of expanded wrapper",
+    "exact control-flow/error framing",
+    "pointer validity, alignment and aliases",
+    "actual allocation binding"
+  ]
+}

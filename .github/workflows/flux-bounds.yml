@@ -17,6 +17,7 @@ on:
       - 'verification/flux/*.py'
       - 'verification/flux/*.sh'
       - 'verification/flux/inventory.json'
+      - 'verification/flux/evidence/**'
       - 'Cargo.toml'
       - 'Cargo.lock'
       - '.github/workflows/flux-bounds.yml'
@@ -90,7 +91,7 @@ jobs:
       - name: Capture actual expanded fd_read ABI binding
         run: |
           cargo rustc --locked -p wasmtime-wasi --no-default-features --features p1 --lib -- -Zunpretty=expanded > "$RUNNER_TEMP/wasi-expanded.rs"
-          python3 verification/flux/capture_glue.py "$RUNNER_TEMP/wasi-expanded.rs" --output-dir "$RUNNER_TEMP/fd-read-glue"
+          python3 verification/flux/capture_glue.py "$RUNNER_TEMP/wasi-expanded.rs" --output-dir "$RUNNER_TEMP/fd-read-glue" --reference verification/flux/evidence/fd-read/evidence.json
       - name: Save expanded binding evidence
         uses: actions/upload-artifact@v7
         with:
