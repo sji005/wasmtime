@@ -14,6 +14,8 @@ TARGET = ROOT / "verification/flux/inventory.json"
 WITX = "crates/wasi/witx/p1/wasi_snapshot_preview1.witx"
 P1 = "crates/wasi/src/p1.rs"
 PROVED_BOUNDS_SHA256 = "4692ba10d0c4187968e69045f494e025e5f8c97eb2007b9d4e37edac9b4976e0"
+MEMORY_POLICY = "crates/wiggle/src/memory_policy.rs"
+PROVED_MEMORY_SHA256 = "b83545ee77aa6734d9abe91bc0eda5f26c53259abd9f02abd9621ae4b897eddf"
 GLUE = "verification/flux/evidence/fd-read/fd-read-glue.rs"
 GLUE_METADATA = "verification/flux/evidence/fd-read/evidence.json"
 
@@ -64,6 +66,9 @@ def build():
         return {"id": identifier, "source": location(path, anchor), "branch": branch,
                 "effects": effects, "obligation": obligation, "proof_status": status}
 
+    memory_status = ("checked_relative_to_supplied_valid_slice"
+                     if hashlib.sha256(source(MEMORY_POLICY).encode()).hexdigest() == PROVED_MEMORY_SHA256
+                     else "unproved_changed_since_evidence")
     nodes = [
         node("caller_memory", "crates/wiggle/generate/src/wasmtime.rs", 'let export = caller.get_export("memory");', "all",
              [], "Bind the actual memory and context to the calling instance; reject missing export."),
@@ -82,19 +87,31 @@ def build():
         node("guest_destination", "crates/wiggle/src/lib.rs", "pub fn as_slice_mut(", "file_direct_or_worker",
              [], "Tie the returned slice to the validated range and actual live allocation."),
         node("range_arithmetic", "crates/wiggle/src/bounds.rs", "pub(crate) fn checked_range_end(", "range_validation",
-             [], "Only the byte-range arithmetic is already checked by Flux.",
+             [], "Production byte-range arithmetic checked by Flux.",
              "proved_arithmetic_only" if hashlib.sha256(source("crates/wiggle/src/bounds.rs").encode()).hexdigest() == PROVED_BOUNDS_SHA256 else "unproved_changed_since_evidence"),
         node("file_backend", "crates/wasi/src/filesystem/unix.rs", "pub(crate) fn read_at_cursor_unspecified(", "file_direct_and_worker",
-             ["MemWrite(destination capacity)", "FdAccess(file)"], "Trusted-boundary contract still to implement; connect FileExt::read_at to the pinned standard library."),
+             [], "With p1 delegates to checked memory_policy::read_at; outer delegate/caller not yet checked."),
+        node("policy_root", MEMORY_POLICY, "pub fn new(memory:", "actual_borrowed_region",
+             [], "Capture actual slice pointer and extent; Rust borrow rules and Flux pointer specs trusted. Calling guest selection remains open.", memory_status),
+        node("policy_write", MEMORY_POLICY, "pub fn write(&mut self,", "actual_borrowed_region",
+             [], "Validate range, form exact real pointer and retain region extent and exclusive borrow.", memory_status),
+        node("policy_copy", MEMORY_POLICY, "pub fn copy_bytes(", "unshared_copy_back",
+             ["MemRead(source slice)", "MemWrite(destination slice)"], "Checked permit consumer performs real ptr::copy using Flux external copy specification.", memory_status),
+        node("policy_read", MEMORY_POLICY, "pub fn read_at(\n", "file_direct_and_worker",
+             ["MemWrite(destination capacity, external OS assumption)"], "Checked construction and consumption of actual-slice permit; success count bounded by capacity under trusted adapter contract.", memory_status),
+        node("os_read_adapter", MEMORY_POLICY, "unsafe fn os_read_at(", "unix_file_read",
+             ["MemWrite(destination capacity, assumed)", "FdAccess(file, authorization unproved)"], "One trusted body: raw slice/std/libc/kernel; signature checks pointer capacity and success count. Write footprint/framing externally assumed, not proved heap effects.", "trusted_external_contract"),
         node("worker_dispatch", "crates/wasi/src/filesystem.rs", "pub(crate) async fn run_blocking<F, R>(&self, body: F) -> R\n    where\n        F: FnOnce(&std::fs::File) -> R + Send + 'static,\n        R: Send + 'static,\n    {\n        match self.as_blocking_file()", "file_worker",
              [], "Owned Vec and Arc<File> across suspension; this function may execute inline or spawn."),
         node("worker_spawn", "crates/wasi/src/filesystem.rs", "pub(crate) fn spawn_blocking<F, R>(&self", "file_worker",
              [], "Track cloned file lifetime and owned buffer; no borrowed guest pointer in closure."),
         node("task_spawn", "crates/wasi/src/runtime.rs", "pub fn spawn_blocking<F, R>(f:", "file_worker",
              ["scheduler effects outside model"], "Dropping/aborting a handle does not by itself prove a running blocking OS call has stopped."),
-        node("copy_back", "crates/wiggle/src/lib.rs", "pub fn copy_from_slice<T>(", "file_worker_and_stdin",
-             ["MemRead(owned source)", "MemWrite(guest destination)"], "Validate sizes and destination; audit ptr::copy bridge; empty-copy behavior differs from unconditional validation."),
-        node("typed_destination", "crates/wiggle/src/lib.rs", "pub(crate) fn validate_size_align_mut<T>(", "copy_back_and_generated_store",
+        node("copy_back", "crates/wiggle/src/lib.rs", "pub fn copy_from_bytes(", "file_worker_and_stdin",
+             [], "Unproved outer method validates sizes; unshared destination delegates to checked policy copy. Empty copy returns early."),
+        node("shared_copy", "crates/wiggle/src/lib.rs", "pub fn copy_from_slice<T>(", "shared_memory_excluded",
+             ["MemRead(source)", "MemWrite(shared destination)"], "Legacy generic-copy fallback remains outside initial unshared-memory proof profile."),
+        node("typed_destination", "crates/wiggle/src/lib.rs", "pub(crate) fn validate_size_align_mut<T>(", "shared_copy_and_generated_store",
              [], "Checked element-size multiplication, conversion, range, alignment, and Ranges borrow."),
         node("generated_store", "crates/wiggle/generate/src/funcs.rs", "Instruction::Store { ty } =>", "successful_return",
              ["MemWrite(nread: 4 bytes)"], "Actual wrapper captured. Prove result-pointer validity, store ordering, aliases and traps."),
@@ -118,7 +135,17 @@ def build():
         ["worker_spawn", "task_spawn", "closure owns buffer and cloned file"],
         ["worker_dispatch", "file_backend", "inline or worker closure"],
         ["file_backend", "copy_back", "worker success; truncate Vec and form prefix iov"],
-        ["copy_back", "typed_destination", "nonempty copied output"],
+        ["file_backend", "policy_read", "p1 actual read destination"],
+        ["policy_read", "policy_root", "capture actual destination borrow"],
+        ["policy_read", "policy_write", "whole destination permit"],
+        ["policy_write", "range_arithmetic", "start/count validation"],
+        ["policy_read", "os_read_adapter", "WriteAccess::read_at passes bounded pointer/count"],
+        ["copy_back", "guest_destination", "nonempty unshared destination"],
+        ["copy_back", "policy_copy", "nonempty unshared byte copy"],
+        ["policy_copy", "policy_root", "capture actual destination borrow"],
+        ["policy_copy", "policy_write", "whole destination permit"],
+        ["copy_back", "shared_copy", "shared-memory fallback, excluded"],
+        ["shared_copy", "typed_destination", "legacy generic destination"],
         ["typed_destination", "range_arithmetic", "Ranges path or general validate_range"],
         ["fd_read", "generated_store", "success after position checked_add/store"],
         ["generated_store", "primitive_store", "memory.write::<u32>"],
@@ -136,16 +163,22 @@ def build():
         "export_count": len(rows), "exports": rows,
         "arithmetic_evidence": {"run": "https://github.com/sji005/wasmtime/actions/runs/43987832550",
                                 "source_sha256": PROVED_BOUNDS_SHA256},
+        "production_memory_evidence": {"run": "https://github.com/sji005/wasmtime/actions/runs/44004096275",
+                                       "code_revision": "64bcdbe1ff60200bfe16d0872a3baeb4abd61d49",
+                                       "source_sha256": PROVED_MEMORY_SHA256,
+                                       "functions_checked": 11, "functions_trusted": 1,
+                                       "constraints_solved": 38, "negative_mutations_rejected": 5,
+                                       "claim": "Checked module operations relative to supplied valid slices and external specs; no whole-hostcall proof"},
         "expanded_binding_evidence": {"run": "https://github.com/sji005/wasmtime/actions/runs/43993427124",
                                       "code_revision": "14321e36f1f27e289d88f970003706d478460542",
                                       "metadata": GLUE_METADATA, "wrapper": GLUE,
                                       "sha256": glue_evidence["wrapper_sha256"], "proof_status": "captured_unproved"},
         "fd_read": {"nodes": nodes, "edges": edges,
                     "external_chain": [
-                        {"layer": "Wasmtime", "operation": "read_at_cursor_unspecified -> FileExt::read_at"},
+                        {"layer": "Wasmtime", "operation": "read_at_cursor_unspecified -> memory_policy::read_at -> trusted os_read_at -> FileExt::read_at"},
                         {"layer": "pinned Rust std", "path": "library/std/src/sys/fs/unix.rs", "line": 1496, "operation": "File::read_at -> FileDesc::read_at"},
                         {"layer": "pinned Rust std", "path": "library/std/src/sys/fd/unix.rs", "line": 191, "operation": "libc::pread64(fd, ptr, min(len, READ_LIMIT), offset)"},
-                        {"layer": "libc / Linux", "operation": "pread64 wrapper and kernel boundary", "status": "contract and deployed glibc binding not verified"}],
+                        {"layer": "libc / Linux", "operation": "pread64 wrapper and kernel boundary", "status": "bounded adapter contract assumed; deployed glibc/kernel implementation not verified"}],
                     "excluded_or_unresolved": ["stdin/custom HostInputStream dispatch", "lazy initial descriptor provisioning effects", "Flux proof of expanded fd_read glue", "transitive scheduler/logging/allocation syscalls", "shared memory", "reentrancy/cancellation proof", "kernel and libc implementation"]},
         "source_sha256_lf_utf8": {path: hashlib.sha256(source(path).encode()).hexdigest() for path in paths},
     }

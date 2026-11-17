@@ -1,4 +1,4 @@
-name: Flux bounds verification
+name: Flux memory verification
 
 on:
   workflow_dispatch:
@@ -26,7 +26,7 @@ permissions:
   contents: read
 
 jobs:
-  bounds:
+  proofs:
     if: github.repository == 'sji005/wasmtime'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
@@ -39,8 +39,6 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v7
-        with:
-          submodules: recursive
       - name: Check P1 export accounting and call-site inventory
         run: python3 verification/flux/inventory.py --check
       - name: Install pinned Rust compiler
@@ -48,17 +46,9 @@ jobs:
           rustup toolchain install nightly-2026-10-22 --profile minimal --component rustfmt --component rust-src --component rustc-dev --component llvm-tools
           rustup default nightly-2026-10-22
           rustc --version --verbose
-      - name: Check formatting and run production helper tests
+      - name: Check verified source formatting
         run: |
           rustfmt --edition 2024 --check crates/wiggle/src/bounds.rs crates/wiggle/src/memory_policy.rs verification/flux/bounds.rs verification/flux/effect_policy.rs verification/flux/production_memory.rs
-          rustc --edition=2024 --test verification/flux/bounds.rs -o "$RUNNER_TEMP/wiggle-bounds-tests"
-          "$RUNNER_TEMP/wiggle-bounds-tests"
-          rustc --edition=2024 --test verification/flux/effect_policy.rs -o "$RUNNER_TEMP/wiggle-effect-tests"
-          "$RUNNER_TEMP/wiggle-effect-tests"
-      - name: Check Wiggle with the Flux compiler version
-        run: cargo check --locked -p wiggle --all-features
-      - name: Test guest memory access through Wiggle
-        run: cargo test --locked -p wiggle --test bounds
       - name: Restore pinned Flux and solvers
         id: flux-cache
         uses: actions/cache/restore@v6
@@ -90,6 +80,35 @@ jobs:
         run: python3 verification/flux/check_effects.py
       - name: Prove production memory isolation and real-pointer consumers
         run: python3 verification/flux/check_production.py
+  integration:
+    if: github.repository == 'sji005/wasmtime'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      CARGO_INCREMENTAL: '0'
+      CARGO_PROFILE_DEV_DEBUG: '0'
+      CARGO_PROFILE_TEST_DEBUG: '0'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - name: Install matching Rust compiler
+        run: |
+          rustup toolchain install nightly-2026-10-22 --profile minimal
+          rustup default nightly-2026-10-22
+      - name: Run supplementary execution regressions
+        run: |
+          rustc --edition=2024 --test verification/flux/bounds.rs -o "$RUNNER_TEMP/wiggle-bounds-tests"
+          "$RUNNER_TEMP/wiggle-bounds-tests"
+          rustc --edition=2024 --test verification/flux/effect_policy.rs -o "$RUNNER_TEMP/wiggle-effect-tests"
+          "$RUNNER_TEMP/wiggle-effect-tests"
+      - name: Check Wiggle with the Flux compiler version
+        run: cargo check --locked -p wiggle --all-features
+      - name: Test guest memory access through Wiggle
+        run: cargo test --locked -p wiggle --test bounds
       - name: Capture actual expanded fd_read ABI binding
         run: |
           cargo rustc --locked -p wasmtime-wasi --no-default-features --features p1 --lib -- -Zunpretty=expanded > "$RUNNER_TEMP/wasi-expanded.rs"

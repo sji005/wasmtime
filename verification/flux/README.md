@@ -1,7 +1,16 @@
-# Flux integration and WAVE policy experiments
+# Flux integration and WAVE memory policy
 
-The first checkpoint proves a production byte-range helper. The next package
-adds a checked effect-policy MODEL and review artifacts:
+The current port checks WAVE-derived memory-region invariants on actual
+production pointer/copy operations and calls to a bounded Unix file-read
+adapter. See [production memory isolation](MEMORY_ISOLATION.md) for the precise
+claim, production wiring, assumptions and remaining hostcall obligations.
+
+The [successful production proof](https://github.com/sji005/wasmtime/actions/runs/44004096275)
+checked 11 functions, solved 38 constraints, and used one explicitly trusted OS
+adapter. Five broken production variants compiled as Rust and were rejected by
+Flux. This is a conditional proof for the checked operations, not all fd_read.
+
+Review artifacts:
 
 - [WAVE policy correspondence](POLICY.md): literal policies, selected adaptations,
   proved pieces and open obligations.
@@ -19,11 +28,13 @@ passed: 7 checked functions (including the shared production range helper),
 0 locally trusted/ignored functions, 26 constraints, 3 model runtime tests, and
 5 rejected unsound models. Its abstract identity labels are not authenticated
 Wasmtime allocations. Its read/copy functions only record footprints and do
-not execute an OS read or a memory copy. The concrete binding gate is still open.
+not execute an OS read or a memory copy. It remains separate from the new
+actual-buffer implementation; whole-caller memory binding is still open.
 
 Imagine guest memory as a row of boxes. A guest asks the host to fill some
 boxes. Before touching them, the host must check that every requested box
-belongs to that row. This experiment connects Flux to that arithmetic check.
+belongs to that row. The production policy now carries the real buffer pointer
+and checks the memory operations that consume its permits.
 
 WASI Preview 1 is the older interface where guests pass memory addresses and
 lengths directly. Preview 2 uses the Component Model and typed interfaces.
@@ -85,6 +96,7 @@ rustc --edition=2024 --test verification/flux/bounds.rs -o /tmp/wiggle-bounds-te
 bash verification/flux/install.sh
 python3 verification/flux/check.py
 python3 verification/flux/check_effects.py
+python3 verification/flux/check_production.py
 python3 verification/flux/inventory.py --check
 ```
 
@@ -94,7 +106,9 @@ remaining-space check, and refusing valid requests. Each must produce a Flux
 verification diagnostic; syntax errors or missing tools do not count.
 
 The fork-only `.github/workflows/flux-bounds.yml` runs those checks on pushes to
-`flux/**` branches. Its compiler compatibility check runs before Flux builds.
+`flux/**` branches. Its independent `proofs` and `integration` jobs distinguish
+universal contract checking from compilation, execution regressions and generated
+binding capture.
 
 ## Evidence and limits
 
@@ -120,12 +134,12 @@ The harness explicitly imports `flux_core` to load its standard-library
 specifications. The cached checker was restored successfully in the passing
 run. Documentation-only updates do not trigger another verification run.
 
-This does not prove all of `fd_read`. The intended first proof is only byte-range
-arithmetic. Remaining work includes element counts, alignment, guest-memory
-identity, allocation lifetime, unsafe slice and copy bridges, iovec selection,
-actual OS writes, short reads, errors, worker-buffer copy-back, and the generated
-`nread` output store. Shared-memory concurrency, guest threads, and Preview 2/3
-transfers need separate treatment.
+The above records the original arithmetic checkpoint. The newer production
+port also checks actual pointer formation and byte-copy consumers, plus bounded
+read calls against the trusted adapter. Whole `fd_read` remains unproved:
+caller memory selection, unsafe guest-slice construction, metadata loads,
+generated stores and asynchronous composition remain open. See
+[the current scope](MEMORY_ISOLATION.md) and [trust ledger](TRUST.md).
 
 The proof relies on Flux, its standard-library specifications, its compiler
 model, fixpoint, and Z3. Importing the same source prevents a proof-only copy

@@ -1,7 +1,8 @@
 # fd_read: source map and proof obligations
 
 Source baseline: Wasmtime `7f3dc0a6aed721b6f72a1cc5e6107a548d2bca17`.
-Production files have not changed in the policy experiment. The machine-readable
+The subsequent production memory port changes backend reads and byte copy-back
+as described below. The machine-readable
 [inventory](inventory.json) contains checked anchors, line numbers and normalized
 source hashes. Rebuild with `python3 verification/flux/inventory.py`; verify
 without changing it with `python3 verification/flux/inventory.py --check`.
@@ -74,20 +75,24 @@ a handle is not sufficient to establish that an already running blocking task
 has stopped. The future proof must establish that the worker owns everything
 it may still use, and holds no escaping guest borrow.
 
-`GuestMemory::copy_from_slice` validates length agreement and, for nonempty
-copies, typed destination bounds/alignment before its raw `ptr::copy`. The
-shared-memory branch has additional audit concerns and is excluded here.
-The zero-length copy returns without destination validation and has no copy
-effect. Capacity, initialization, raw-pointer provenance, and the scratch-memory
-policy remain B02/B06 rather than checked facts.
+`GuestMemory::copy_from_bytes` now validates length agreement and obtains the
+unshared destination slice before delegating to the Flux-checked
+`memory_policy::copy_bytes`. That consumer constructs a real-pointer write
+permit and performs the actual bounded `ptr::copy`. Its source is a valid
+initialized Rust byte slice. The GuestMemory method and incoming unsafe slice
+bridge remain unproved. Shared memory falls back to the existing generic
+`copy_from_slice` and is excluded. Zero-length copy still returns before
+destination validation and has no copy effect. Scratch ownership across
+suspension and complete copy-back composition remain B02/B06/B07.
 
 ## External boundary identified in pinned source
 
 For compiler commit `1a2c4797ef2570bd76ca5dee34449169bc7dc457` on
 `x86_64-unknown-linux-gnu`, the inspected chain is:
 
-1. Wasmtime `filesystem/unix.rs::read_at_cursor_unspecified` calls
-   `std::os::unix::fs::FileExt::read_at`.
+1. With `p1`, Wasmtime `filesystem/unix.rs::read_at_cursor_unspecified` now
+   delegates through `wiggle::memory_policy::read_at`, a checked actual-slice
+   permit wrapper. Its one trusted adapter calls `FileExt::read_at`.
 2. The standard library's filesystem implementation delegates to `FileDesc`.
 3. [`FileDesc::read_at`](https://github.com/rust-lang/rust/blob/1a2c4797ef2570bd76ca5dee34449169bc7dc457/library/std/src/sys/fd/unix.rs#L191)
    calls `libc::pread64(fd, destination, min(capacity, READ_LIMIT), offset)` and
@@ -99,7 +104,7 @@ not a substitute for pinning the precompiled Rust standard library's internals.
 This source trace identifies the boundary where a narrow contract belongs;
 it does not constitute a proof of the syscall contract or its deployed binding.
 
-Proposed contract requirements for that boundary:
+The adapter's external contract requirements are:
 
 - Descriptor is live and authorized under the context invariant.
 - All possible destination writes fit the supplied writable allocation on
@@ -108,7 +113,10 @@ Proposed contract requirements for that boundary:
 - Any source bytes subsequently read/copied are initialized.
 - Other allocations and policy state are framed appropriately.
 
-No contract asserting the entire fd_read hostcall safe has been introduced.
+Pointer-capacity preconditions and success count are in its Flux signature.
+Kernel write footprint/framing are documented semantic assumptions; the kernel
+body is not checked. Descriptor authorization is not established by that
+signature. No contract asserting the entire fd_read hostcall safe is introduced.
 
 ## Completion, errors, aliases and generated stores
 
@@ -140,7 +148,9 @@ effects with mismatched labels or invalid ranges cannot enter its safe trace.
 It records a file-read write footprint and a same-guest read/write copy pair.
 It executes neither operation and supplies no scratch-buffer proof.
 
-Next required gate: construct non-forgeable witnesses from the actual borrowed
-Wasmtime memory, couple a narrow read/copy operation to its exact effect, and
-prove that operation's real caller and its error paths preserve the selected
-policy. All node statuses except the arithmetic helper remain unproved.
+The new [production port](MEMORY_ISOLATION.md) constructs permits from actual
+borrowed slices and checks the real copy and bounded adapter calls. This is
+separate from the abstract trace. The remaining gate is proving that these are
+the correct calling guest's slices and composing every caller, error path,
+metadata access and result store. Only the identified module nodes and arithmetic
+helper are marked checked; the complete hostcall remains unproved.

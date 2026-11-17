@@ -755,6 +755,16 @@
     "run": "https://github.com/sji005/wasmtime/actions/runs/43987832550",
     "source_sha256": "4692ba10d0c4187968e69045f494e025e5f8c97eb2007b9d4e37edac9b4976e0"
   },
+  "production_memory_evidence": {
+    "run": "https://github.com/sji005/wasmtime/actions/runs/44004096275",
+    "code_revision": "64bcdbe1ff60200bfe16d0872a3baeb4abd61d49",
+    "source_sha256": "b83545ee77aa6734d9abe91bc0eda5f26c53259abd9f02abd9621ae4b897eddf",
+    "functions_checked": 11,
+    "functions_trusted": 1,
+    "constraints_solved": 38,
+    "negative_mutations_rejected": 5,
+    "claim": "Checked module operations relative to supplied valid slices and external specs; no whole-hostcall proof"
+  },
   "expanded_binding_evidence": {
     "run": "https://github.com/sji005/wasmtime/actions/runs/43993427124",
     "code_revision": "14321e36f1f27e289d88f970003706d478460542",
@@ -881,7 +891,7 @@
         },
         "branch": "range_validation",
         "effects": [],
-        "obligation": "Only the byte-range arithmetic is already checked by Flux.",
+        "obligation": "Production byte-range arithmetic checked by Flux.",
         "proof_status": "proved_arithmetic_only"
       },
       {
@@ -892,12 +902,77 @@
           "anchor": "pub(crate) fn read_at_cursor_unspecified("
         },
         "branch": "file_direct_and_worker",
-        "effects": [
-          "MemWrite(destination capacity)",
-          "FdAccess(file)"
-        ],
-        "obligation": "Trusted-boundary contract still to implement; connect FileExt::read_at to the pinned standard library.",
+        "effects": [],
+        "obligation": "With p1 delegates to checked memory_policy::read_at; outer delegate/caller not yet checked.",
         "proof_status": "unproved"
+      },
+      {
+        "id": "policy_root",
+        "source": {
+          "path": "crates/wiggle/src/memory_policy.rs",
+          "line": 68,
+          "anchor": "pub fn new(memory:"
+        },
+        "branch": "actual_borrowed_region",
+        "effects": [],
+        "obligation": "Capture actual slice pointer and extent; Rust borrow rules and Flux pointer specs trusted. Calling guest selection remains open.",
+        "proof_status": "checked_relative_to_supplied_valid_slice"
+      },
+      {
+        "id": "policy_write",
+        "source": {
+          "path": "crates/wiggle/src/memory_policy.rs",
+          "line": 95,
+          "anchor": "pub fn write(&mut self,"
+        },
+        "branch": "actual_borrowed_region",
+        "effects": [],
+        "obligation": "Validate range, form exact real pointer and retain region extent and exclusive borrow.",
+        "proof_status": "checked_relative_to_supplied_valid_slice"
+      },
+      {
+        "id": "policy_copy",
+        "source": {
+          "path": "crates/wiggle/src/memory_policy.rs",
+          "line": 155,
+          "anchor": "pub fn copy_bytes("
+        },
+        "branch": "unshared_copy_back",
+        "effects": [
+          "MemRead(source slice)",
+          "MemWrite(destination slice)"
+        ],
+        "obligation": "Checked permit consumer performs real ptr::copy using Flux external copy specification.",
+        "proof_status": "checked_relative_to_supplied_valid_slice"
+      },
+      {
+        "id": "policy_read",
+        "source": {
+          "path": "crates/wiggle/src/memory_policy.rs",
+          "line": 168,
+          "anchor": "pub fn read_at(\n"
+        },
+        "branch": "file_direct_and_worker",
+        "effects": [
+          "MemWrite(destination capacity, external OS assumption)"
+        ],
+        "obligation": "Checked construction and consumption of actual-slice permit; success count bounded by capacity under trusted adapter contract.",
+        "proof_status": "checked_relative_to_supplied_valid_slice"
+      },
+      {
+        "id": "os_read_adapter",
+        "source": {
+          "path": "crates/wiggle/src/memory_policy.rs",
+          "line": 190,
+          "anchor": "unsafe fn os_read_at("
+        },
+        "branch": "unix_file_read",
+        "effects": [
+          "MemWrite(destination capacity, assumed)",
+          "FdAccess(file, authorization unproved)"
+        ],
+        "obligation": "One trusted body: raw slice/std/libc/kernel; signature checks pointer capacity and success count. Write footprint/framing externally assumed, not proved heap effects.",
+        "proof_status": "trusted_external_contract"
       },
       {
         "id": "worker_dispatch",
@@ -941,15 +1016,27 @@
         "id": "copy_back",
         "source": {
           "path": "crates/wiggle/src/lib.rs",
+          "line": 247,
+          "anchor": "pub fn copy_from_bytes("
+        },
+        "branch": "file_worker_and_stdin",
+        "effects": [],
+        "obligation": "Unproved outer method validates sizes; unshared destination delegates to checked policy copy. Empty copy returns early.",
+        "proof_status": "unproved"
+      },
+      {
+        "id": "shared_copy",
+        "source": {
+          "path": "crates/wiggle/src/lib.rs",
           "line": 213,
           "anchor": "pub fn copy_from_slice<T>("
         },
-        "branch": "file_worker_and_stdin",
+        "branch": "shared_memory_excluded",
         "effects": [
-          "MemRead(owned source)",
-          "MemWrite(guest destination)"
+          "MemRead(source)",
+          "MemWrite(shared destination)"
         ],
-        "obligation": "Validate sizes and destination; audit ptr::copy bridge; empty-copy behavior differs from unconditional validation.",
+        "obligation": "Legacy generic-copy fallback remains outside initial unshared-memory proof profile.",
         "proof_status": "unproved"
       },
       {
@@ -959,7 +1046,7 @@
           "line": 302,
           "anchor": "pub(crate) fn validate_size_align_mut<T>("
         },
-        "branch": "copy_back_and_generated_store",
+        "branch": "shared_copy_and_generated_store",
         "effects": [],
         "obligation": "Checked element-size multiplication, conversion, range, alignment, and Ranges borrow.",
         "proof_status": "unproved"
@@ -1070,9 +1157,59 @@
         "worker success; truncate Vec and form prefix iov"
       ],
       [
+        "file_backend",
+        "policy_read",
+        "p1 actual read destination"
+      ],
+      [
+        "policy_read",
+        "policy_root",
+        "capture actual destination borrow"
+      ],
+      [
+        "policy_read",
+        "policy_write",
+        "whole destination permit"
+      ],
+      [
+        "policy_write",
+        "range_arithmetic",
+        "start/count validation"
+      ],
+      [
+        "policy_read",
+        "os_read_adapter",
+        "WriteAccess::read_at passes bounded pointer/count"
+      ],
+      [
         "copy_back",
+        "guest_destination",
+        "nonempty unshared destination"
+      ],
+      [
+        "copy_back",
+        "policy_copy",
+        "nonempty unshared byte copy"
+      ],
+      [
+        "policy_copy",
+        "policy_root",
+        "capture actual destination borrow"
+      ],
+      [
+        "policy_copy",
+        "policy_write",
+        "whole destination permit"
+      ],
+      [
+        "copy_back",
+        "shared_copy",
+        "shared-memory fallback, excluded"
+      ],
+      [
+        "shared_copy",
         "typed_destination",
-        "nonempty copied output"
+        "legacy generic destination"
       ],
       [
         "typed_destination",
@@ -1098,7 +1235,7 @@
     "external_chain": [
       {
         "layer": "Wasmtime",
-        "operation": "read_at_cursor_unspecified -> FileExt::read_at"
+        "operation": "read_at_cursor_unspecified -> memory_policy::read_at -> trusted os_read_at -> FileExt::read_at"
       },
       {
         "layer": "pinned Rust std",
@@ -1115,7 +1252,7 @@
       {
         "layer": "libc / Linux",
         "operation": "pread64 wrapper and kernel boundary",
-        "status": "contract and deployed glibc binding not verified"
+        "status": "bounded adapter contract assumed; deployed glibc/kernel implementation not verified"
       }
     ],
     "excluded_or_unresolved": [
@@ -1144,6 +1281,7 @@
     "crates/wiggle/src/bounds.rs": "4692ba10d0c4187968e69045f494e025e5f8c97eb2007b9d4e37edac9b4976e0",
     "crates/wiggle/src/guest_type.rs": "5d6532a5a1827bb02502a64db41ae609c34d4fb8c390cb63605b265d3032488f",
     "crates/wiggle/src/lib.rs": "16938cc29c1f7f8274bf163bd548d4eaf579d7b18caa0896d023600aa994e044",
+    "crates/wiggle/src/memory_policy.rs": "b83545ee77aa6734d9abe91bc0eda5f26c53259abd9f02abd9621ae4b897eddf",
     "verification/flux/evidence/fd-read/evidence.json": "1492948b6fea941d7a15460fcbe9a5c460143e3a52e2c332272ce0002eaad607",
     "verification/flux/evidence/fd-read/fd-read-glue.rs": "5a5a017cb12bbed33fd785dedeaac0afadd57354bd73df5416e9a95dd164f2c6"
   }

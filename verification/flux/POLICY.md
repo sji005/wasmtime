@@ -11,8 +11,8 @@ The code and printed paper can differ; the distinctions below are intentional.
 
 | Effect | Original WAVE predicate | Selected Wasmtime interpretation | Evidence / outstanding obligation |
 | --- | --- | --- | --- |
-| MemRead | Initialized linear memory; address at or above its base; strict upper endpoint; no address arithmetic wrap | Calling guest's live allocation; half-open byte range with exclusive end no larger than memory length; initialized readable bytes | Production offset arithmetic proved. Abstract label and trace checks proved in the model. Actual base/provenance/instance binding and primitive read bridge remain open. |
-| MemWrite | Same spatial constraints | Calling guest's live writable allocation; half-open range and no wrap | Same limitations; OS writes and generated stores must be covered independently. |
+| MemRead | Initialized linear memory; address at or above its base; strict upper endpoint; no address arithmetic wrap | Calling guest's live allocation; half-open byte range with exclusive end no larger than memory length; initialized readable bytes | Production borrowed-region permits and real byte-copy calls checked. Slice/pointer specs and Rust borrowing supply validity. Calling-instance binding and primitive metadata loads remain open. |
+| MemWrite | Same spatial constraints | Calling guest's live writable allocation; half-open range and no wrap | Production byte-copy and bounded OS-adapter calls checked; OS write footprint externally assumed. Generated stores and whole-caller binding remain open. |
 | PathAccessAt | Correct root dirfd; relative path; no escaping prefix depth; safely resolved symlinks according to terminal-follow flag | Initially one exclusively provisioned root; verify Wasmtime's descriptor-based fast path and manual fallback | Policy specified only. Prefix-string checks and a model-only path witness are insufficient. |
 | SockCreation | Implementation checks AF_INET and SOCK_STREAM or SOCK_DGRAM | Start with IPv4 outgoing TCP/UDP; constrain protocol selection at actual socket creation | Not implemented. The source predicate does not separately constrain a protocol field; any stronger protocol restriction must be documented. |
 | NetAccess / NetConnect | Address/port belongs to the sandbox's unchanged allow-list | Concrete immutable endpoint allow-list; authorize actual point of use, including UDP alternate destinations | Not implemented. Arbitrary Wasmtime address-check callbacks are not automatically equivalent to this policy. |
@@ -31,8 +31,11 @@ same inputs. An empty range beyond M remains rejected by the range helper.
 
 Absolute host pointer formation additionally needs an actual valid allocation,
 base/provenance, lifetime, and nonwrapping address-space extent. The current
-offset-arithmetic proof does not establish these facts. A raw integer owner or
-memory label does not establish them either.
+offset-arithmetic proof alone does not establish these facts. The new production
+module captures an actual borrowed slice pointer and extent, and retains its
+borrow in access permits. It relies on Rust validity/borrowing and Flux's pointer
+specifications. Selecting the correct guest allocation and the upstream unsafe
+slice bridge still require proof. A raw integer owner label cannot replace them.
 
 Wiggle's existing empty `copy_from_slice` path returns before destination
 validation when the lengths agree. It has no copy effect. Do not impose the
@@ -42,9 +45,11 @@ range helper's acceptance rule as a functional specification of that whole API.
 
 The worker branch of fd_read legitimately writes to an owned host Vec before
 copying back. A guest-only memory predicate cannot authorize that operation.
-The eventual extension must certify a particular owned allocation, its capacity,
-initialized readable prefix, and lifetime. The effect model in this package
-does not encode scratch allocations or prove worker copy-back.
+The production policy now confines the read to the actual borrowed scratch
+slice and checks the real byte-copy consumer. Its safe slice inputs provide
+initialized readable bytes. Worker allocation, truncation and ownership across
+await are not yet composed into a hostcall proof. The detached effect model
+still does not encode scratch allocations.
 
 Only safe effects belonging to one supplied abstract owner, allocation label,
 and extent can enter a model trace. Copy effects currently describe two ranges
@@ -83,7 +88,8 @@ removed allocation validation, bypassed range validation, unconstrained trace
 append, and appending an effect to a foreign trace.
 
 Result: the basic refined-effect/trace representation works with the pinned
-Flux. The concrete binding gate remains OPEN: prove non-forgeable association
-with actual Wasmtime memory and the complete effectful operation before
-claiming a production read/copy policy proof. A second required gate is proving
-that every relevant real operation emits the modeled effect. See TRUST.md.
+Flux. The subsequent [production port](MEMORY_ISOLATION.md) checks borrowed
+actual-buffer permits, real copies and calls to a narrow trusted read adapter.
+The full calling-guest binding and complete-hostcall gates remain OPEN, as does
+trace completeness. The production port does not use the abstract trace to
+claim whole-program operation coverage. See TRUST.md.
