@@ -3,6 +3,7 @@
 
 import os
 import json
+import re
 from pathlib import Path
 import subprocess
 import tempfile
@@ -21,7 +22,7 @@ def main():
     env = dict(os.environ, RUSTUP_TOOLCHAIN=TOOLCHAIN)
     with tempfile.TemporaryDirectory(prefix="wiggle-flux-") as directory:
         output = Path(directory)
-        flags = ["--edition=2024", "--crate-type=lib", "--out-dir", str(output)]
+        flags = ["--edition=2024", "--crate-type=lib", "--color=never", "--out-dir", str(output)]
         proof_flags = ["--cfg", "flux", "-Fcheck-overflow=strict", "-Fallow-raw-deref=none"]
         run(["rustc", *flags, str(ROOT / "verification/flux/bounds.rs")], env=env, check=True)
         run(["flux", *flags, *proof_flags, str(ROOT / "verification/flux/bounds.rs")], env=env, check=True)
@@ -47,10 +48,15 @@ def main():
             result = run(["flux", *flags, *proof_flags, str(mutant_harness)], env=env, capture_output=True)
             log = result.stdout + result.stderr
             print(log, flush=True)
-            if result.returncode == 0 or "error[FLUX]" not in log:
+            # This pinned Flux revision uses rustc's E0999 diagnostic code.
+            # Require an actual refinement/arithmetic failure, not a setup,
+            # parsing, tool, or solver error that happens to exit nonzero.
+            proof_error = re.search(
+                r"error\[E0999\]: (refinement type error|arithmetic operation may (over|under)flow)",
+                log,
+            )
+            if result.returncode == 0 or proof_error is None:
                 raise RuntimeError(f"{name}: expected a Flux verification error")
-            if not any(message in log.lower() for message in ("refinement type", "postcondition", "overflow", "underflow")):
-                raise RuntimeError(f"{name}: failed without a recognized proof diagnostic")
             print(f"PASS: Flux rejected {name}", flush=True)
 
 
