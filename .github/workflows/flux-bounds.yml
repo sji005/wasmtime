@@ -39,9 +39,11 @@ jobs:
           rustc --version --verbose
       - name: Check formatting and run production helper tests
         run: |
-          rustfmt --edition 2024 --check crates/wiggle/src/bounds.rs verification/flux/bounds.rs
+          rustfmt --edition 2024 --check crates/wiggle/src/bounds.rs verification/flux/bounds.rs verification/flux/effect_policy.rs
           rustc --edition=2024 --test verification/flux/bounds.rs -o "$RUNNER_TEMP/wiggle-bounds-tests"
           "$RUNNER_TEMP/wiggle-bounds-tests"
+          rustc --edition=2024 --test verification/flux/effect_policy.rs -o "$RUNNER_TEMP/wiggle-effect-tests"
+          "$RUNNER_TEMP/wiggle-effect-tests"
       - name: Check Wiggle with the Flux compiler version
         run: cargo check --locked -p wiggle --all-features
       - name: Test guest memory access through Wiggle
@@ -73,3 +75,5 @@ jobs:
           key: ${{ steps.flux-cache.outputs.cache-primary-key }}
       - name: Prove production helper and reject broken versions
         run: python3 verification/flux/check.py
+      - name: Check effect-policy encoding and reject unsafe models
+        run: python3 verification/flux/check_effects.py
