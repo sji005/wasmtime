@@ -87,3 +87,13 @@ jobs:
         run: python3 verification/flux/check.py
       - name: Check effect-policy encoding and reject unsafe models
         run: python3 verification/flux/check_effects.py
+      - name: Capture actual expanded fd_read ABI binding
+        run: |
+          cargo rustc --locked -p wasmtime-wasi --no-default-features --features p1 --lib -- -Zunpretty=expanded > "$RUNNER_TEMP/wasi-expanded.rs"
+          python3 verification/flux/capture_glue.py "$RUNNER_TEMP/wasi-expanded.rs" --output-dir "$RUNNER_TEMP/fd-read-glue"
+      - name: Save expanded binding evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: fd-read-glue
+          path: ${{ runner.temp }}/fd-read-glue
+          if-no-files-found: error
