@@ -245,6 +245,8 @@ unused_macro_rules = 'warn'
 [workspace.lints.rust.unexpected_cfgs]
 level = "warn"
 check-cfg = [
+  # Used only by the standalone Wiggle bounds verification harness.
+  'cfg(flux)',
   'cfg(pulley_tail_calls)',
   'cfg(pulley_assume_llvm_makes_tail_calls)',
   'cfg(pulley_disable_interp_simd)',

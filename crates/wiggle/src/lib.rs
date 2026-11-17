@@ -16,6 +16,7 @@ pub use bitflags;
 #[cfg(feature = "wiggle_metadata")]
 pub use witx;
 
+mod bounds;
 mod guest_error;
 mod guest_type;
 mod region;
@@ -291,12 +292,10 @@ impl<'a> GuestMemory<'a> {
                         .ok_or(GuestError::PtrOverflow)?;
                     let region = Region { start: offset, len };
                     let start = usize::try_from(offset)?;
-                    let end = start
-                        .checked_add(usize::try_from(len)?)
-                        .ok_or(GuestError::PtrOverflow)?;
-                    if end > memory.len() {
-                        return Err(GuestError::PtrOutOfBounds(region));
-                    }
+                    let len = usize::try_from(len)?;
+                    start.checked_add(len).ok_or(GuestError::PtrOverflow)?;
+                    let end = bounds::checked_range_end(start, len, memory.len())
+                        .ok_or(GuestError::PtrOutOfBounds(region))?;
                     start..end
                 };
                 let s: &mut [u8] = memory
@@ -349,18 +348,20 @@ impl<'a> GuestMemory<'a> {
         let offset = usize::try_from(offset)?;
         let byte_len = usize::try_from(byte_len)?;
 
-        let range = offset..offset + byte_len;
-        let oob = match self {
-            GuestMemory::Unshared(b) => b.get(range.clone()).is_none(),
-            GuestMemory::Shared(b) => b.get(range.clone()).is_none(),
+        let memory_len = match self {
+            GuestMemory::Unshared(b) => b.len(),
+            GuestMemory::Shared(b) => b.len(),
             #[cfg(feature = "wasmtime")]
-            GuestMemory::Ranges(memory) => range.end > memory.len(),
+            GuestMemory::Ranges(memory) => memory.len(),
         };
-        if oob {
-            Err(GuestError::PtrOutOfBounds(region))
-        } else {
-            Ok(range)
-        }
+        // Preserve the distinction between host pointer overflow and a range
+        // outside this memory, including on 32-bit hosts.
+        offset
+            .checked_add(byte_len)
+            .ok_or(GuestError::PtrOverflow)?;
+        let end = bounds::checked_range_end(offset, byte_len, memory_len)
+            .ok_or(GuestError::PtrOutOfBounds(region))?;
+        Ok(offset..end)
     }
 
     /// Returns whether this is a shared memory or not.

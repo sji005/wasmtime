@@ -1,0 +1,50 @@
+name: Flux bounds verification
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['flux/**']
+    paths:
+      - 'crates/wiggle/**'
+      - 'verification/flux/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.github/workflows/flux-bounds.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  bounds:
+    if: github.repository == 'sji005/wasmtime'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      CARGO_INCREMENTAL: '0'
+      CARGO_PROFILE_DEV_DEBUG: '0'
+      CARGO_PROFILE_TEST_DEBUG: '0'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - name: Install pinned Rust compiler
+        run: |
+          rustup toolchain install nightly-2026-10-22 --profile minimal --component rustfmt
+          rustup default nightly-2026-10-22
+          rustc --version --verbose
+      - name: Check formatting and run production helper tests
+        run: |
+          rustfmt --edition 2024 --check crates/wiggle/src/bounds.rs verification/flux/bounds.rs
+          rustc --edition=2024 --test verification/flux/bounds.rs -o "$RUNNER_TEMP/wiggle-bounds-tests"
+          "$RUNNER_TEMP/wiggle-bounds-tests"
+      - name: Check Wiggle with the Flux compiler version
+        run: cargo check --locked -p wiggle --all-features
+      - name: Test guest memory access through Wiggle
+        run: cargo test --locked -p wiggle --test bounds
+      - name: Install pinned Flux and solvers
+        run: bash verification/flux/install.sh
+      - name: Prove production helper and reject broken versions
+        run: python3 verification/flux/check.py
