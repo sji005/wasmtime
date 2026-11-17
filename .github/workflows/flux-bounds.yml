@@ -6,9 +6,17 @@ on:
     branches: ['flux/**']
     paths:
       - 'crates/wiggle/**'
+      - 'crates/wasi/src/p1.rs'
+      - 'crates/wasi/Cargo.toml'
+      - 'crates/wasi/src/filesystem.rs'
+      - 'crates/wasi/src/filesystem/unix.rs'
+      - 'crates/wasi/src/runtime.rs'
+      - 'crates/wasi/witx/p1/wasi_snapshot_preview1.witx'
+      - 'crates/wasi/witx/p1/typenames.witx'
       - 'verification/flux/*.rs'
       - 'verification/flux/*.py'
       - 'verification/flux/*.sh'
+      - 'verification/flux/inventory.json'
       - 'Cargo.toml'
       - 'Cargo.lock'
       - '.github/workflows/flux-bounds.yml'
@@ -32,6 +40,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           submodules: recursive
+      - name: Check P1 export accounting and call-site inventory
+        run: python3 verification/flux/inventory.py --check
       - name: Install pinned Rust compiler
         run: |
           rustup toolchain install nightly-2026-10-22 --profile minimal --component rustfmt --component rust-src --component rustc-dev --component llvm-tools

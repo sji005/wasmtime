@@ -1,4 +1,22 @@
-# First Flux integration: Wiggle byte ranges
+# Flux integration and WAVE policy experiments
+
+The first checkpoint proves a production byte-range helper. The next package
+adds a checked effect-policy MODEL and review artifacts:
+
+- [WAVE policy correspondence](POLICY.md): literal policies, selected adaptations,
+  proved pieces and open obligations.
+- [fd_read source map](FD_READ.md): direct/worker paths, generated stores,
+  standard-library boundary, errors and cancellation.
+- [Machine-readable inventory](inventory.json): all 46 P1 exports accounted for,
+  partial fd_read graph, source anchors and hashes. No hostcall is marked proved.
+- [Trust ledger](TRUST.md): external specifications and concrete binding gaps.
+
+The [effect experiment](https://github.com/sji005/wasmtime/actions/runs/43991159857)
+passed: 7 checked functions (including the shared production range helper),
+0 locally trusted/ignored functions, 26 constraints, 3 model runtime tests, and
+5 rejected unsound models. Its abstract identity labels are not authenticated
+Wasmtime allocations. Its read/copy functions only record footprints and do
+not execute an OS read or a memory copy. The concrete binding gate is still open.
 
 Imagine guest memory as a row of boxes. A guest asks the host to fill some
 boxes. Before touching them, the host must check that every requested box
@@ -63,6 +81,8 @@ rustc --edition=2024 --test verification/flux/bounds.rs -o /tmp/wiggle-bounds-te
 /tmp/wiggle-bounds-tests
 bash verification/flux/install.sh
 python3 verification/flux/check.py
+python3 verification/flux/check_effects.py
+python3 verification/flux/inventory.py --check
 ```
 
 The proof runner first checks the actual implementation. It then compiles and

@@ -1,0 +1,1135 @@
+{
+  "schema_version": 1,
+  "claim": "ABI accounting and partial reviewed source graph; not verified hostcall coverage or graph completeness",
+  "pins": {
+    "upstream_wasmtime": "7c83a428028b44e1a73b40aa6a912d6700983624",
+    "integration_baseline": "7f3dc0a6aed721b6f72a1cc5e6107a548d2bca17",
+    "rustc": "1a2c4797ef2570bd76ca5dee34449169bc7dc457",
+    "target": "x86_64-unknown-linux-gnu",
+    "wasi_features": [
+      "p1",
+      "p2"
+    ],
+    "flux": "b68c177c5ace7cb3644fdeea140dc5d18669c6cc"
+  },
+  "export_count": 46,
+  "exports": [
+    {
+      "export": "args_get",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 18
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1190,
+        "anchor": "fn args_get("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "args_sizes_get",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 24
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1214,
+        "anchor": "fn args_sizes_get("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "environ_get",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 33
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1234,
+        "anchor": "fn environ_get("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "environ_sizes_get",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 39
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1263,
+        "anchor": "fn environ_sizes_get("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "clock_res_get",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 49
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1282,
+        "anchor": "fn clock_res_get("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "clock_time_get",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 57
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1303,
+        "anchor": "fn clock_time_get("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "fd_advise",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 68
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1325,
+        "anchor": "fn fd_advise("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "fd_allocate",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 81
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1343,
+        "anchor": "fn fd_allocate("
+      },
+      "initial_scope": "excluded_unsupported",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "Unsupported operation in this revision."
+    },
+    {
+      "export": "fd_close",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 92
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1357,
+        "anchor": "fn fd_close("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "fd_datasync",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 99
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1391,
+        "anchor": "fn fd_datasync("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "fd_fdstat_get",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 106
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1404,
+        "anchor": "fn fd_fdstat_get("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "fd_fdstat_set_flags",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 114
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1527,
+        "anchor": "fn fd_fdstat_set_flags("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "fd_fdstat_set_rights",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 123
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1554,
+        "anchor": "fn fd_fdstat_set_rights("
+      },
+      "initial_scope": "excluded_unsupported",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "Unsupported operation in this revision."
+    },
+    {
+      "export": "fd_filestat_get",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 132
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1567,
+        "anchor": "fn fd_filestat_get("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "fd_filestat_set_size",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 140
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1624,
+        "anchor": "fn fd_filestat_set_size("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "fd_filestat_set_times",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 149
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1638,
+        "anchor": "fn fd_filestat_set_times("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "fd_pread",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 162
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1745,
+        "anchor": "fn fd_pread("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "fd_prestat_get",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 173
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1815,
+        "anchor": "fn fd_prestat_get("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "fd_prestat_dir_name",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 180
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1833,
+        "anchor": "fn fd_prestat_dir_name("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "fd_pwrite",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 190
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1802,
+        "anchor": "fn fd_pwrite("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "fd_read",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 202
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1665,
+        "anchor": "fn fd_read("
+      },
+      "initial_scope": "ordinary_file_branches_first",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "inspected_partial",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "fd_readdir",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 220
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1948,
+        "anchor": "fn fd_readdir("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "fd_renumber",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 241
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1857,
+        "anchor": "fn fd_renumber("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "fd_seek",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 250
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1889,
+        "anchor": "fn fd_seek("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "fd_sync",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 262
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1922,
+        "anchor": "fn fd_sync("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "fd_tell",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 269
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1935,
+        "anchor": "fn fd_tell("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "fd_write",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 277
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 1790,
+        "anchor": "fn fd_write("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "path_create_directory",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 286
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 2038,
+        "anchor": "fn path_create_directory("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "path_filestat_get",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 295
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 2055,
+        "anchor": "fn path_filestat_get("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "path_filestat_set_times",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 307
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 2102,
+        "anchor": "fn path_filestat_set_times("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "path_link",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 324
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 2134,
+        "anchor": "fn path_link("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "path_open",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 346
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 2156,
+        "anchor": "fn path_open("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "path_readlink",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 372
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 2217,
+        "anchor": "fn path_readlink("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "path_remove_directory",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 386
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 2242,
+        "anchor": "fn path_remove_directory("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "path_rename",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 395
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 2257,
+        "anchor": "fn path_rename("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "path_symlink",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 408
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 2276,
+        "anchor": "fn path_symlink("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "path_unlink_file",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 421
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 2293,
+        "anchor": "fn path_unlink_file("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "poll_oneoff",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 429
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 2308,
+        "anchor": "fn poll_oneoff("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "proc_exit",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 443
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 2615,
+        "anchor": "fn proc_exit("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "proc_raise",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 451
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 2628,
+        "anchor": "fn proc_raise("
+      },
+      "initial_scope": "excluded_unsupported",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "Unsupported operation in this revision."
+    },
+    {
+      "export": "sched_yield",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 459
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 2637,
+        "anchor": "fn sched_yield("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "random_get",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 469
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 2643,
+        "anchor": "fn random_get("
+      },
+      "initial_scope": "deferred",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "No resolved syscall graph or hostcall proof yet."
+    },
+    {
+      "export": "sock_accept",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 478
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 2660,
+        "anchor": "fn sock_accept("
+      },
+      "initial_scope": "excluded_p1_socket_stub",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "Error stub; working networking is in P2/P3."
+    },
+    {
+      "export": "sock_recv",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 490
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 2672,
+        "anchor": "fn sock_recv("
+      },
+      "initial_scope": "excluded_p1_socket_stub",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "Error stub; working networking is in P2/P3."
+    },
+    {
+      "export": "sock_send",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 503
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 2685,
+        "anchor": "fn sock_send("
+      },
+      "initial_scope": "excluded_p1_socket_stub",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "Error stub; working networking is in P2/P3."
+    },
+    {
+      "export": "sock_shutdown",
+      "witx": {
+        "path": "crates/wasi/witx/p1/wasi_snapshot_preview1.witx",
+        "line": 515
+      },
+      "implementation": {
+        "path": "crates/wasi/src/p1.rs",
+        "line": 2698,
+        "anchor": "fn sock_shutdown("
+      },
+      "initial_scope": "excluded_p1_socket_stub",
+      "proof_status": "unproved_hostcall",
+      "effect_graph_status": "unresolved",
+      "note": "Error stub; working networking is in P2/P3."
+    }
+  ],
+  "arithmetic_evidence": {
+    "run": "https://github.com/sji005/wasmtime/actions/runs/43987832550",
+    "source_sha256": "4692ba10d0c4187968e69045f494e025e5f8c97eb2007b9d4e37edac9b4976e0"
+  },
+  "fd_read": {
+    "nodes": [
+      {
+        "id": "caller_memory",
+        "source": {
+          "path": "crates/wiggle/generate/src/wasmtime.rs",
+          "line": 118,
+          "anchor": "let export = caller.get_export(\"memory\");"
+        },
+        "branch": "all",
+        "effects": [],
+        "obligation": "Bind the actual memory and context to the calling instance; reject missing export.",
+        "proof_status": "unproved"
+      },
+      {
+        "id": "iovec_selection",
+        "source": {
+          "path": "crates/wasi/src/p1.rs",
+          "line": 203,
+          "anchor": "fn first_non_empty_iovec("
+        },
+        "branch": "all",
+        "effects": [
+          "MemRead(iovec descriptors)"
+        ],
+        "obligation": "Validate each descriptor actually traversed and select the first nonempty entry; do not assume readv over all entries.",
+        "proof_status": "unproved"
+      },
+      {
+        "id": "generated_iovec_record",
+        "source": {
+          "path": "crates/wiggle/generate/src/types/record.rs",
+          "line": 112,
+          "anchor": "fn read(mem: &wiggle::GuestMemory, location:"
+        },
+        "branch": "iovec_metadata",
+        "effects": [
+          "MemRead(buf pointer)",
+          "MemRead(buf_len)"
+        ],
+        "obligation": "Generated record layout and field-offset checked addition; capture actual expansion.",
+        "proof_status": "unproved"
+      },
+      {
+        "id": "guest_scalar_read",
+        "source": {
+          "path": "crates/wiggle/src/guest_type.rs",
+          "line": 71,
+          "anchor": "fn read(mem: &GuestMemory, ptr: GuestPtr<Self>) -> Result<Self, GuestError> {\n                // Use"
+        },
+        "branch": "iovec_metadata",
+        "effects": [
+          "MemRead(checked scalar)"
+        ],
+        "obligation": "Macro-generated primitive loads: range, alignment, conversion, atomic/unsafe bridge.",
+        "proof_status": "unproved"
+      },
+      {
+        "id": "lazy_context",
+        "source": {
+          "path": "crates/wasi/src/p1.rs",
+          "line": 579,
+          "anchor": "fn transact(&mut self)"
+        },
+        "branch": "uninitialized_adapter",
+        "effects": [
+          "dependency effects unresolved"
+        ],
+        "obligation": "Trace Descriptors::new and initial resource provisioning; first slice assumes an initialized authorized table.",
+        "proof_status": "unproved"
+      },
+      {
+        "id": "descriptor_lookup",
+        "source": {
+          "path": "crates/wasi/src/p1.rs",
+          "line": 502,
+          "anchor": "fn get_descriptor(&self, fd:"
+        },
+        "branch": "all",
+        "effects": [
+          "FdAccess(model only)"
+        ],
+        "obligation": "Establish per-instance mapping, type, rights and handle lifetime.",
+        "proof_status": "unproved"
+      },
+      {
+        "id": "fd_read",
+        "source": {
+          "path": "crates/wasi/src/p1.rs",
+          "line": 1665,
+          "anchor": "async fn fd_read("
+        },
+        "branch": "all",
+        "effects": [],
+        "obligation": "Compose all branches, errors, position state, generated output, and call-site effects.",
+        "proof_status": "unproved"
+      },
+      {
+        "id": "guest_destination",
+        "source": {
+          "path": "crates/wiggle/src/lib.rs",
+          "line": 160,
+          "anchor": "pub fn as_slice_mut("
+        },
+        "branch": "file_direct_or_worker",
+        "effects": [],
+        "obligation": "Tie the returned slice to the validated range and actual live allocation.",
+        "proof_status": "unproved"
+      },
+      {
+        "id": "range_arithmetic",
+        "source": {
+          "path": "crates/wiggle/src/bounds.rs",
+          "line": 14,
+          "anchor": "pub(crate) fn checked_range_end("
+        },
+        "branch": "range_validation",
+        "effects": [],
+        "obligation": "Only the byte-range arithmetic is already checked by Flux.",
+        "proof_status": "proved_arithmetic_only"
+      },
+      {
+        "id": "file_backend",
+        "source": {
+          "path": "crates/wasi/src/filesystem/unix.rs",
+          "line": 98,
+          "anchor": "pub(crate) fn read_at_cursor_unspecified("
+        },
+        "branch": "file_direct_and_worker",
+        "effects": [
+          "MemWrite(destination capacity)",
+          "FdAccess(file)"
+        ],
+        "obligation": "Trusted-boundary contract still to implement; connect FileExt::read_at to the pinned standard library.",
+        "proof_status": "unproved"
+      },
+      {
+        "id": "worker_dispatch",
+        "source": {
+          "path": "crates/wasi/src/filesystem.rs",
+          "line": 734,
+          "anchor": "pub(crate) async fn run_blocking<F, R>(&self, body: F) -> R\n    where\n        F: FnOnce(&std::fs::File) -> R + Send + 'static,\n        R: Send + 'static,\n    {\n        match self.as_blocking_file()"
+        },
+        "branch": "file_worker",
+        "effects": [],
+        "obligation": "Owned Vec and Arc<File> across suspension; this function may execute inline or spawn.",
+        "proof_status": "unproved"
+      },
+      {
+        "id": "worker_spawn",
+        "source": {
+          "path": "crates/wasi/src/filesystem.rs",
+          "line": 745,
+          "anchor": "pub(crate) fn spawn_blocking<F, R>(&self"
+        },
+        "branch": "file_worker",
+        "effects": [],
+        "obligation": "Track cloned file lifetime and owned buffer; no borrowed guest pointer in closure.",
+        "proof_status": "unproved"
+      },
+      {
+        "id": "task_spawn",
+        "source": {
+          "path": "crates/wasi/src/runtime.rs",
+          "line": 95,
+          "anchor": "pub fn spawn_blocking<F, R>(f:"
+        },
+        "branch": "file_worker",
+        "effects": [
+          "scheduler effects outside model"
+        ],
+        "obligation": "Dropping/aborting a handle does not by itself prove a running blocking OS call has stopped.",
+        "proof_status": "unproved"
+      },
+      {
+        "id": "copy_back",
+        "source": {
+          "path": "crates/wiggle/src/lib.rs",
+          "line": 212,
+          "anchor": "pub fn copy_from_slice<T>("
+        },
+        "branch": "file_worker_and_stdin",
+        "effects": [
+          "MemRead(owned source)",
+          "MemWrite(guest destination)"
+        ],
+        "obligation": "Validate sizes and destination; audit ptr::copy bridge; empty-copy behavior differs from unconditional validation.",
+        "proof_status": "unproved"
+      },
+      {
+        "id": "typed_destination",
+        "source": {
+          "path": "crates/wiggle/src/lib.rs",
+          "line": 278,
+          "anchor": "pub(crate) fn validate_size_align_mut<T>("
+        },
+        "branch": "copy_back_and_generated_store",
+        "effects": [],
+        "obligation": "Checked element-size multiplication, conversion, range, alignment, and Ranges borrow.",
+        "proof_status": "unproved"
+      },
+      {
+        "id": "generated_store",
+        "source": {
+          "path": "crates/wiggle/generate/src/funcs.rs",
+          "line": 363,
+          "anchor": "Instruction::Store { ty } =>"
+        },
+        "branch": "successful_return",
+        "effects": [
+          "MemWrite(nread: 4 bytes)"
+        ],
+        "obligation": "Expand actual fd_read glue; validate result pointer, store ordering, aliases and traps.",
+        "proof_status": "unproved"
+      },
+      {
+        "id": "primitive_store",
+        "source": {
+          "path": "crates/wiggle/src/guest_type.rs",
+          "line": 96,
+          "anchor": "fn write(mem: &mut GuestMemory, ptr: GuestPtr<Self>, val: Self) -> Result<(), GuestError> {\n                // See"
+        },
+        "branch": "generated_nread_store",
+        "effects": [
+          "MemWrite(checked scalar)"
+        ],
+        "obligation": "Macro-generated u32 store; atomic cast/store bridge and alignment remain unproved.",
+        "proof_status": "unproved"
+      }
+    ],
+    "edges": [
+      [
+        "caller_memory",
+        "iovec_selection",
+        "generated fd_read ABI dispatch"
+      ],
+      [
+        "iovec_selection",
+        "generated_iovec_record",
+        "each descriptor actually traversed"
+      ],
+      [
+        "generated_iovec_record",
+        "guest_scalar_read",
+        "generated buf and buf_len field loads"
+      ],
+      [
+        "iovec_selection",
+        "lazy_context",
+        "transact; may initialize descriptors"
+      ],
+      [
+        "lazy_context",
+        "descriptor_lookup",
+        "table initialized or reused"
+      ],
+      [
+        "descriptor_lookup",
+        "fd_read",
+        "File / Stdin / Badf branches"
+      ],
+      [
+        "fd_read",
+        "guest_destination",
+        "file branch, including before worker fallback"
+      ],
+      [
+        "guest_destination",
+        "range_arithmetic",
+        "through validate_range"
+      ],
+      [
+        "guest_destination",
+        "file_backend",
+        "direct: blocking permitted and guest slice borrowable"
+      ],
+      [
+        "guest_destination",
+        "worker_dispatch",
+        "fallback: owned zero-initialized Vec"
+      ],
+      [
+        "worker_dispatch",
+        "worker_spawn",
+        "blocking on current thread not permitted"
+      ],
+      [
+        "worker_spawn",
+        "task_spawn",
+        "closure owns buffer and cloned file"
+      ],
+      [
+        "worker_dispatch",
+        "file_backend",
+        "inline or worker closure"
+      ],
+      [
+        "file_backend",
+        "copy_back",
+        "worker success; truncate Vec and form prefix iov"
+      ],
+      [
+        "copy_back",
+        "typed_destination",
+        "nonempty copied output"
+      ],
+      [
+        "typed_destination",
+        "range_arithmetic",
+        "Ranges path or general validate_range"
+      ],
+      [
+        "fd_read",
+        "generated_store",
+        "success after position checked_add/store"
+      ],
+      [
+        "generated_store",
+        "primitive_store",
+        "memory.write::<u32>"
+      ],
+      [
+        "primitive_store",
+        "typed_destination",
+        "validate scalar destination"
+      ]
+    ],
+    "external_chain": [
+      {
+        "layer": "Wasmtime",
+        "operation": "read_at_cursor_unspecified -> FileExt::read_at"
+      },
+      {
+        "layer": "pinned Rust std",
+        "path": "library/std/src/sys/fs/unix.rs",
+        "line": 1496,
+        "operation": "File::read_at -> FileDesc::read_at"
+      },
+      {
+        "layer": "pinned Rust std",
+        "path": "library/std/src/sys/fd/unix.rs",
+        "line": 191,
+        "operation": "libc::pread64(fd, ptr, min(len, READ_LIMIT), offset)"
+      },
+      {
+        "layer": "libc / Linux",
+        "operation": "pread64 wrapper and kernel boundary",
+        "status": "contract and deployed glibc binding not verified"
+      }
+    ],
+    "excluded_or_unresolved": [
+      "stdin/custom HostInputStream dispatch",
+      "lazy initial descriptor provisioning effects",
+      "expanded fd_read glue not yet captured",
+      "transitive scheduler/logging/allocation syscalls",
+      "shared memory",
+      "reentrancy/cancellation proof",
+      "kernel and libc implementation"
+    ]
+  },
+  "source_sha256_lf_utf8": {
+    "Cargo.lock": "f20ab4ac6fbf49b42e2f44dba2246ff6506125727be944679bf8d2d7dc20e701",
+    "Cargo.toml": "341d4709d60551d52a69f10cd5060959c8d4ce4cc8964ffb3917e143600e52fa",
+    "crates/wasi/Cargo.toml": "43dd605c2d4386f0cd9b30e1960246cb96cab17dc50e33c133dd1f758c0e93b4",
+    "crates/wasi/src/filesystem.rs": "59a0dd0965e02e7e11afeab3a9d8ea92fda65a337a90f7eed80ab6bcc550730a",
+    "crates/wasi/src/filesystem/unix.rs": "c4032ed7b80f9b52871df7a5effc70647ff896320502f5dc67642a3052e17fc2",
+    "crates/wasi/src/p1.rs": "c735fc98a6eaa582b4821c54fdb3a69b3d970c0ab8444a4709bb9ce2afd03093",
+    "crates/wasi/src/runtime.rs": "7c7e78e102c7b587797f9cf305bbe4daab4ee5331fccb9fcddd906a15f635619",
+    "crates/wasi/witx/p1/typenames.witx": "838d37c5bb36c55d378eb3ebdd83ef56ef0b6eeec08ffc028647a04a92e30ac0",
+    "crates/wasi/witx/p1/wasi_snapshot_preview1.witx": "7bcedd2dc45f952ffe36266ca59b9e3a55f94e648ed82f6c4864d003b2f260b4",
+    "crates/wiggle/generate/src/funcs.rs": "70fa853f25103a9341d69539d91dff00ce8e1e16ca25b74db9acf5b6ab3ec6cb",
+    "crates/wiggle/generate/src/types/record.rs": "7bffc7c5ea311387821fc0bad4d5d6f1ea37ba2189b0c10216f33a72689a4d0a",
+    "crates/wiggle/generate/src/wasmtime.rs": "321ba0c244565bca845906d96a7e258455d67353da21c5155ecfca42365b64e9",
+    "crates/wiggle/src/bounds.rs": "4692ba10d0c4187968e69045f494e025e5f8c97eb2007b9d4e37edac9b4976e0",
+    "crates/wiggle/src/guest_type.rs": "5d6532a5a1827bb02502a64db41ae609c34d4fb8c390cb63605b265d3032488f",
+    "crates/wiggle/src/lib.rs": "1ad320f88734b76749c530d9af32b33d9484c7c77bf6df02c630a9da73e9f47d"
+  }
+}
