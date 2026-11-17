@@ -82,6 +82,8 @@ Flux proofs, mutation rejection, the complete Wiggle build, and Wiggle's
 integration tests have not yet run. Native Flux needs the Linux environment
 above. GitHub's connector rejected branch creation with a 403, despite reporting
 push permission. No successful remote workflow is claimed here.
+The command-line push also failed because no GitHub credential is saved in this
+Windows account. Changes are committed locally on `flux/wiggle-bounds`.
 
 This does not prove all of `fd_read`. The intended first proof is only byte-range
 arithmetic. Remaining work includes element counts, alignment, guest-memory
