@@ -44,9 +44,11 @@ memory still return `PtrOutOfBounds`. Empty ranges at the end remain valid.
 
 The fixpoint nightly download is mutable. The installer deliberately fails if
 its contents change. Updating that pin requires reviewing the replacement.
-Flux builds from its committed Cargo.lock; the baseline uses Wasmtime's
-existing Cargo.lock with `--locked`. This standalone harness adds no Cargo
-dependencies and does not enable Flux across the full Wasmtime workspace.
+The baseline uses Wasmtime's existing Cargo.lock with `--locked`. Flux uses
+the pinned source and its upstream `cargo xtask install` workflow. The bootstrap
+is not hermetic: upstream wrapper installation can resolve Cargo dependencies.
+This standalone harness adds no Cargo dependencies and does not enable Flux
+across the full Wasmtime workspace.
 
 ## Run on Linux
 
@@ -79,10 +81,21 @@ runner passed both tests: all 55,473 small range combinations and nine
 machine-word boundary cases. Formatting and whitespace checks passed.
 
 SSH authentication works as `sji005`, and the branch is published on the fork.
-The Linux workflow passed the standalone tests and the complete Wiggle build
-with Flux's compiler version. Its first run caught a test-setup API mismatch,
-which is corrected. Flux proofs, mutation rejection, and the integration-test
-result are still pending. No successful proof is claimed here yet.
+The [successful Linux run](https://github.com/sji005/wasmtime/actions/runs/43987832550)
+checked code revision `4bbde5de70612168f9e56c95e52de79873a466bb`:
+
+- Formatting and both standalone helper tests passed on x86-64 Linux.
+- `cargo check --locked -p wiggle --all-features` passed with Flux's compiler.
+- All three guest-memory integration tests passed, including a typed copy into
+  a real Wasmtime memory through the `Ranges` path.
+- Flux checked the production helper: 1 function checked, 0 trusted, 0 ignored,
+  and 9 constraints solved under strict overflow checking.
+- All four mutations compiled as ordinary Rust and were rejected by Flux with
+  refinement or arithmetic diagnostics (`E0999`).
+
+The harness explicitly imports `flux_core` to load its standard-library
+specifications. The cached checker was restored successfully in the passing
+run. Documentation-only updates do not trigger another verification run.
 
 This does not prove all of `fd_read`. The intended first proof is only byte-range
 arithmetic. Remaining work includes element counts, alignment, guest-memory
