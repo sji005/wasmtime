@@ -1,3 +1,7 @@
+// Load Flux's standard-library contracts, including Option's boolean index.
+#[cfg(flux)]
+extern crate flux_core;
+
 // This imports the production implementation, rather than a proof-only copy.
 #[path = "../../crates/wiggle/src/bounds.rs"]
 mod bounds;

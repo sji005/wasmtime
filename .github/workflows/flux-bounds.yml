@@ -34,7 +34,7 @@ jobs:
           submodules: recursive
       - name: Install pinned Rust compiler
         run: |
-          rustup toolchain install nightly-2026-10-22 --profile minimal --component rustfmt
+          rustup toolchain install nightly-2026-10-22 --profile minimal --component rustfmt --component rust-src --component rustc-dev --component llvm-tools
           rustup default nightly-2026-10-22
           rustc --version --verbose
       - name: Check formatting and run production helper tests
@@ -46,7 +46,30 @@ jobs:
         run: cargo check --locked -p wiggle --all-features
       - name: Test guest memory access through Wiggle
         run: cargo test --locked -p wiggle --test bounds
+      - name: Restore pinned Flux and solvers
+        id: flux-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: |
+            ~/.flux/sysroot
+            ~/.cargo/bin/flux
+            ~/.cargo/bin/cargo-flux
+            ~/.cargo/bin/z3
+            ~/.cargo/bin/fixpoint
+          key: flux-ubuntu24-x64-${{ hashFiles('verification/flux/install.sh') }}
       - name: Install pinned Flux and solvers
+        if: steps.flux-cache.outputs.cache-hit != 'true'
         run: bash verification/flux/install.sh
+      - name: Save pinned Flux and solvers
+        if: steps.flux-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            ~/.flux/sysroot
+            ~/.cargo/bin/flux
+            ~/.cargo/bin/cargo-flux
+            ~/.cargo/bin/z3
+            ~/.cargo/bin/fixpoint
+          key: ${{ steps.flux-cache.outputs.cache-primary-key }}
       - name: Prove production helper and reject broken versions
         run: python3 verification/flux/check.py

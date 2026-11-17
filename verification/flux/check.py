@@ -2,6 +2,7 @@
 """Check the production bounds helper and require Flux to reject mutations."""
 
 import os
+import json
 from pathlib import Path
 import subprocess
 import tempfile
@@ -26,6 +27,9 @@ def main():
         run(["flux", *flags, *proof_flags, str(ROOT / "verification/flux/bounds.rs")], env=env, check=True)
 
         original = SOURCE.read_text()
+        harness = (ROOT / "verification/flux/bounds.rs").read_text()
+        source_path = '"../../crates/wiggle/src/bounds.rs"'
+        assert harness.count(source_path) == 1, "harness source path changed"
         mutations = {
             "off_by_one": ("Some(start + byte_len)", "Some(start + byte_len + 1)"),
             "missing_start_check": ("if start > memory_len {", "if false {"),
@@ -36,9 +40,11 @@ def main():
             assert original.count(before) == 1, f"mutation anchor changed: {name}"
             mutant = output / f"{name}.rs"
             mutant.write_text(original.replace(before, after))
+            mutant_harness = output / f"{name}_harness.rs"
+            mutant_harness.write_text(harness.replace(source_path, json.dumps(mutant.as_posix())))
             # A syntax error or Rust compiler failure is not proof rejection.
-            run(["rustc", *flags, str(mutant)], env=env, check=True)
-            result = run(["flux", *flags, *proof_flags, str(mutant)], env=env, capture_output=True)
+            run(["rustc", *flags, str(mutant_harness)], env=env, check=True)
+            result = run(["flux", *flags, *proof_flags, str(mutant_harness)], env=env, capture_output=True)
             log = result.stdout + result.stderr
             print(log, flush=True)
             if result.returncode == 0 or "error[FLUX]" not in log:
