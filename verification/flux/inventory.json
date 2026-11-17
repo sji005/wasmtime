@@ -864,7 +864,7 @@
         "id": "guest_destination",
         "source": {
           "path": "crates/wiggle/src/lib.rs",
-          "line": 160,
+          "line": 161,
           "anchor": "pub fn as_slice_mut("
         },
         "branch": "file_direct_or_worker",
@@ -941,7 +941,7 @@
         "id": "copy_back",
         "source": {
           "path": "crates/wiggle/src/lib.rs",
-          "line": 212,
+          "line": 213,
           "anchor": "pub fn copy_from_slice<T>("
         },
         "branch": "file_worker_and_stdin",
@@ -956,7 +956,7 @@
         "id": "typed_destination",
         "source": {
           "path": "crates/wiggle/src/lib.rs",
-          "line": 278,
+          "line": 302,
           "anchor": "pub(crate) fn validate_size_align_mut<T>("
         },
         "branch": "copy_back_and_generated_store",
@@ -1133,8 +1133,8 @@
     "Cargo.toml": "341d4709d60551d52a69f10cd5060959c8d4ce4cc8964ffb3917e143600e52fa",
     "crates/wasi/Cargo.toml": "43dd605c2d4386f0cd9b30e1960246cb96cab17dc50e33c133dd1f758c0e93b4",
     "crates/wasi/src/filesystem.rs": "59a0dd0965e02e7e11afeab3a9d8ea92fda65a337a90f7eed80ab6bcc550730a",
-    "crates/wasi/src/filesystem/unix.rs": "c4032ed7b80f9b52871df7a5effc70647ff896320502f5dc67642a3052e17fc2",
-    "crates/wasi/src/p1.rs": "c735fc98a6eaa582b4821c54fdb3a69b3d970c0ab8444a4709bb9ce2afd03093",
+    "crates/wasi/src/filesystem/unix.rs": "29eb34e4a64a078bf74c1b67bd8b3ec83bfa3710857b46a0e2880af37381f4bc",
+    "crates/wasi/src/p1.rs": "316493caddcb7ac4b0cb50e2206d68c235a6270e3258350eb6daebcd74d1135d",
     "crates/wasi/src/runtime.rs": "7c7e78e102c7b587797f9cf305bbe4daab4ee5331fccb9fcddd906a15f635619",
     "crates/wasi/witx/p1/typenames.witx": "838d37c5bb36c55d378eb3ebdd83ef56ef0b6eeec08ffc028647a04a92e30ac0",
     "crates/wasi/witx/p1/wasi_snapshot_preview1.witx": "7bcedd2dc45f952ffe36266ca59b9e3a55f94e648ed82f6c4864d003b2f260b4",
@@ -1143,7 +1143,7 @@
     "crates/wiggle/generate/src/wasmtime.rs": "321ba0c244565bca845906d96a7e258455d67353da21c5155ecfca42365b64e9",
     "crates/wiggle/src/bounds.rs": "4692ba10d0c4187968e69045f494e025e5f8c97eb2007b9d4e37edac9b4976e0",
     "crates/wiggle/src/guest_type.rs": "5d6532a5a1827bb02502a64db41ae609c34d4fb8c390cb63605b265d3032488f",
-    "crates/wiggle/src/lib.rs": "1ad320f88734b76749c530d9af32b33d9484c7c77bf6df02c630a9da73e9f47d",
+    "crates/wiggle/src/lib.rs": "16938cc29c1f7f8274bf163bd548d4eaf579d7b18caa0896d023600aa994e044",
     "verification/flux/evidence/fd-read/evidence.json": "1492948b6fea941d7a15460fcbe9a5c460143e3a52e2c332272ce0002eaad607",
     "verification/flux/evidence/fd-read/fd-read-glue.rs": "5a5a017cb12bbed33fd785dedeaac0afadd57354bd73df5416e9a95dd164f2c6"
   }

@@ -1709,7 +1709,7 @@ impl wasi_snapshot_preview1::WasiSnapshotPreview1 for WasiP1Ctx {
                             })
                             .await?;
                         let iov = iov.get_range(0..u32::try_from(buf.len())?).unwrap();
-                        memory.copy_from_slice(&buf, iov)?;
+                        memory.copy_from_bytes(&buf, iov)?;
                         buf.len()
                     }
                 };
@@ -1731,7 +1731,7 @@ impl wasi_snapshot_preview1::WasiSnapshotPreview1 for WasiP1Ctx {
                     return Err(types::Errno::Range.into());
                 }
                 let iov = iov.get_range(0..u32::try_from(read.len())?).unwrap();
-                memory.copy_from_slice(&read, iov)?;
+                memory.copy_from_bytes(&read, iov)?;
                 let n = read.len().try_into()?;
                 Ok(n)
             }

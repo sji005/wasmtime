@@ -19,6 +19,7 @@ pub use witx;
 mod bounds;
 mod guest_error;
 mod guest_type;
+pub mod memory_policy;
 mod region;
 
 pub use tracing;
@@ -237,6 +238,29 @@ impl<'a> GuestMemory<'a> {
             std::ptr::copy(slice.as_ptr(), guest, slice.len());
         }
         Ok(())
+    }
+
+    /// Copy bytes to a guest through the borrowed-region memory policy.
+    ///
+    /// Unshared memories use the policy-checked byte copy. Shared memories keep
+    /// their existing copy bridge and are outside the current Flux proof.
+    pub fn copy_from_bytes(&mut self, slice: &[u8], ptr: GuestPtr<[u8]>) -> Result<(), GuestError> {
+        if usize::try_from(ptr.len())? != slice.len() {
+            return Err(GuestError::SliceLengthsDiffer);
+        }
+        if slice.is_empty() {
+            return Ok(());
+        }
+        match self.as_slice_mut(ptr)? {
+            Some(destination) => {
+                if memory_policy::copy_bytes(destination, slice) {
+                    Ok(())
+                } else {
+                    Err(GuestError::SliceLengthsDiffer)
+                }
+            }
+            None => self.copy_from_slice(slice, ptr),
+        }
     }
 
     /// Validates a guest-relative pointer given various attributes, and returns

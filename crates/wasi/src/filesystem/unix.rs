@@ -100,7 +100,14 @@ pub(crate) fn read_at_cursor_unspecified(
     buf: &mut [u8],
     pos: u64,
 ) -> io::Result<usize> {
-    file.read_at(buf, pos)
+    #[cfg(feature = "p1")]
+    {
+        wiggle::memory_policy::read_at(file, buf, pos)
+    }
+    #[cfg(not(feature = "p1"))]
+    {
+        file.read_at(buf, pos)
+    }
 }
 
 fn meta_identity(meta: &Metadata) -> (u64, u64) {

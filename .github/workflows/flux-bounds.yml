@@ -50,7 +50,7 @@ jobs:
           rustc --version --verbose
       - name: Check formatting and run production helper tests
         run: |
-          rustfmt --edition 2024 --check crates/wiggle/src/bounds.rs verification/flux/bounds.rs verification/flux/effect_policy.rs
+          rustfmt --edition 2024 --check crates/wiggle/src/bounds.rs crates/wiggle/src/memory_policy.rs verification/flux/bounds.rs verification/flux/effect_policy.rs verification/flux/production_memory.rs
           rustc --edition=2024 --test verification/flux/bounds.rs -o "$RUNNER_TEMP/wiggle-bounds-tests"
           "$RUNNER_TEMP/wiggle-bounds-tests"
           rustc --edition=2024 --test verification/flux/effect_policy.rs -o "$RUNNER_TEMP/wiggle-effect-tests"
@@ -88,6 +88,8 @@ jobs:
         run: python3 verification/flux/check.py
       - name: Check effect-policy encoding and reject unsafe models
         run: python3 verification/flux/check_effects.py
+      - name: Prove production memory isolation and real-pointer consumers
+        run: python3 verification/flux/check_production.py
       - name: Capture actual expanded fd_read ABI binding
         run: |
           cargo rustc --locked -p wasmtime-wasi --no-default-features --features p1 --lib -- -Zunpretty=expanded > "$RUNNER_TEMP/wasi-expanded.rs"
