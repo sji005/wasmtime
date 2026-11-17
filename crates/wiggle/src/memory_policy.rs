@@ -40,6 +40,8 @@ pub struct MemoryPolicy<'a> {
 #[cfg_attr(flux, flux::invariant(0 <= remaining && count <= remaining))]
 #[cfg_attr(flux, flux::invariant(addr + remaining == base + memory_len))]
 pub struct ReadAccess<'a> {
+    #[cfg_attr(flux, flux::field(usize[memory_len]))]
+    memory_len: usize,
     #[cfg_attr(flux, flux::field(*const[base, addr, remaining] u8))]
     pointer: *const u8,
     #[cfg_attr(flux, flux::field(usize[count]))]
@@ -52,6 +54,8 @@ pub struct ReadAccess<'a> {
 #[cfg_attr(flux, flux::invariant(0 <= remaining && count <= remaining))]
 #[cfg_attr(flux, flux::invariant(addr + remaining == base + memory_len))]
 pub struct WriteAccess<'a> {
+    #[cfg_attr(flux, flux::field(usize[memory_len]))]
+    memory_len: usize,
     #[cfg_attr(flux, flux::field(*mut[base, addr, remaining] u8))]
     pointer: *mut u8,
     #[cfg_attr(flux, flux::field(usize[count]))]
@@ -79,6 +83,7 @@ impl<'a> MemoryPolicy<'a> {
         // cannot outlive this shared reborrow of the exclusively held region.
         let pointer = unsafe { self.root.cast_const().add(start) };
         Some(ReadAccess {
+            memory_len: self.len,
             pointer,
             count,
             borrow: PhantomData,
@@ -93,6 +98,7 @@ impl<'a> MemoryPolicy<'a> {
         // the permit. No raw pointer is exposed by the public API.
         let pointer = unsafe { self.root.add(start) };
         Some(WriteAccess {
+            memory_len: self.len,
             pointer,
             count,
             borrow: PhantomData,
@@ -101,6 +107,11 @@ impl<'a> MemoryPolicy<'a> {
 }
 
 impl ReadAccess<'_> {
+    #[cfg_attr(flux, flux::sig(fn(&ReadAccess[@a]) -> usize[a.memory_len]))]
+    pub fn region_len(&self) -> usize {
+        self.memory_len
+    }
+
     #[cfg_attr(flux, flux::sig(fn(self: ReadAccess[@a], &mut [u8]) -> bool))]
     pub fn copy_to(self, destination: &mut [u8]) -> bool {
         if destination.len() != self.count {
@@ -114,6 +125,11 @@ impl ReadAccess<'_> {
 }
 
 impl WriteAccess<'_> {
+    #[cfg_attr(flux, flux::sig(fn(&WriteAccess[@a]) -> usize[a.memory_len]))]
+    pub fn region_len(&self) -> usize {
+        self.memory_len
+    }
+
     #[cfg_attr(flux, flux::sig(fn(self: WriteAccess[@a], &[u8]) -> bool))]
     pub fn copy_from(self, source: &[u8]) -> bool {
         if source.len() != self.count {
