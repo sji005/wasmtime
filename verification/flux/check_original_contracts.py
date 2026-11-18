@@ -34,6 +34,7 @@ def main():
     observed = {case["name"]: case for case in positive["cases"]}
     report = {"claim": "Pointer identities and slice-variant range contract only; binding's Ranges path, typed accesses and effects remain open",
               "positive": positive, "cases": [], "status": "open"}
+    clone = json.loads((ROOT / "artifacts/fd-read/clone-primitive-specs/clone.json").read_text())
     source = ROOT / "crates/wiggle/src/lib.rs"
     original = source.read_text()
     for name, anchor, before, after in CASES:
@@ -44,6 +45,9 @@ def main():
             raise RuntimeError("Proof and mutation source hashes differ")
         if checked["exit_code"] != 0 or checked["status"] != "feasibility-only-no-spatial-postcondition":
             result_case["status"] = "open-positive-contract-did-not-check"
+            continue
+        if name.startswith("range") and clone["status"] != "passed":
+            result_case["status"] = "open-clone-contract-not-established"
             continue
         with tempfile.TemporaryDirectory(prefix=name + "-", dir=output) as temporary:
             copied = Path(temporary) / "wiggle"

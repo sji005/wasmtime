@@ -31,7 +31,7 @@ def main():
             raise RuntimeError(f"Expected one primitive-spec {kind} artifact: {paths}")
         artifacts[kind] = str(paths[0])
     manifest = output / "extern-specs.json"
-    manifest.write_text(json.dumps({"command": command, "artifacts": artifacts, "trusted": "std FileExt::read_at for File; usize/u32 identity Clone; Range<Idx> fieldwise Clone preserving Idx::cloned, no local wrapper trusted"}, indent=2) + "\n")
+    manifest.write_text(json.dumps({"command": command, "artifacts": artifacts, "trusted": "std FileExt::read_at for File; usize identity Clone; Range<Idx> fieldwise Clone preserving Idx::cloned, no local wrapper trusted"}, indent=2) + "\n")
     with Path(os.environ["GITHUB_ENV"]).open("a") as env_file:
         env_file.write("FD_READ_PRIMITIVE_MANIFEST=" + str(manifest) + "\n")
 

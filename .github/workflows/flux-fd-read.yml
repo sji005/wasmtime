@@ -98,7 +98,7 @@ jobs:
         run: python3 verification/flux/check_environment.py --output-dir artifacts/fd-read/environment-compat
       - name: Compile narrow external file primitive specification
         run: python3 verification/flux/compile_primitive_specs.py
-      - name: Require the field-wise std range-clone contract across crates
+      - name: Diagnose field-wise std range-clone contract loading across crates
         run: python3 verification/flux/check_clone_specs.py
       - name: Validate cross-crate external specification loading
         run: python3 verification/flux/check_adapter.py --external-specs --output-dir artifacts/fd-read/adapter-external
@@ -106,14 +106,14 @@ jobs:
         run: python3 verification/flux/probe_original.py --case unix-read-adapter --output-dir artifacts/fd-read/compat-adapter-original
       - name: Reject a well-typed adapter mutation in a temporary full source copy
         run: python3 verification/flux/check_adapter_original.py
-      - name: Check associated-field normalization and reject a wrong postcondition
-        run: python3 verification/flux/toolchain/check_projection.py
-      - name: Isolate native async trait support with well-typed result mutations
-        run: python3 verification/flux/toolchain/check_async.py
       - name: Collect original-body diagnostics with the candidate driver
         run: python3 verification/flux/probe_original.py --output-dir artifacts/fd-read/compat-original-body-probes
       - name: Reject well-typed pointer and range mutations in full source snapshots
         run: python3 verification/flux/check_original_contracts.py
+      - name: Isolate native async trait support with well-typed result mutations
+        run: python3 verification/flux/toolchain/check_async.py
+      - name: Check associated-field normalization and reject a wrong postcondition
+        run: python3 verification/flux/toolchain/check_projection.py
       - name: Retain complete environment diagnostics
         if: always()
         uses: actions/upload-artifact@v7

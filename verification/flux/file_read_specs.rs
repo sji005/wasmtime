@@ -13,11 +13,10 @@ use std::os::unix::fs::FileExt;
 // these primitive Clone implementations return *self.
 #[flux_rs::extern_spec]
 #[flux_rs::assoc(fn cloned(old: int, new: int) -> bool { old == new })]
-impl Clone for usize {}
-
-#[flux_rs::extern_spec]
-#[flux_rs::assoc(fn cloned(old: int, new: int) -> bool { old == new })]
-impl Clone for u32 {}
+impl Clone for usize {
+    #[flux::sig(fn(&usize[@n]) -> usize[n])]
+    fn clone(&self) -> Self;
+}
 
 // core/src/ops/range.rs, blob d81279cb56be3cbc0ead7c4cd10db6ebbb60ff04:
 // Range derives Clone field by field. Do not assume arbitrary Idx::clone is
@@ -26,7 +25,10 @@ impl Clone for u32 {}
 #[flux_rs::assoc(fn cloned(old: Self, new: Self) -> bool {
     <Idx as Clone>::cloned(old.start, new.start) && <Idx as Clone>::cloned(old.end, new.end)
 })]
-impl<Idx: Clone> Clone for Range<Idx> {}
+impl<Idx: Clone> Clone for Range<Idx> {
+    #[flux::sig(fn(&Range<Idx>[@r]) -> Range<Idx>{out: <Idx as Clone>::cloned(r.start, out.start) && <Idx as Clone>::cloned(r.end, out.end)})]
+    fn clone(&self) -> Self;
+}
 
 #[flux_rs::extern_spec]
 impl FileExt for File {
