@@ -1,0 +1,105 @@
+{
+  "claim": "Sequential worker buffer length only; no original hostcall or scheduling theorem",
+  "checker": "Default installed Flux driver; compatibility overrides removed. Requires baseline installation provenance.",
+  "source_sha256": "369b48e6b8b83e9806395e912372626c087e38affdb2154f5e469412431a0452",
+  "vector_specs_sha256": "30756635b7c00d570cf99b7f889e5bcfc3539644990f292f28d7b5a781aa7495",
+  "external_vector_assumptions": [
+    "T-VEC: from_elem length n",
+    "T-VEC: truncate length min(old, requested)"
+  ],
+  "runs": [
+    {
+      "case": "positive",
+      "tool": "rustc",
+      "command": [
+        "rustc",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/sequential-worker",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/sequential-worker/positive.rs"
+      ],
+      "exit_code": 0,
+      "log": "positive-rustc.log"
+    },
+    {
+      "case": "positive",
+      "tool": "flux",
+      "command": [
+        "flux",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/sequential-worker",
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "-Fstd-extern-specs=on",
+        "-Zunstable-options",
+        "--extern",
+        "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rmeta",
+        "--extern",
+        "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rlib",
+        "-L",
+        "dependency=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/sequential-worker/positive.rs"
+      ],
+      "exit_code": 0,
+      "log": "positive-flux.log"
+    },
+    {
+      "case": "extra-byte",
+      "tool": "rustc",
+      "command": [
+        "rustc",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/sequential-worker",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/sequential-worker/extra_byte.rs"
+      ],
+      "exit_code": 0,
+      "log": "extra-byte-rustc.log"
+    },
+    {
+      "case": "extra-byte",
+      "tool": "flux",
+      "command": [
+        "flux",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/sequential-worker",
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "-Fstd-extern-specs=on",
+        "-Zunstable-options",
+        "--extern",
+        "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rmeta",
+        "--extern",
+        "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rlib",
+        "-L",
+        "dependency=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/sequential-worker/extra_byte.rs"
+      ],
+      "exit_code": 1,
+      "log": "extra-byte-flux.log"
+    }
+  ],
+  "status": "sequential-length-contract-checked-and-mutant-rejected"
+}

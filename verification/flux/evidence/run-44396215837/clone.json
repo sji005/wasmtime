@@ -1,0 +1,227 @@
+{
+  "scope": "std range primitive-spec regressions",
+  "primitive": {
+    "command": [
+      "flux",
+      "--crate-name",
+      "fd_read_file_primitive",
+      "--edition=2024",
+      "--crate-type=lib",
+      "--target",
+      "x86_64-unknown-linux-gnu",
+      "--emit=metadata,link",
+      "--out-dir",
+      "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs",
+      "--cfg",
+      "flux",
+      "-Ffull-compilation=on",
+      "-Fstd-extern-specs=on",
+      "-Fcheck-overflow=strict",
+      "-Fallow-raw-deref=none",
+      "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/flux-log",
+      "/home/runner/work/wasmtime/wasmtime/verification/flux/file_read_specs.rs"
+    ],
+    "artifacts": {
+      "rlib": "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rlib",
+      "rmeta": "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rmeta",
+      "fluxmeta": "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.fluxmeta"
+    },
+    "trusted": [
+      "std FileExt::read_at for File",
+      "usize identity Clone and Range<Idx> fieldwise Clone preserving Idx::cloned",
+      "ExactSizeIterator::len for Range<usize>"
+    ]
+  },
+  "runs": [
+    {
+      "name": "clone-positive",
+      "compiler": "rustc",
+      "command": [
+        "rustc",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/clone-primitive-specs",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/clone-primitive-specs/clone_positive.rs"
+      ],
+      "exit_code": 0,
+      "log": "clone-positive-rustc.log"
+    },
+    {
+      "name": "clone-positive",
+      "compiler": "flux",
+      "command": [
+        "flux",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/clone-primitive-specs",
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "-Fstd-extern-specs=on",
+        "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/clone-primitive-specs/flux-log",
+        "-Zunstable-options",
+        "--extern",
+        "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rlib",
+        "--extern",
+        "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rmeta",
+        "-L",
+        "dependency=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/clone-primitive-specs/clone_positive.rs"
+      ],
+      "exit_code": 0,
+      "log": "clone-positive-flux.log"
+    },
+    {
+      "name": "clone-wrong-result",
+      "compiler": "rustc",
+      "command": [
+        "rustc",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/clone-primitive-specs",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/clone-primitive-specs/clone_wrong_result.rs"
+      ],
+      "exit_code": 0,
+      "log": "clone-wrong-result-rustc.log"
+    },
+    {
+      "name": "clone-wrong-result",
+      "compiler": "flux",
+      "command": [
+        "flux",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/clone-primitive-specs",
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "-Fstd-extern-specs=on",
+        "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/clone-primitive-specs/flux-log",
+        "-Zunstable-options",
+        "--extern",
+        "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rlib",
+        "--extern",
+        "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rmeta",
+        "-L",
+        "dependency=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/clone-primitive-specs/clone_wrong_result.rs"
+      ],
+      "exit_code": 1,
+      "log": "clone-wrong-result-flux.log"
+    },
+    {
+      "name": "length-positive",
+      "compiler": "rustc",
+      "command": [
+        "rustc",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/clone-primitive-specs",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/clone-primitive-specs/length_positive.rs"
+      ],
+      "exit_code": 0,
+      "log": "length-positive-rustc.log"
+    },
+    {
+      "name": "length-positive",
+      "compiler": "flux",
+      "command": [
+        "flux",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/clone-primitive-specs",
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "-Fstd-extern-specs=on",
+        "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/clone-primitive-specs/flux-log",
+        "-Zunstable-options",
+        "--extern",
+        "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rlib",
+        "--extern",
+        "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rmeta",
+        "-L",
+        "dependency=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/clone-primitive-specs/length_positive.rs"
+      ],
+      "exit_code": 0,
+      "log": "length-positive-flux.log"
+    },
+    {
+      "name": "length-wrong-result",
+      "compiler": "rustc",
+      "command": [
+        "rustc",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/clone-primitive-specs",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/clone-primitive-specs/length_wrong_result.rs"
+      ],
+      "exit_code": 0,
+      "log": "length-wrong-result-rustc.log"
+    },
+    {
+      "name": "length-wrong-result",
+      "compiler": "flux",
+      "command": [
+        "flux",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/clone-primitive-specs",
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "-Fstd-extern-specs=on",
+        "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/clone-primitive-specs/flux-log",
+        "-Zunstable-options",
+        "--extern",
+        "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rlib",
+        "--extern",
+        "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rmeta",
+        "-L",
+        "dependency=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/clone-primitive-specs/length_wrong_result.rs"
+      ],
+      "exit_code": 1,
+      "log": "length-wrong-result-flux.log"
+    }
+  ],
+  "status": "passed",
+  "length_status": "passed"
+}

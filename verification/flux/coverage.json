@@ -140,7 +140,7 @@
       "status": "open",
       "trust": "T-CORE; strict overflow must check original addition",
       "open_failure": "Original returned interval contract checked for slice-backed variants. Establish the typed access and caller footprint contracts.",
-      "inspection_evidence": "evidence/run-44252707563/contracts.json"
+      "inspection_evidence": "evidence/run-44396215837/contracts.json"
     },
     {
       "id": "E11",

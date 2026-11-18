@@ -22,6 +22,17 @@ The earlier [run 44394247063](https://github.com/sji005/wasmtime/actions/runs/44
 had an ordinary postcondition failure before the missing Vec length contracts
 were supplied; neither run crashed Flux.
 
+Latest baseline checkpoint: [run 44396215837](https://github.com/sji005/wasmtime/actions/runs/44396215837)
+checked the original slice-backed range validator using `def:validate_range`
+instead of the crashing source-position selector: one body, seven constraints,
+101 excluded bodies counted trusted. Shifted-start, removed-guard and
+halved-width mutations compiled as Rust and were rejected by unmodified Flux.
+The existing Range clone/length controls passed too. The subsequent original
+`GuestMemory::as_slice_mut` probe crashed in `fold_unfold.rs:567:26` while handling
+`Pointee::Pointer` for `[u8]`. This is an associated-type representation problem,
+not scheduling. Further proof attempts stopped for user review, with no trust
+expansion. Exact diagnostics and mutation evidence are in `evidence/run-44396215837`.
+
 | Evidence | Checked result | Scope |
 | --- | --- | --- |
 | [Baseline run 44240968739](https://github.com/sji005/wasmtime/actions/runs/44240968739) | Passed M0 with three positive functions and three rejected mutations. Ordinary builds, three boundary regressions and fresh P1 expansion passed. | Environment, original behavior on tested inputs, and generated source inspection |

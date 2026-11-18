@@ -1,0 +1,258 @@
+{
+  "claim": "Pointer identities, scalar layout, and slice-variant range contracts only; binding's Ranges path, typed accesses and effects remain open",
+  "positive": {
+    "claim": "Checker feasibility only; original bodies, no spatial theorem",
+    "source_revision": "07dbc2ae0405280d6737c1e5cd06c08424c83381",
+    "pins": {
+      "baseline": "7c83a428028b44e1a73b40aa6a912d6700983624",
+      "historical_experiment": "c6a59fc114302c2f6438893994138a0cbcfe2b12",
+      "flux_revision": "b68c177c5ace7cb3644fdeea140dc5d18669c6cc",
+      "toolchain": "nightly-2026-10-22",
+      "target": "x86_64-unknown-linux-gnu",
+      "runner": "ubuntu-24.04",
+      "wasi_features": [
+        "p1",
+        "p2"
+      ],
+      "wasi_default_features": false,
+      "z3_version": "5.3.3",
+      "z3_archive_sha256": "d56f60b06f432f33de5810f7f1a384a339131f361e2d54d08ea83eea14326880",
+      "fixpoint_release_asset": 648710606,
+      "fixpoint_archive_sha256": "7f23b085b848d42ce91618c722cf867ca16e2b570d5d2427138ed80a99d80f9a",
+      "reviewed_flux_spec_git_blobs": {
+        "lib/flux-core/src/slice/mod.rs": "c8922ac0482a0cffe1ddec5de06528072fc1d95b",
+        "lib/flux-core/src/slice/index.rs": "bf5942da3c72407fb36c9be23551179f8f6cf5fb",
+        "lib/flux-core/src/ptr/mod.rs": "bbdca5c0b76889aec726d4c292301e639eac1743",
+        "lib/flux-core/src/num/mod.rs": "f7269aaf58028f8d898edc858e3d75fb0a73f452"
+      },
+      "proof_flags": [
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none"
+      ],
+      "bootstrap_limitation": "Upstream cargo xtask install may resolve wrapper dependencies; bootstrap is not hermetic. Historical success is not this branch's M0 result."
+    },
+    "checker_variant": "unmodified pinned baseline",
+    "external_file_primitive": {
+      "command": [
+        "flux",
+        "--crate-name",
+        "fd_read_file_primitive",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--emit=metadata,link",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs",
+        "--cfg",
+        "flux",
+        "-Ffull-compilation=on",
+        "-Fstd-extern-specs=on",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/flux-log",
+        "/home/runner/work/wasmtime/wasmtime/verification/flux/file_read_specs.rs"
+      ],
+      "artifacts": {
+        "rlib": "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rlib",
+        "rmeta": "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rmeta",
+        "fluxmeta": "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.fluxmeta"
+      },
+      "trusted": [
+        "std FileExt::read_at for File",
+        "usize identity Clone and Range<Idx> fieldwise Clone preserving Idx::cloned",
+        "ExactSizeIterator::len for Range<usize>"
+      ]
+    },
+    "target": "x86_64-unknown-linux-gnu",
+    "explicitly_trusted_local_bodies": [],
+    "explicitly_ignored_local_bodies": [],
+    "unchecked": "Every unselected body/dependency remains unverified; Flux counts excluded functions as trusted. No spatial postcondition or caller contract is discharged by this probe.",
+    "cases": [
+      {
+        "name": "range",
+        "package": "wiggle",
+        "features": [
+          "--no-default-features"
+        ],
+        "source": "crates/wiggle/src/lib.rs",
+        "source_sha256_lf": "f324a99a1454ff76aa7dc9be32d022c1afa236b5094271581823649102c0243a",
+        "selector": "def:validate_range",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--no-default-features",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--no-default-features",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_range"
+        ],
+        "exit_code": 0,
+        "status": "conditional-slice-bound-checked-mutations-required",
+        "log": "range/flux.log"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "range",
+      "runs": [
+        {
+          "mode": "ordinary",
+          "command": [
+            "cargo",
+            "rustc",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-p",
+            "wiggle",
+            "--no-default-features",
+            "--lib",
+            "--",
+            "--cfg",
+            "fd_read_contract_mutant_range_ordinary"
+          ],
+          "exit_code": 0
+        },
+        {
+          "mode": "flux",
+          "command": [
+            "cargo",
+            "rustc",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-p",
+            "wiggle",
+            "--no-default-features",
+            "--lib",
+            "--",
+            "--cfg",
+            "fd_read_contract_mutant_range_flux"
+          ],
+          "exit_code": 101
+        }
+      ],
+      "mutation": {
+        "before": "let range = offset..offset + byte_len;",
+        "after": "let range = offset + 1..offset + byte_len;",
+        "source_sha256_lf": "c55386fb4ca8b649d37bb74ff5d55fbc989ce2a6d23ef98a70056751c154fb56"
+      },
+      "status": "original-contract-checked-well-typed-body-mutation-rejected"
+    },
+    {
+      "name": "range-no-bounds-check",
+      "runs": [
+        {
+          "mode": "ordinary",
+          "command": [
+            "cargo",
+            "rustc",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-p",
+            "wiggle",
+            "--no-default-features",
+            "--lib",
+            "--",
+            "--cfg",
+            "fd_read_contract_mutant_range_no_bounds_check_ordinary"
+          ],
+          "exit_code": 0
+        },
+        {
+          "mode": "flux",
+          "command": [
+            "cargo",
+            "rustc",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-p",
+            "wiggle",
+            "--no-default-features",
+            "--lib",
+            "--",
+            "--cfg",
+            "fd_read_contract_mutant_range_no_bounds_check_flux"
+          ],
+          "exit_code": 101
+        }
+      ],
+      "mutation": {
+        "before": "if oob {",
+        "after": "if false {",
+        "source_sha256_lf": "41a60a55a576c8f402143b0086afef713a932d2a0bb909f14cbad163b6f52742"
+      },
+      "status": "original-contract-checked-well-typed-body-mutation-rejected"
+    },
+    {
+      "name": "range-wrong-byte-count",
+      "runs": [
+        {
+          "mode": "ordinary",
+          "command": [
+            "cargo",
+            "rustc",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-p",
+            "wiggle",
+            "--no-default-features",
+            "--lib",
+            "--",
+            "--cfg",
+            "fd_read_contract_mutant_range_wrong_byte_count_ordinary"
+          ],
+          "exit_code": 0
+        },
+        {
+          "mode": "flux",
+          "command": [
+            "cargo",
+            "rustc",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-p",
+            "wiggle",
+            "--no-default-features",
+            "--lib",
+            "--",
+            "--cfg",
+            "fd_read_contract_mutant_range_wrong_byte_count_flux"
+          ],
+          "exit_code": 101
+        }
+      ],
+      "mutation": {
+        "before": "let range = offset..offset + byte_len;",
+        "after": "let range = offset..offset + byte_len / 2;",
+        "source_sha256_lf": "c9d651d2d73764ca6d0e4a1d3f7fc0a3f0281d35e184872ef5513609f5e2474c"
+      },
+      "status": "original-contract-checked-well-typed-body-mutation-rejected"
+    }
+  ],
+  "status": "classified"
+}

@@ -1,0 +1,19 @@
+{
+  "run_url": "https://github.com/sji005/wasmtime/actions/runs/44396215837",
+  "source_revision": "07dbc2ae0405280d6737c1e5cd06c08424c83381",
+  "checker": "unmodified pinned Flux; driver.sha256 identifies the baseline binary",
+  "artifact_id": 14471955669,
+  "artifact_sha256": "5a9aca73e8d1559cee9e65e29096ae5ad869e053466033adfe5c428e139bc9a0",
+  "job_id": 135126673393,
+  "sequential_worker": "2 checked, extra-byte mutation rejected; 4 runtime tests passed",
+  "original_range": "1 checked; 101 excluded bodies counted trusted; 7 constraints solved",
+  "range_mutations": ["shifted start rejected", "removed bounds guard rejected", "halved byte width rejected"],
+  "range_primitive_controls": "clone and length positive controls checked and wrong results rejected",
+  "crash_function": "GuestMemory::as_slice_mut",
+  "crash_configuration": "original Wiggle, --no-default-features; def:as_slice_mut",
+  "crash_location": "crates/flux-refineck/src/ghost_statements/fold_unfold.rs:567:26",
+  "crash_message": "implicit downcast of non-struct: Alias (Projection, Pointee::Pointer, <[u8]>)",
+  "flux_crash": true,
+  "action": "Stopped further proof attempts for user review; trust boundary unchanged",
+  "claim": "Scoped component contracts only; original mutable-slice and end-to-end fd_read proofs remain open"
+}

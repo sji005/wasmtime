@@ -6,6 +6,12 @@ The worker body and all guest-memory operations remain proof targets. This
 decision adds no new verified result and does not change historical checker
 provenance. Future accepted runs should use the unmodified pinned checker.
 
+Baseline progress on November 18: the sequential worker and original slice-backed
+range validator checked, with their negative controls rejected. Name selection
+avoided the earlier span-selection crash. The next original mutable-slice probe
+crashed on the associated pointer type; work stopped for user review with the
+trust boundary unchanged. See [the current checkpoint](STATUS.md).
+
 Execution of [the supplied plan](PLAN.md), starting from clean Wasmtime
 `7c83a428028b44e1a73b40aa6a912d6700983624`, on branch
 `flux/fd-read-memory-isolation`. Production changes consist of Flux annotations.
