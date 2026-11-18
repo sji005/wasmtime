@@ -73,7 +73,7 @@ def wrap(arguments):
             (output / "ordinary-compiler-invocation.json").write_text(json.dumps(command, indent=2) + "\n")
             return subprocess.run(command, close_fds=False).returncode
         command = ["flux", *rustargs, *FLAGS, "-Ffull-compilation=on",
-                   f"-Finclude={os.environ['FD_READ_PROBE_SELECTOR']}",
+                   *(f"-Finclude={selector}" for selector in os.environ['FD_READ_PROBE_SELECTOR'].splitlines()),
                    f"-Flog-dir={output / 'flux-log'}"]
         if os.environ.get("FD_READ_PROBE_CASE") == "fd-read-caller":
             command.append("-Fdump-rty=on")
