@@ -56,9 +56,13 @@ def wrap(arguments):
     if crate == selected:
         output = Path(os.environ["FD_READ_PROBE_OUTPUT"])
         if "FD_READ_SOURCE_COPY" in os.environ:
-            original_root = ROOT / "crates/wasi/src/lib.rs"
-            matches = [i for i, value in enumerate(rustargs) if value.endswith("crates/wasi/src/lib.rs") or value == str(original_root)]
-            if selected != "wasmtime_wasi" or len(matches) != 1:
+            package_dir = {"wasmtime_wasi": "wasi", "wiggle": "wiggle"}.get(selected)
+            if package_dir is None:
+                raise RuntimeError("Unregistered source-copy package")
+            relative_root = f"crates/{package_dir}/src/lib.rs"
+            original_root = ROOT / relative_root
+            matches = [i for i, value in enumerate(rustargs) if value.endswith(relative_root) or value == str(original_root)]
+            if len(matches) != 1:
                 raise RuntimeError("Unexpected source-copy compiler context")
             rustargs[matches[0]] = str(Path(os.environ["FD_READ_SOURCE_COPY"]) / "src/lib.rs")
         if os.environ.get("FD_READ_PROBE_MODE") == "ordinary":
@@ -84,7 +88,7 @@ def classify(code, log, invoked):
         return "infrastructure-no-flux-invocation"
     if re.search(r"(?i)(unsupported|not supported|internal compiler error|internal flux error|panicked at|not yet implemented)", log):
         return "open-checker-limitation"
-    if re.search(r"error\[E0999\]: (mismatched sorts|no field|invalid refinement|cannot refine)", log):
+    if re.search(r"error\[E0999\]: (mismatched sorts|no field|invalid refinement|cannot refine|expected a sort|.*primitive sort.*doesn't have fields)", log):
         return "open-specification-error"
     if re.search(r"error\[E0999\]: (refinement type error|arithmetic operation may (over|under)flow|type invariant may not hold)", log):
         return "open-refinement-obligation-not-a-bug-finding"

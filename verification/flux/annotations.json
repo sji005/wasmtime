@@ -8,7 +8,7 @@
   "crates/wiggle/src/lib.rs": [
     {
       "anchor": "pub struct GuestPtr<T: ?Sized + Pointee> {\n",
-      "annotation": "#[cfg_attr(flux, flux::refined_by(pointer: T::Pointer))]\n"
+      "annotation": "#[cfg_attr(flux, flux::refined_by(pointer: <T as Pointee>::Pointer))]\n"
     },
     {
       "anchor": "    pointer: T::Pointer,\n",
@@ -45,6 +45,10 @@
     {
       "anchor": "    pub fn as_ptr(&self) -> GuestPtr<T> {\n",
       "annotation": "    #[cfg_attr(flux, flux::sig(fn(&GuestPtr<[T]>[@p]) -> GuestPtr<T>[GuestPtr { pointer: p.pointer.0 }]))]\n"
+    },
+    {
+      "anchor": "    fn validate_range<T>(&self, offset: u32, len: u32) -> Result<Range<usize>, GuestError>\n",
+      "annotation": "    #[cfg_attr(flux, flux::sig(fn(&GuestMemory, offset: u32, u32) -> Result<Range<usize>{r: r.start == offset && r.start <= r.end && r.end - r.start <= u32::MAX}, GuestError>))]\n"
     }
   ]
 }

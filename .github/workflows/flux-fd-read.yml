@@ -106,8 +106,12 @@ jobs:
         run: python3 verification/flux/check_adapter_original.py
       - name: Check associated-field normalization and reject a wrong postcondition
         run: python3 verification/flux/toolchain/check_projection.py
+      - name: Isolate native async trait support with well-typed result mutations
+        run: python3 verification/flux/toolchain/check_async.py
       - name: Collect original-body diagnostics with the candidate driver
         run: python3 verification/flux/probe_original.py --output-dir artifacts/fd-read/compat-original-body-probes
+      - name: Reject well-typed pointer and range mutations in full source snapshots
+        run: python3 verification/flux/check_original_contracts.py
       - name: Retain complete environment diagnostics
         if: always()
         uses: actions/upload-artifact@v7
@@ -138,12 +142,14 @@ jobs:
             artifacts/fd-read/compat-toolchain
             artifacts/fd-read/compat-selection
             artifacts/fd-read/compat-projection
+            artifacts/fd-read/compat-async
             artifacts/fd-read/environment-compat
             artifacts/fd-read/file-primitive-specs
             artifacts/fd-read/adapter-external
             artifacts/fd-read/compat-adapter-original
             artifacts/fd-read/adapter-original-mutation
             artifacts/fd-read/compat-original-body-probes
+            artifacts/fd-read/original-contract-mutations
           if-no-files-found: warn
 
   integration:

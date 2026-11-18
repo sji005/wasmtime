@@ -335,6 +335,7 @@ impl<'a> GuestMemory<'a> {
         Ok(mid)
     }
 
+    #[cfg_attr(flux, flux::sig(fn(&GuestMemory, offset: u32, u32) -> Result<Range<usize>{r: r.start == offset && r.start <= r.end && r.end - r.start <= u32::MAX}, GuestError>))]
     fn validate_range<T>(&self, offset: u32, len: u32) -> Result<Range<usize>, GuestError>
     where
         T: GuestTypeTransparent,
@@ -416,7 +417,7 @@ impl<'a> GuestMemory<'a> {
 /// writing `unsafe` code when working with a `GuestPtr` if you're not using one
 /// of the already-attached helper methods.
 #[repr(transparent)]
-#[cfg_attr(flux, flux::refined_by(pointer: T::Pointer))]
+#[cfg_attr(flux, flux::refined_by(pointer: <T as Pointee>::Pointer))]
 pub struct GuestPtr<T: ?Sized + Pointee> {
     #[cfg_attr(flux, flux::field(T::Pointer[pointer]))]
     pointer: T::Pointer,
