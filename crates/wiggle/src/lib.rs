@@ -103,6 +103,11 @@ enum Result<T, E> {
 impl usize {
     #[no_panic]
     #[spec(fn(num: usize[@n], rhs: usize[@r]) ->
+        Option<usize[n + r]>[n + r <= usize::MAX])]
+    fn checked_add(self, rhs: usize) -> Option<usize>;
+
+    #[no_panic]
+    #[spec(fn(num: usize[@n], rhs: usize[@r]) ->
         Option<usize[n * r]>[n * r <= usize::MAX])]
     fn checked_mul(self, rhs: usize) -> Option<usize>;
 }
@@ -430,7 +435,7 @@ impl<'a> GuestMemory<'a> {
     #[spec(fn(&mut Self, offset: u32, len: u32) ->
         Result<Option<&mut [u8][len]>, GuestError>)]
     fn as_slice_mut_at(&mut self, offset: u32, len: u32) -> Result<Option<&mut [u8]>, GuestError> {
-        let range = self.validate_range::<u8>(offset, len)?;
+        let _range = self.validate_range::<u8>(offset, len)?;
         let expected_len = usize::try_from(len)?;
         let region = Region { start: offset, len };
         match self {
@@ -444,7 +449,7 @@ impl<'a> GuestMemory<'a> {
             #[cfg(feature = "wasmtime")]
             GuestMemory::Ranges(memory) => {
                 let slice = memory
-                    .data_range_mut(range)
+                    .data_range_mut(_range)
                     .map_err(|_| GuestError::PtrOutOfBounds(region))?;
                 if slice.len() != expected_len {
                     return Err(GuestError::SliceLengthsDiffer);
@@ -587,7 +592,7 @@ impl<'a> GuestMemory<'a> {
     where
         T: GuestTypeTransparent,
     {
-        let expected_len = usize::try_from(len)?;
+        let _expected_len = usize::try_from(len)?;
         match self {
             #[cfg(feature = "wasmtime")]
             GuestMemory::Ranges(memory) => {
@@ -596,17 +601,15 @@ impl<'a> GuestMemory<'a> {
                     start: offset,
                     len: byte_len_u32,
                 };
-                let range = {
-                    let start = usize::try_from(offset)?;
-                    start.checked_add(byte_len).ok_or(GuestError::PtrOverflow)?;
-                    let range = validate_range_bounds(start, byte_len, memory.len(), region)?;
-                    range.start..range.end
-                };
+                let start = usize::try_from(offset)?;
+                start.checked_add(byte_len).ok_or(GuestError::PtrOverflow)?;
+                let memory_len = memory.len();
+                let range = validate_range_bounds(start, byte_len, memory_len, region)?;
                 let s: &mut [u8] = memory
-                    .data_range_mut(range.clone())
-                    .map_err(|_| GuestError::PtrOutOfBounds(region))?;
+                    .data_range_mut_if_in_bounds(range.start, range.end)
+                    .ok_or(GuestError::PtrOutOfBounds(region))?;
                 let cells = bounded_byte_cells(byte_cells(s), 0, byte_len, region)?;
-                Self::validate_guest_layout::<T>(cells, region, expected_len)?;
+                Self::validate_guest_layout::<T>(cells, region, _expected_len)?;
                 Ok(cells)
             }
             _ => self.validate_size_align::<T>(offset, len, byte_len),
@@ -735,6 +738,7 @@ impl<T: ?Sized + Pointee> GuestPtr<T> {
     /// Note that for sized types like `u32`, `GuestPtr<T>`, etc, the `pointer`
     /// value is a `u32` offset into guest memory. For slices and strings,
     /// `pointer` is a `(u32, u32)` offset/length pair.
+    #[no_panic]
     pub fn new(pointer: T::Pointer) -> GuestPtr<T> {
         GuestPtr { pointer }
     }
@@ -743,6 +747,7 @@ impl<T: ?Sized + Pointee> GuestPtr<T> {
     ///
     /// Note that for sized types this returns a `u32`, but for slices and
     /// strings it returns a `(u32, u32)` pointer/length pair.
+    #[no_panic]
     pub fn offset(&self) -> T::Pointer {
         self.pointer
     }
@@ -753,6 +758,7 @@ impl<T: ?Sized + Pointee> GuestPtr<T> {
     /// parameter on this `GuestPtr`. Note that this is a safe method, where
     /// again there's no guarantees about alignment, validity, in-bounds-ness,
     /// etc of the returned pointer.
+    #[no_panic]
     pub fn cast<U>(&self) -> GuestPtr<U>
     where
         U: Pointee<Pointer = T::Pointer> + ?Sized,
@@ -785,6 +791,7 @@ impl<T: ?Sized + Pointee> GuestPtr<T> {
 
     /// Returns a `GuestPtr` for an array of `T`s using this pointer as the
     /// base.
+    #[no_panic]
     pub fn as_array(&self, elems: u32) -> GuestPtr<[T]>
     where
         T: GuestType + Pointee<Pointer = u32>,
@@ -798,11 +805,13 @@ impl<T> GuestPtr<[T]> {
     /// array.
     ///
     /// This is similar to `<[T]>::as_ptr()`
+    #[no_panic]
     pub fn offset_base(&self) -> u32 {
         private::slice_offset(self.pointer)
     }
 
     /// For slices, returns the length of the slice, in elements.
+    #[no_panic]
     pub fn len(&self) -> u32 {
         private::slice_len(self.pointer)
     }
@@ -811,6 +820,7 @@ impl<T> GuestPtr<[T]> {
     ///
     /// Each item is a `Result` indicating whether it overflowed past the end of
     /// the address space or not.
+    #[no_panic]
     pub fn iter(&self) -> impl ExactSizeIterator<Item = Result<GuestPtr<T>, GuestError>> + '_
     where
         T: GuestType,
@@ -821,6 +831,7 @@ impl<T> GuestPtr<[T]> {
 
     /// Returns a `GuestPtr` pointing to the base of the array for the interior
     /// type `T`.
+    #[no_panic]
     pub fn as_ptr(&self) -> GuestPtr<T> {
         GuestPtr::new(self.offset_base())
     }
@@ -864,17 +875,20 @@ impl<T> GuestPtr<[T]> {
 impl GuestPtr<str> {
     /// For strings, returns the relative pointer to the base of the string
     /// allocation.
+    #[no_panic]
     pub fn offset_base(&self) -> u32 {
         private::slice_offset(self.pointer)
     }
 
     /// Returns the length, in bytes, of the string.
+    #[no_panic]
     pub fn len(&self) -> u32 {
         private::slice_len(self.pointer)
     }
 
     /// Returns a raw pointer for the underlying slice of bytes that this
     /// pointer points to.
+    #[no_panic]
     pub fn as_bytes(&self) -> GuestPtr<[u8]> {
         GuestPtr::new(self.pointer)
     }

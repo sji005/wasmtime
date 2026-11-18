@@ -552,11 +552,7 @@ impl Memory {
         range: Range<usize>,
     ) -> Result<&'a mut [u8], MemoryAccessError> {
         let store = store.into();
-        MemoryRanges {
-            memory: *self,
-            store: store.0,
-        }
-        .into_range_mut(range)
+        MemoryRanges::new(*self, store.0).into_range_mut(range)
     }
 
     /// Like [`Memory::data_and_store_mut`], but returns a [`MemoryRanges`]
@@ -579,13 +575,7 @@ impl Memory {
         let store = store.into();
         assert!(self.comes_from_same_store(store.0));
         let (data, opaque) = store.0.data_and_opaque_mut();
-        (
-            MemoryRanges {
-                memory: *self,
-                store: opaque,
-            },
-            data,
-        )
+        (MemoryRanges::new(*self, opaque), data)
     }
 
     /// Returns the base pointer, in the host's address space, that the memory
@@ -1548,6 +1538,34 @@ impl fmt::Debug for SharedMemory {
 mod tests {
     use crate::*;
 
+    #[test]
+    fn memory_ranges_mut_if_in_bounds() {
+        let mut store = Store::new(&Engine::default(), ());
+        let memory = Memory::new(&mut store, MemoryType::new(1, None).unwrap()).unwrap();
+        let (mut ranges, _) = memory.data_ranges_and_store_data_mut(&mut store);
+        let len = ranges.len();
+
+        assert!(ranges.data_range_mut_if_in_bounds(2, 1).is_none());
+        assert!(ranges.data_range_mut_if_in_bounds(0, len + 1).is_none());
+        assert!(
+            ranges
+                .data_range_mut_if_in_bounds(len + 1, len + 1)
+                .is_none()
+        );
+        assert!(
+            ranges
+                .data_range_mut_if_in_bounds(len, len)
+                .unwrap()
+                .is_empty()
+        );
+
+        ranges
+            .data_range_mut_if_in_bounds(1, 3)
+            .unwrap()
+            .copy_from_slice(b"ab");
+        assert_eq!(ranges.data_range(1..3).unwrap(), b"ab");
+    }
+
     // Assert that creating a memory via `Memory::new` respects the limits/tunables
     // in `Config`.
     #[test]
@@ -1737,9 +1755,13 @@ mod tests {
 /// [`MemoryRanges::data`]) and modified with
 /// [`MemoryRanges::data_range_mut`], which considers only the range it
 /// returns modified.
+#[refined_by(len: int)]
+#[invariant(0 <= len)]
 pub struct MemoryRanges<'a> {
-    memory: Memory,
-    store: &'a mut StoreOpaque,
+    base: *mut u8,
+    #[field(usize[len])]
+    len: usize,
+    _store: &'a mut StoreOpaque,
 }
 
 #[refined_by(start: int, end: int, limit: int)]
@@ -1770,27 +1792,57 @@ fn validate_memory_range(
     Ok(range)
 }
 
+#[trusted]
+#[no_panic]
+#[spec(fn(ptr: *const u8, len: usize) -> &[u8][len])]
+unsafe fn memory_slice<'a>(ptr: *const u8, len: usize) -> &'a [u8] {
+    // SAFETY: the caller guarantees that `ptr` is valid for `len` bytes.
+    unsafe { slice::from_raw_parts(ptr, len) }
+}
+
+#[trusted]
+#[no_panic]
+#[spec(fn(ptr: *mut u8, len: usize) -> &mut [u8][len])]
+unsafe fn memory_slice_mut<'a>(ptr: *mut u8, len: usize) -> &'a mut [u8] {
+    // SAFETY: the caller guarantees that `ptr` is valid and uniquely borrowed
+    // for `len` bytes.
+    unsafe { slice::from_raw_parts_mut(ptr, len) }
+}
+
 impl<'a> MemoryRanges<'a> {
+    fn new(memory: Memory, store: &'a mut StoreOpaque) -> Self {
+        let definition = store[memory.instance].memory(memory.index);
+        Self {
+            base: definition.base.as_ptr(),
+            len: definition.current_length(),
+            _store: store,
+        }
+    }
+
     /// The length of the memory, in bytes.
+    #[no_panic]
+    #[spec(fn(&Self[@len]) -> usize[len])]
     pub fn len(&self) -> usize {
-        self.memory.internal_data_size(self.store)
+        self.len
     }
 
     /// Whether the memory is empty.
+    #[no_panic]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
     /// All of the memory, for reading.
+    #[no_panic]
     pub fn data(&self) -> &[u8] {
-        let definition = self.store[self.memory.instance].memory(self.memory.index);
         // SAFETY: the store owns this non-shared memory, and this borrow of
-        // `self` excludes modification through it.
-        unsafe { slice::from_raw_parts(definition.base.as_ptr(), definition.current_length()) }
+        // `self` excludes modification and relocation through it.
+        unsafe { memory_slice(self.base, self.len) }
     }
 
     /// `range` of the memory, for reading, or an error if it is out of
     /// bounds.
+    #[no_panic]
     pub fn data_range(&self, range: Range<usize>) -> Result<&[u8], MemoryAccessError> {
         let data = self.data();
         let range = validate_memory_range(range.start, range.end, data.len())?;
@@ -1801,22 +1853,51 @@ impl<'a> MemoryRanges<'a> {
 
     /// `range` of the memory, for modification, or an error if it is out of
     /// bounds. Only this range is considered modified.
+    #[no_panic]
     pub fn data_range_mut(&mut self, range: Range<usize>) -> Result<&mut [u8], MemoryAccessError> {
         MemoryRanges {
-            memory: self.memory,
-            store: &mut *self.store,
+            base: self.base,
+            len: self.len,
+            _store: &mut *self._store,
         }
         .into_range_mut(range)
     }
 
+    /// Gets a mutable range, returning `None` when its bounds are invalid.
+    #[doc(hidden)]
+    #[no_panic]
+    #[spec(
+        fn(self: &mut Self[@memory_len], start: usize, end: usize) -> Option<&mut [u8]>
+    )]
+    pub fn data_range_mut_if_in_bounds(&mut self, start: usize, end: usize) -> Option<&mut [u8]> {
+        if start > end || end > self.len {
+            return None;
+        }
+
+        // SAFETY: the branch above proves the range is within this memory.
+        Some(unsafe { self.data_range_mut_unchecked(start, end) })
+    }
+
+    #[no_panic]
+    #[spec(
+        fn(self: &mut Self[@memory_len], start: usize, end: usize)
+            -> &mut [u8][end - start]
+            requires start <= end && end <= memory_len
+    )]
+    unsafe fn data_range_mut_unchecked(&mut self, start: usize, end: usize) -> &mut [u8] {
+        let len = end - start;
+        // SAFETY: the caller guarantees that the range is in bounds.
+        unsafe { memory_slice_mut(self.base.add(start), len) }
+    }
+
+    #[no_panic]
     fn into_range_mut(self, range: Range<usize>) -> Result<&'a mut [u8], MemoryAccessError> {
-        let range = validate_memory_range(range.start, range.end, self.len())?;
+        let range = validate_memory_range(range.start, range.end, self.len)?;
         let len = range.end - range.start;
-        let definition = self.store[self.memory.instance].memory(self.memory.index);
         // SAFETY: the range is in bounds, and the store, which owns this
         // non-shared memory, is borrowed for the slice's lifetime.
         unsafe {
-            let slice = slice::from_raw_parts_mut(definition.base.as_ptr().add(range.start), len);
+            let slice = memory_slice_mut(self.base.add(range.start), len);
             Ok(slice)
         }
     }

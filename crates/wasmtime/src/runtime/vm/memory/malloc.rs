@@ -9,7 +9,46 @@ use crate::prelude::*;
 use crate::runtime::vm::SendSyncPtr;
 use core::mem;
 use core::ptr::NonNull;
+use flux_rs::{attrs::*, extern_spec};
 use wasmtime_environ::MemoryTunables;
+
+#[extern_spec]
+#[refined_by(len: int)]
+#[invariant(0 <= len)]
+struct Vec<T, A: alloc::alloc::Allocator = alloc::alloc::Global>;
+
+#[extern_spec]
+impl<T> Vec<T> {
+    #[spec(fn() -> Vec<T>[0])]
+    fn new() -> Vec<T>;
+}
+
+#[extern_spec]
+impl<T, A: alloc::alloc::Allocator> Vec<T, A> {
+    #[spec(fn(v: &Vec<T, A>[@len]) -> usize[len])]
+    fn len(v: &Vec<T, A>) -> usize;
+
+    #[spec(
+        fn(self: &mut Vec<T, A>[@len], additional: usize)
+                -> Result<(), alloc::collections::TryReserveError>
+            ensures self: Vec<T, A>[len]
+    )]
+    fn try_reserve(&mut self, additional: usize)
+    -> Result<(), alloc::collections::TryReserveError>;
+}
+
+#[extern_spec]
+impl<T: Clone, A: alloc::alloc::Allocator> Vec<T, A> {
+    #[spec(
+        fn(self: &mut Vec<T, A>[@len], new_len: usize, value: T)
+            ensures self: Vec<T, A>[new_len]
+    )]
+    fn resize(&mut self, new_len: usize, value: T);
+}
+
+#[extern_spec(core::mem)]
+#[spec(fn<T>() -> usize{v: v > 0})]
+fn align_of<T>() -> usize;
 
 #[repr(C, align(16))]
 #[derive(Copy, Clone)]
@@ -94,7 +133,6 @@ unsafe impl LinearMemory for MallocMemory {
             self.base_ptr =
                 SendSyncPtr::new(NonNull::new(self.storage.as_mut_ptr()).unwrap()).cast();
         }
-        flux_rs::assert(self.storage.len() >= new_element_len);
         self.byte_len = new_size;
         Ok(())
     }
@@ -116,33 +154,14 @@ fn byte_size_to_element_len(byte_size: usize) -> usize {
     byte_size_rounded_up / align
 }
 
-/// Helper that is the equivalent of `storage.resize(new_len, Align16(0))`
-/// except it's also optimized to perform well in debug mode. Just using
-/// `resize` leads to a per-element iteration which can be quite slow in debug
-/// mode as it's not optimized to a memcpy, so it's manually optimized here
-/// instead.
+/// Grow the storage and initialize the new elements to zero.
+#[spec(
+    fn(storage: &strg Vec<Align16>[@old_len], new_len: usize{old_len < new_len})
+        ensures storage: Vec<Align16>[new_len]
+)]
 fn grow_storage_to(storage: &mut Vec<Align16>, new_len: usize) {
     debug_assert!(new_len > storage.len());
-    flux_rs::assert(new_len <= storage.capacity());
-    flux_rs::assert(new_len > storage.len());
-    let capacity_to_set = new_len - storage.len();
-    let slice_to_initialize = &mut storage.spare_capacity_mut()[..capacity_to_set];
-    let byte_size = mem::size_of_val(slice_to_initialize);
-
-    // SAFETY: The `slice_to_initialize` is guaranteed to be in the capacity of
-    // the vector via the slicing above, so it's all owned memory by the
-    // vector. Additionally the `byte_size` is the exact size of the
-    // `slice_to_initialize` itself, so this `memset` should be in-bounds.
-    // Finally the `Align16` is a simple wrapper around `u128` for which 0
-    // is a valid byte pattern. This should make the initial `write_bytes` safe.
-    //
-    // Afterwards the `set_len` call should also be safe because we've
-    // initialized the tail end of the vector with zeros so it's safe to
-    // consider it having a new length now.
-    unsafe {
-        core::ptr::write_bytes(slice_to_initialize.as_mut_ptr().cast::<u8>(), 0, byte_size);
-        storage.set_len(new_len);
-    }
+    storage.resize(new_len, Align16(0));
     flux_rs::assert(storage.len() == new_len);
 }
 
