@@ -1,0 +1,18 @@
+{
+  "run_url": "https://github.com/sji005/wasmtime/actions/runs/44394963511",
+  "source_revision": "1297667e20e54d522ea02cd9ed935787afe4e06c",
+  "checker": "unmodified pinned Flux; driver.sha256 identifies the baseline binary",
+  "artifact_id": 14469649295,
+  "artifact_sha256": "0fc17400c282e00bd9e89a461882da7a05f8e803a6c84f67bf81d81a4bd37865",
+  "job_id": 135122304846,
+  "environment_controls": "passed",
+  "runtime_tests": "4 passed",
+  "checked": 2,
+  "trusted_local_bodies": 0,
+  "ignored_local_bodies": 0,
+  "constraints_solved": 1,
+  "external_assumptions": ["T-FILE", "T-VEC including explicit from_elem/truncate length contracts"],
+  "negative_worker_mutation": "well-typed extra-byte result rejected with E0999 postcondition failure",
+  "flux_crash": false,
+  "claim": "Sequential component returned-length contract only; original fd_read remains open"
+}

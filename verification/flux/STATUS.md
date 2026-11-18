@@ -13,6 +13,15 @@ assumption; it adds no Flux forwarding specification or positive proof result.
 Future accepted runs should use the unmodified pinned checker. Historical
 candidate-driver evidence below keeps its original scope and provenance.
 
+New baseline checkpoint: [run 44394963511](https://github.com/sji005/wasmtime/actions/runs/44394963511)
+checked both synchronous experimental worker bodies and rejected a well-typed
+extra-byte mutation. Four real file-read tests passed. It uses the unmodified
+checker and explicit T-FILE/T-VEC specifications. This proves the transformed
+worker's returned-buffer bound only; original hostcall composition remains open.
+The earlier [run 44394247063](https://github.com/sji005/wasmtime/actions/runs/44394247063)
+had an ordinary postcondition failure before the missing Vec length contracts
+were supplied; neither run crashed Flux.
+
 | Evidence | Checked result | Scope |
 | --- | --- | --- |
 | [Baseline run 44240968739](https://github.com/sji005/wasmtime/actions/runs/44240968739) | Passed M0 with three positive functions and three rejected mutations. Ordinary builds, three boundary regressions and fresh P1 expansion passed. | Environment, original behavior on tested inputs, and generated source inspection |

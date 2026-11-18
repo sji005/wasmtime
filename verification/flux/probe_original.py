@@ -108,12 +108,20 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--case", action="append", choices=[c[0] for c in CASES])
+    parser.add_argument("--selector", help="Existing Flux selector override for exactly one case")
+    parser.add_argument("--slice-backed-only", action="store_true", help="Probe range without the optional Wasmtime variant")
+    parser.add_argument("--stop-on-crash", action="store_true")
+    parser.add_argument("--environment-dir", type=Path, default=ROOT / "artifacts/fd-read/environment")
     args = parser.parse_args()
+    if args.selector and len(args.case or []) != 1:
+        parser.error("a selector override requires exactly one case")
+    if args.slice_backed_only and args.case != ["range"]:
+        parser.error("slice-backed-only is limited to the range probe")
     if platform.system() != "Linux" or platform.machine() != "x86_64":
         parser.error("original-body checker probes require x86-64 Linux")
     output = args.output_dir.resolve()
     output.mkdir(parents=True, exist_ok=True)
-    gate = json.loads((ROOT / "artifacts/fd-read/environment/environment.json").read_text())
+    gate = json.loads((args.environment_dir / "environment.json").read_text())
     if gate["status"] != "passed":
         parser.error("M0 smoke gate must pass before original-body probes")
     wrapper = output / "rustc-wrapper"
@@ -137,6 +145,8 @@ def main():
     for name, package, source, anchor, features in CASES:
         if args.case and name not in args.case:
             continue
+        if args.slice_backed_only:
+            features = ["--no-default-features"]
         text = (ROOT / source).read_text()
         if anchor.startswith("def:"):
             # Integer primitive methods share a macro callsite. Select the
@@ -150,6 +160,8 @@ def main():
             last_line = anchor.split("\n")[-1]
             column = len(last_line) - len(last_line.lstrip()) + 1
             selector = f"span:{source}:{line}:{column}"
+        if args.selector:
+            selector = args.selector
         case_dir = output / name
         case_dir.mkdir(exist_ok=True)
         env = dict(os.environ, RUSTUP_TOOLCHAIN="nightly-2026-10-22", CARGO_INCREMENTAL="0", CARGO_TERM_COLOR="never")
@@ -191,6 +203,9 @@ def main():
         # Full logs remain artifacts; print diagnostics without flooding CI logs.
         diagnostic = [s for s in log.splitlines() if s.lstrip().startswith(("error[", "error:", "summary."))]
         print(f"{name}: {status}\n" + "\n".join(diagnostic[:12]), flush=True)
+        if args.stop_on_crash and re.search(r"(?i)(internal compiler error|internal flux error|panicked at)", log):
+            print("Flux crashed; pause this checkpoint for user review. Trust boundary unchanged.", flush=True)
+            return 3
     print("Probe collection finished; no production spatial proof is claimed.")
     return 0
 

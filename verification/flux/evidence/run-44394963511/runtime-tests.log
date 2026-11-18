@@ -1,0 +1,9 @@
+
+running 4 tests
+test tests::exact_read_respects_position ... ok
+test tests::eof_and_zero_capacity_return_empty_buffers ... ok
+test tests::read_failure_is_propagated ... ok
+test tests::short_read_returns_only_initialized_result_bytes ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

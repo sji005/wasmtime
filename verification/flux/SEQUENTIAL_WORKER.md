@@ -60,3 +60,9 @@ The follow-up adds sequential_vec_specs.rs for those two standard Vec operations
 within the existing T-VEC assumption, after reviewing the pinned Rust source.
 The worker implementation and OS read are unchanged. These external length
 contracts are assumed, not proved Rust standard-library implementations.
+
+Follow-up Linux run 44394963511, source 1297667: both local bodies checked with
+unmodified Flux; the well-typed extra-byte variant failed refinement checking.
+All four runtime tests passed. This establishes only the stated sequential
+component contract under T-FILE and T-VEC. No scheduler or original hostcall
+composition result follows from this run.

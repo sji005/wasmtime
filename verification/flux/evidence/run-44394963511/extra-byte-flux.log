@@ -1,0 +1,34 @@
+warning: the feature `allocator_api` has been partially stabilized since 1.100.0 and is succeeded by the feature `allocator_ext`
+ --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/sequential-worker/extra_byte.rs:4:27
+  |
+4 | #![cfg_attr(flux, feature(allocator_api))]
+  |                           ^^^^^^^^^^^^^
+  |
+  = note: `#[warn(stable_features)]` on by default
+help: if you are using features which are still unstable, change to using `allocator_ext`
+  |
+4 - #![cfg_attr(flux, feature(allocator_api))]
+4 + #![cfg_attr(flux, feature(allocator_ext))]
+  |
+help: if you are using features which are now stable, remove this line
+  |
+4 - #![cfg_attr(flux, feature(allocator_api))]
+  |
+
+error[E0999]: refinement type error
+  --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/sequential-worker/extra_byte.rs:43:2
+   |
+43 | }
+   |  ^ a postcondition cannot be proved
+   |
+note: this is the condition that cannot be proved
+  --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/sequential-worker/extra_byte.rs:36:81
+   |
+36 | #[cfg_attr(flux, flux::sig(fn(&File, capacity: usize, u64) -> Result<Vec<u8>{v: v.len <= capacity}, io::Error>))]
+   |                                                                                 ^^^^^^^^^^^^^^^^^
+
+error: aborting due to 1 previous error
+
+warning: 1 warning emitted
+
+Error: process exited unsuccessfully: exit status: 1
