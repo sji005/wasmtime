@@ -1,0 +1,15 @@
+error[E0999]: refinement type error
+  --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/sequential-worker/positive.rs:36:2
+   |
+36 | }
+   |  ^ a postcondition cannot be proved
+   |
+note: this is the condition that cannot be proved
+  --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/sequential-worker/positive.rs:30:81
+   |
+30 | #[cfg_attr(flux, flux::sig(fn(&File, capacity: usize, u64) -> Result<Vec<u8>{v: v.len <= capacity}, io::Error>))]
+   |                                                                                 ^^^^^^^^^^^^^^^^^
+
+error: aborting due to 1 previous error
+
+Error: process exited unsuccessfully: exit status: 1

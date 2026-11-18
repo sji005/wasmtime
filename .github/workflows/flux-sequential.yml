@@ -6,6 +6,7 @@ on:
     branches: ['flux/fd-read-memory-isolation']
     paths:
       - 'verification/flux/sequential_worker.rs'
+      - 'verification/flux/sequential_vec_specs.rs'
       - 'verification/flux/check_sequential_worker.py'
       - '.github/workflows/flux-sequential.yml'
 
@@ -33,7 +34,7 @@ jobs:
           rustup toolchain install nightly-2026-10-22 --profile minimal --component rustfmt --component rust-src --component rustc-dev --component llvm-tools
           rustup default nightly-2026-10-22
       - name: Check sequential source formatting
-        run: rustfmt --edition 2024 --check verification/flux/sequential_worker.rs
+        run: rustfmt --edition 2024 --check verification/flux/sequential_worker.rs verification/flux/sequential_vec_specs.rs
       - name: Restore unmodified Flux and solvers
         id: flux-cache
         uses: actions/cache/restore@v6

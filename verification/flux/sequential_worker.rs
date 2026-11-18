@@ -1,8 +1,14 @@
 //! Sequential experiment derived from fd_read's file worker.
 //! This is not the original hostcall or a model of task scheduling/cancellation.
 
+#![cfg_attr(flux, feature(allocator_api))]
+
 #[cfg(flux)]
 extern crate flux_core;
+#[cfg(flux)]
+extern crate flux_rs;
+#[cfg(flux)]
+mod sequential_vec_specs;
 
 #[cfg(unix)]
 use std::os::unix::fs::FileExt;

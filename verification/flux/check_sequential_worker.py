@@ -17,6 +17,8 @@ def main():
     output = ROOT / "artifacts/fd-read/sequential-worker"
     output.mkdir(parents=True, exist_ok=True)
     source = HERE / "sequential_worker.rs"
+    vector_specs = HERE / "sequential_vec_specs.rs"
+    (output / vector_specs.name).write_bytes(vector_specs.read_bytes())
     env = dict(os.environ, RUSTUP_TOOLCHAIN=TOOLCHAIN)
     env.pop("FLUX_DRIVER", None)
     env.pop("FLUX_COMPAT_RECEIPT", None)
@@ -25,6 +27,8 @@ def main():
         "claim": "Sequential worker buffer length only; no original hostcall or scheduling theorem",
         "checker": "Default installed Flux driver; compatibility overrides removed. Requires baseline installation provenance.",
         "source_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+        "vector_specs_sha256": hashlib.sha256(vector_specs.read_bytes()).hexdigest(),
+        "external_vector_assumptions": ["T-VEC: from_elem length n", "T-VEC: truncate length min(old, requested)"],
         "runs": [], "status": "open",
     }
     positive = source.read_text()

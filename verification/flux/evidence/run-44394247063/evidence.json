@@ -1,0 +1,14 @@
+{
+  "run_url": "https://github.com/sji005/wasmtime/actions/runs/44394247063",
+  "source_revision": "26f3aba2607368c2f10f615d07bdac3e57df1c09",
+  "checker": "unmodified pinned Flux; driver.sha256 identifies the baseline binary",
+  "artifact_id": 14468079208,
+  "artifact_sha256": "44caddf58db7d2aea4a9715502e5a3263feb78dd3a92c3b76d9bc7275b301b7c",
+  "job_id": 135119767976,
+  "environment_controls": "passed",
+  "runtime_tests": "4 passed",
+  "proof_status": "open: E0999 worker returned-length postcondition",
+  "flux_crash": false,
+  "negative_worker_mutation": "not reached because positive proof failed",
+  "claim": "Sequential experiment only; no fd_read theorem established"
+}

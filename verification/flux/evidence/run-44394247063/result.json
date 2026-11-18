@@ -1,0 +1,55 @@
+{
+  "claim": "Sequential worker buffer length only; no original hostcall or scheduling theorem",
+  "checker": "Default installed Flux driver; compatibility overrides removed. Requires baseline installation provenance.",
+  "source_sha256": "ac4083aaa02eddf0a882fd680d402790dc11fc77db7d533ecf7b64980bec1daa",
+  "runs": [
+    {
+      "case": "positive",
+      "tool": "rustc",
+      "command": [
+        "rustc",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/sequential-worker",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/sequential-worker/positive.rs"
+      ],
+      "exit_code": 0,
+      "log": "positive-rustc.log"
+    },
+    {
+      "case": "positive",
+      "tool": "flux",
+      "command": [
+        "flux",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/sequential-worker",
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "-Fstd-extern-specs=on",
+        "-Zunstable-options",
+        "--extern",
+        "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rmeta",
+        "--extern",
+        "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rlib",
+        "-L",
+        "dependency=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/sequential-worker/positive.rs"
+      ],
+      "exit_code": 1,
+      "log": "positive-flux.log"
+    }
+  ],
+  "status": "open",
+  "failure": "Both sequential bodies must check; inspect positive-flux.log"
+}

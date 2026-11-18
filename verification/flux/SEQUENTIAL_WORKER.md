@@ -50,3 +50,13 @@ typechecked the source and its test bodies using `--test --emit=metadata`.
 Executing the tests is blocked because the MSVC linker link.exe is unavailable.
 The Linux/unmodified-Flux probe has not run: no usable Flux or Python executable
 is available in this local shell. No positive Flux result is claimed.
+
+First Linux run: 44394247063, source 26f3aba. The unmodified checker passed its
+positive/negative environment controls; all four real file-read regressions
+passed. The worker postcondition failed with E0999, not a checker crash. The
+pinned Flux Vec library has no from_elem/truncate length specifications.
+
+The follow-up adds sequential_vec_specs.rs for those two standard Vec operations,
+within the existing T-VEC assumption, after reviewing the pinned Rust source.
+The worker implementation and OS read are unchanged. These external length
+contracts are assumed, not proved Rust standard-library implementations.
