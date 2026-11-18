@@ -1,5 +1,5 @@
 diff --git a/crates/flux-refineck/src/ghost_statements/fold_unfold.rs b/crates/flux-refineck/src/ghost_statements/fold_unfold.rs
-index b0191640d..7809fb55e 100644
+index b0191640d..e213084c9 100644
 --- a/crates/flux-refineck/src/ghost_statements/fold_unfold.rs
 +++ b/crates/flux-refineck/src/ghost_statements/fold_unfold.rs
 @@ -2,9 +2,11 @@ use std::{collections::hash_map::Entry, fmt, iter};
@@ -30,16 +30,18 @@ index b0191640d..7809fb55e 100644
              map: body
                  .local_decls
                  .iter()
-@@ -65,7 +69,7 @@ impl Env {
+@@ -64,8 +68,9 @@ impl Env {
+     }
  
      fn downcast(&mut self, genv: GlobalEnv, place: &Place, variant_idx: VariantIdx) -> QueryResult {
++        let owner = self.owner;
          let (node, ..) = self.ensure_unfolded(genv, place)?;
 -        node.downcast(genv, variant_idx)?;
-+        node.downcast(genv, self.owner, variant_idx)?;
++        node.downcast(genv, owner, variant_idx)?;
          Ok(())
      }
  
-@@ -81,8 +85,8 @@ impl Env {
+@@ -81,8 +86,8 @@ impl Env {
              let elem = place.projection[i];
              let (n, m) = match elem {
                  PlaceElem::Deref => node.deref(),
@@ -50,7 +52,7 @@ index b0191640d..7809fb55e 100644
                  PlaceElem::Index(_) | PlaceElem::ConstantIndex { .. } => break,
              };
              node = n;
-@@ -95,7 +99,7 @@ impl Env {
+@@ -95,7 +100,7 @@ impl Env {
      fn join(&mut self, genv: GlobalEnv, mut other: Env) -> QueryResult<Modified> {
          let mut modified = false;
          for (local, node) in self.map.iter_enumerated_mut() {
@@ -59,7 +61,7 @@ index b0191640d..7809fb55e 100644
              modified |= m;
          }
          Ok(modified)
-@@ -495,6 +499,7 @@ impl PlaceNode {
+@@ -495,6 +500,7 @@ impl PlaceNode {
      fn downcast(
          &mut self,
          genv: GlobalEnv,
@@ -67,7 +69,7 @@ index b0191640d..7809fb55e 100644
          idx: VariantIdx,
      ) -> QueryResult<(&mut PlaceNode, Modified)> {
          match self {
-@@ -504,7 +509,7 @@ impl PlaceNode {
+@@ -504,7 +510,7 @@ impl PlaceNode {
              }
              PlaceNode::Ty(ty) => {
                  if let TyKind::Adt(adt_def, args) = ty.kind() {
@@ -76,7 +78,7 @@ index b0191640d..7809fb55e 100644
                      *self = PlaceNode::Downcast(adt_def.clone(), args.clone(), idx, fields);
                      Ok((self, true))
                  } else {
-@@ -515,17 +520,17 @@ impl PlaceNode {
+@@ -515,17 +521,17 @@ impl PlaceNode {
          }
      }
  
@@ -98,7 +100,7 @@ index b0191640d..7809fb55e 100644
                          *self = PlaceNode::Downcast(
                              adt_def.clone(),
                              args.clone(),
-@@ -607,6 +612,7 @@ impl PlaceNode {
+@@ -607,6 +613,7 @@ impl PlaceNode {
      fn join(
          &mut self,
          genv: GlobalEnv,
@@ -106,7 +108,7 @@ index b0191640d..7809fb55e 100644
          other: &mut PlaceNode,
          in_mut_ref: bool,
      ) -> QueryResult<(bool, bool)> {
-@@ -616,7 +622,7 @@ impl PlaceNode {
+@@ -616,7 +623,7 @@ impl PlaceNode {
          let (fields1, fields2) = match (&mut *self, &mut *other) {
              (PlaceNode::Deref(ty1, node1), PlaceNode::Deref(ty2, node2)) => {
                  debug_assert_eq!(ty1, ty2);
@@ -115,7 +117,7 @@ index b0191640d..7809fb55e 100644
              }
              (PlaceNode::Tuple(_, fields1), PlaceNode::Tuple(_, fields2)) => (fields1, fields2),
              (PlaceNode::Closure(.., fields1), PlaceNode::Closure(.., fields2)) => {
-@@ -640,7 +646,7 @@ impl PlaceNode {
+@@ -640,7 +647,7 @@ impl PlaceNode {
              }
              (PlaceNode::Ty(_), PlaceNode::Ty(_)) => return Ok((false, false)),
              (PlaceNode::Ty(_), _) => {
@@ -124,7 +126,7 @@ index b0191640d..7809fb55e 100644
                  return Ok((m2, m1));
              }
              (PlaceNode::Deref(ty, _), _) => {
-@@ -648,19 +654,19 @@ impl PlaceNode {
+@@ -648,19 +655,19 @@ impl PlaceNode {
                  return Ok((true, false));
              }
              (PlaceNode::Tuple(_, fields1), _) => {
@@ -147,7 +149,7 @@ index b0191640d..7809fb55e 100644
                      modified2 |= m;
                      (fields1, fields2)
                  } else {
-@@ -670,7 +676,7 @@ impl PlaceNode {
+@@ -670,7 +677,7 @@ impl PlaceNode {
              }
          };
          for (node1, node2) in iter::zip(fields1, fields2) {
@@ -156,7 +158,7 @@ index b0191640d..7809fb55e 100644
              modified1 |= m1;
              modified2 |= m2;
          }
-@@ -814,6 +820,7 @@ impl PlaceNode {
+@@ -814,6 +821,7 @@ impl PlaceNode {
  
  fn downcast(
      genv: GlobalEnv,
@@ -164,7 +166,7 @@ index b0191640d..7809fb55e 100644
      adt_def: &AdtDef,
      args: &GenericArgs,
      variant: VariantIdx,
-@@ -823,7 +830,7 @@ fn downcast(
+@@ -823,7 +831,7 @@ fn downcast(
          .fields
          .iter()
          .map(|field| {
@@ -173,7 +175,7 @@ index b0191640d..7809fb55e 100644
              QueryResult::Ok(PlaceNode::Ty(ty))
          })
          .try_collect()
-@@ -831,6 +838,7 @@ fn downcast(
+@@ -831,6 +839,7 @@ fn downcast(
  
  fn downcast_struct(
      genv: GlobalEnv,
@@ -181,7 +183,7 @@ index b0191640d..7809fb55e 100644
      adt_def: &AdtDef,
      args: &GenericArgs,
  ) -> QueryResult<Vec<PlaceNode>> {
-@@ -839,12 +847,36 @@ fn downcast_struct(
+@@ -839,12 +848,36 @@ fn downcast_struct(
          .fields
          .iter()
          .map(|field| {
