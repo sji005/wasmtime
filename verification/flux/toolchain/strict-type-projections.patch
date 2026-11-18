@@ -1,0 +1,30 @@
+diff --git a/crates/flux-infer/src/projections.rs b/crates/flux-infer/src/projections.rs
+index f3c2a6690..f56536f7d 100644
+--- a/crates/flux-infer/src/projections.rs
++++ b/crates/flux-infer/src/projections.rs
+@@ -97,17 +97,15 @@ impl<'a, 'infcx, 'genv, 'tcx> Normalizer<'a, 'infcx, 'genv, 'tcx> {
+             .unwrap_or_else(|err| tracked_span_bug!("{err:?}"));
+         self.assemble_candidates_from_impls(obligation, &mut candidates)?;
+         if candidates.is_empty() {
+-            // TODO: This is a temporary hack that uses rustc's trait selection when FLUX fails;
+-            //       The correct thing, e.g for `trait09.rs` is to make sure FLUX's param_env mirrors RUSTC,
+-            //       by suitably chasing down the super-trait predicates,
+-            //       see https://github.com/flux-rs/flux/issues/737
+-            let (changed, ty_ctor) = normalize_projection_ty_with_rustc(
+-                self.genv(),
++            // Rust-only normalization erases refinements here. Keep unresolved
++            // type projections open instead of accepting that loss of evidence.
++            return Err(QueryErr::unsupported(
+                 self.def_id(),
+-                self.infcx.region_infcx,
+-                obligation,
+-            )?;
+-            return Ok((changed, ty_ctor));
++                flux_rustc_bridge::lowering::UnsupportedErr {
++                    descr: format!("unresolved projection; refinement-erasing fallback disabled: {obligation:?}"),
++                    span: None,
++                },
++            ));
+         }
+         if candidates.len() > 1 {
+             bug!("ambiguity when resolving `{obligation:?}` in {:?}", self.def_id());

@@ -1,5 +1,5 @@
 diff --git a/crates/flux-refineck/src/ghost_statements/fold_unfold.rs b/crates/flux-refineck/src/ghost_statements/fold_unfold.rs
-index b0191640d..b7122b228 100644
+index b0191640d..aa26ad7aa 100644
 --- a/crates/flux-refineck/src/ghost_statements/fold_unfold.rs
 +++ b/crates/flux-refineck/src/ghost_statements/fold_unfold.rs
 @@ -2,9 +2,11 @@ use std::{collections::hash_map::Entry, fmt, iter};
@@ -24,7 +24,7 @@ index b0191640d..b7122b228 100644
              QueryResult::Ok(PlaceNode::Ty(ty))
          })
          .try_collect()
-@@ -839,12 +841,33 @@ fn downcast_struct(
+@@ -839,12 +841,36 @@ fn downcast_struct(
          .fields
          .iter()
          .map(|field| {
@@ -48,7 +48,10 @@ index b0191640d..b7122b228 100644
 +    let ty = genv.lower_type_of(field_id)?.subst(args);
 +    let tcx = genv.tcx();
 +    let typing_env = rustc_middle::ty::TypingEnv::non_body_analysis(tcx, adt_def.did());
-+    match tcx.try_normalize_erasing_regions(typing_env, ty.to_rustc(tcx)) {
++    match tcx.try_normalize_erasing_regions(
++        typing_env,
++        rustc_middle::ty::Unnormalized::new(ty.to_rustc(tcx)),
++    ) {
 +        Ok(normalized) => normalized
 +            .lower(tcx)
 +            .map_err(|err| QueryErr::unsupported(field_id, err.into_err())),
