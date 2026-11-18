@@ -11,6 +11,8 @@ on:
       - 'verification/flux/check_slice_accessor.py'
       - 'verification/flux/check_memory_range_extent.py'
       - 'verification/flux/memory_range_extent.rs'
+      - 'verification/flux/check_iovec_metadata.py'
+      - 'verification/flux/iovec_metadata.rs'
       - 'verification/flux/probe_original.py'
       - 'verification/flux/check_original_contracts.py'
       - '.github/workflows/flux-sequential.yml'
@@ -93,6 +95,8 @@ jobs:
         run: python3 verification/flux/check_original_contracts.py --only-range --positive-report artifacts/fd-read/baseline-original-range/original-body-probes.json
       - name: Check the slice accessor experiment and stop on a Flux crash
         run: python3 verification/flux/check_slice_accessor.py
+      - name: Check P1 iovec stride and metadata bounds
+        run: python3 verification/flux/check_iovec_metadata.py
       - name: Check pointer arithmetic against a supplied allocation extent
         run: python3 verification/flux/check_memory_range_extent.py
       - name: Probe original Wasmtime MemoryRanges without std or pagemap
