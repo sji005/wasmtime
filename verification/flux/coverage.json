@@ -42,7 +42,7 @@
       "sink": "slice::from_raw_parts",
       "status": "open",
       "trust": "T-LINMEM; T-RUST; no assumed guest-offset validity",
-      "open_failure": "Pinned Flux Wasmtime probe hits generated Categories bitflags associated-type ICE"
+      "open_failure": "Allocation identity and raw slice contract open"
     },
     {
       "id": "E04",
@@ -56,7 +56,7 @@
       "sink": "slice::from_raw_parts_mut",
       "status": "open",
       "trust": "T-LINMEM; T-PTR; length-definition relation open",
-      "open_failure": "Pinned Flux Wasmtime probe hits generated Categories bitflags associated-type ICE"
+      "open_failure": "Logical length and raw slice refinement obligations remain open"
     },
     {
       "id": "E05",
@@ -84,7 +84,7 @@
       "sink": "GuestMemory::read",
       "status": "open",
       "trust": "no checked caller contract",
-      "open_failure": "Pinned Flux full-WASI probe hits generated OpenMode bitflags associated-type ICE before selected caller contract checking"
+      "open_failure": "Original selector feasibility checked without an iterator or metadata contract. Async caller compatibility open."
     },
     {
       "id": "E07",
@@ -98,7 +98,7 @@
       "sink": "metadata GuestPtr",
       "status": "open",
       "trust": "T-CORE; target u32/usize widths",
-      "open_failure": "Pinned Flux full-Wiggle probe hits iterator opaque-lifetime ICE before a spatial contract can be checked"
+      "open_failure": "Associated pointer refinement sort and original checked-arithmetic closure remain open"
     },
     {
       "id": "E08",
@@ -139,7 +139,8 @@
       "sink": "range consumed by read/slice bridge",
       "status": "open",
       "trust": "T-CORE; strict overflow must check original addition",
-      "open_failure": "Pinned Flux full-Wiggle probe hits iterator opaque-lifetime ICE before a spatial contract can be checked"
+      "open_failure": "Original returned interval contract checked for slice-backed variants. Establish the typed access and caller footprint contracts.",
+      "inspection_evidence": "evidence/run-44252707563/contracts.json"
     },
     {
       "id": "E11",
@@ -153,7 +154,7 @@
       "sink": "as_slice_mut / typed read",
       "status": "open",
       "trust": "T-LINMEM; original addition open",
-      "open_failure": "Pinned Flux full-Wiggle probe hits iterator opaque-lifetime ICE before a spatial contract can be checked"
+      "open_failure": "Original arithmetic checked. MemoryRanges logical length bound and matching allocation identity remain open."
     },
     {
       "id": "E12",
@@ -167,7 +168,7 @@
       "sink": "align_to<UnsafeCell<T>>",
       "status": "open",
       "trust": "T-LINMEM; returned subslice length differs from full memory",
-      "open_failure": "Pinned Flux full-Wiggle probe hits iterator opaque-lifetime ICE before a spatial contract can be checked"
+      "open_failure": "Typed width, range length and raw slice formation remain open"
     },
     {
       "id": "E13",
@@ -181,7 +182,7 @@
       "sink": "UnsafeCell<T> slice",
       "status": "open",
       "trust": "T-RUST; T-CORE; generic transparent representation",
-      "open_failure": "Pinned Flux full-Wiggle probe hits iterator opaque-lifetime ICE before a spatial contract can be checked"
+      "open_failure": "Original body reached. Full align_to contract and typed slice width remain open."
     },
     {
       "id": "E14",
@@ -208,7 +209,7 @@
       "sink": "file adapter buffer",
       "status": "open",
       "trust": "T-LINMEM; T-CORE; original validation body open",
-      "open_failure": "Pinned Flux full-Wiggle probe hits iterator opaque-lifetime ICE before a spatial contract can be checked"
+      "open_failure": "Original body reached. The caller, logical memory range and returned slice refinement obligations remain open."
     },
     {
       "id": "E16",
@@ -222,7 +223,7 @@
       "sink": "sys::read_at_cursor_unspecified",
       "status": "open",
       "trust": "T-FILE; late position overflow can follow confined writes",
-      "open_failure": "Pinned Flux full-WASI probe hits generated OpenMode bitflags associated-type ICE before selected caller contract checking"
+      "open_failure": "Original adapter count checked. The caller and the confined buffer construction remain open."
     },
     {
       "id": "E17",
@@ -235,9 +236,9 @@
       "original_check": "adapter is a single forwarding call",
       "sink": "std::os::unix::fs::FileExt::read_at",
       "status": "open",
-      "trust": "T-FILE external primitive; local adapter body open",
-      "experiment": "Exact source-slice count contract checked separately, with rejected wrong-count mutation; full-crate linkage and heap effects remain open",
-      "inspection_evidence": "evidence/run-44241913222/adapter-experiment.zip"
+      "trust": "T-FILE external primitive. Confinement and framing remain external assumptions.",
+      "experiment": "Original adapter success-count contract checked in the full WASI crate. Wrong-count body mutation rejected. Heap effects and caller composition remain open.",
+      "inspection_evidence": "evidence/run-44249865966/adapter-original.json"
     },
     {
       "id": "E18",
@@ -251,7 +252,7 @@
       "sink": "run_blocking closure returns Vec",
       "status": "open",
       "trust": "T-FILE; T-VEC; async ownership open",
-      "open_failure": "Pinned Flux full-WASI probe hits generated OpenMode bitflags associated-type ICE before selected caller contract checking"
+      "open_failure": "Owned buffer capture, resulting length and original async caller remain open"
     },
     {
       "id": "E19",
@@ -291,7 +292,7 @@
       "sink": "GuestPtr<[u8]> copy destination",
       "status": "open",
       "trust": "T-VEC; selected memory stability across await open",
-      "open_failure": "Pinned Flux full-Wiggle probe hits iterator opaque-lifetime ICE before a spatial contract can be checked"
+      "open_failure": "Associated pointer refinement sort, zero-start subrange and caller composition remain open"
     },
     {
       "id": "E22",
@@ -305,7 +306,7 @@
       "sink": "std::ptr::copy",
       "status": "open",
       "trust": "T-PTR; T-RUST; caller source/destination capacity open",
-      "open_failure": "Pinned Flux full-Wiggle probe hits iterator opaque-lifetime ICE before a spatial contract can be checked"
+      "open_failure": "Original body reached. Pointer accessor, typed validation and source/destination capacity remain open."
     },
     {
       "id": "E23",
@@ -319,7 +320,7 @@
       "sink": "GuestMemory::copy_from_slice",
       "status": "open",
       "trust": "T-STREAM; closed -> empty; Intr for successful empty; late errors tracked",
-      "open_failure": "Pinned Flux full-WASI probe hits generated OpenMode bitflags associated-type ICE before selected caller contract checking"
+      "open_failure": "Original async caller, stream result bound and copy-back remain open"
     },
     {
       "id": "E24",
@@ -386,7 +387,7 @@
       "sink": "descriptor lookup and error conversions",
       "status": "open",
       "trust": "narrow no-guest-access dependency obligation; not trusted wholesale",
-      "open_failure": "Pinned Flux full-WASI probe hits generated OpenMode bitflags associated-type ICE before selected caller contract checking"
+      "open_failure": "Original async trait checker limitation. Effect and error-path composition open."
     },
     {
       "id": "E29",

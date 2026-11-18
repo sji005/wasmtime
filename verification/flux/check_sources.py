@@ -70,7 +70,9 @@ def main():
     paths.update(git("ls-files", "--others", "--exclude-standard").decode().splitlines())
     for path in paths:
         assert (path.startswith("verification/flux/") or path in annotations or path in (
-            ".github/workflows/flux-fd-read.yml", "crates/wiggle/tests/fd_read_memory.rs"
+            ".github/workflows/flux-fd-read.yml",
+            "crates/wiggle/tests/fd_read_memory.rs",
+            "crates/wasi/tests/fd_read_memory.rs",
         )), f"unregistered production change: {path}"
     coverage = json.loads((HERE / "coverage.json").read_text())
     ids = set()
