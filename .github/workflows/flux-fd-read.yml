@@ -1,0 +1,112 @@
+name: Original fd_read memory isolation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['flux/fd-read-memory-isolation']
+    paths:
+      - 'verification/flux/**'
+      - 'crates/wiggle/**'
+      - 'crates/wasi/**'
+      - 'crates/wasi-io/**'
+      - 'crates/wasmtime/src/runtime/memory.rs'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.github/workflows/flux-fd-read.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  environment:
+    if: github.repository == 'sji005/wasmtime'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Verify frozen production sources
+        run: |
+          python3 verification/flux/check_sources.py
+      - name: Install pinned Rust compiler
+        run: |
+          rustup toolchain install nightly-2026-10-22 --profile minimal --component rustfmt --component rust-src --component rustc-dev --component llvm-tools
+          rustup default nightly-2026-10-22
+      - name: Check harness and regression formatting
+        run: rustfmt --edition 2024 --check verification/flux/smoke.rs crates/wiggle/tests/fd_read_memory.rs
+      - name: Restore pinned Flux and solvers
+        id: flux-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: |
+            ~/.flux/sysroot
+            ~/.cargo/bin/flux
+            ~/.cargo/bin/cargo-flux
+            ~/.cargo/bin/z3
+            ~/.cargo/bin/fixpoint
+          key: flux-fd-read-ubuntu24-x64-${{ hashFiles('verification/flux/install.sh', 'verification/flux/pins.json') }}
+      - name: Bootstrap pinned checker and solvers
+        if: steps.flux-cache.outputs.cache-hit != 'true'
+        run: bash verification/flux/install.sh
+      - name: Save pinned Flux and solvers
+        if: steps.flux-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            ~/.flux/sysroot
+            ~/.cargo/bin/flux
+            ~/.cargo/bin/cargo-flux
+            ~/.cargo/bin/z3
+            ~/.cargo/bin/fixpoint
+          key: ${{ steps.flux-cache.outputs.cache-primary-key }}
+      - name: M0 arithmetic, slice and pointer acceptance and rejection
+        run: python3 verification/flux/check_environment.py --output-dir artifacts/fd-read/environment
+      - name: Retain complete environment diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: fd-read-environment
+          path: artifacts/fd-read/environment
+          if-no-files-found: warn
+
+  integration:
+    if: github.repository == 'sji005/wasmtime'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      CARGO_INCREMENTAL: '0'
+      CARGO_PROFILE_DEV_DEBUG: '0'
+      CARGO_PROFILE_TEST_DEBUG: '0'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - name: Install matching Rust compiler
+        run: |
+          rustup toolchain install nightly-2026-10-22 --profile minimal
+          rustup default nightly-2026-10-22
+      - name: Compile original Wiggle and WASI P1 configuration
+        run: |
+          cargo check --locked --target x86_64-unknown-linux-gnu -p wiggle --all-features
+          cargo check --locked --target x86_64-unknown-linux-gnu -p wasmtime-wasi --no-default-features --features p1
+      - name: Run original-body memory boundary regressions
+        run: cargo test --locked --target x86_64-unknown-linux-gnu -p wiggle --all-features --test fd_read_memory
+      - name: Capture fresh generated P1 ABI wrapper
+        run: |
+          mkdir -p artifacts/fd-read/glue
+          cargo rustc --locked --target x86_64-unknown-linux-gnu -p wasmtime-wasi --no-default-features --features p1 --lib -- -Zunpretty=expanded > artifacts/fd-read/glue/wasi-expanded.rs
+          python3 verification/flux/capture_glue.py artifacts/fd-read/glue/wasi-expanded.rs --output-dir artifacts/fd-read/glue
+      - name: Retain full expansion and source provenance
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: fd-read-original-glue
+          path: artifacts/fd-read/glue
+          if-no-files-found: warn

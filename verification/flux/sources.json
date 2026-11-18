@@ -1,0 +1,29 @@
+{
+  "baseline": "7c83a428028b44e1a73b40aa6a912d6700983624",
+  "hash_encoding": "SHA-256 of UTF-8 Git source, CRLF normalized to LF",
+  "files": {
+    "Cargo.toml": "4996bf6a74024bf91f047d81313c5c4b4a15e054bf7d65189d75a87f98b25e43",
+    "Cargo.lock": "f20ab4ac6fbf49b42e2f44dba2246ff6506125727be944679bf8d2d7dc20e701",
+    "crates/wiggle/Cargo.toml": "5222ea1e5b77e9c29e4d79596fb5f7da0de29fb411742b0b7961211dc2743d25",
+    "crates/wasi/Cargo.toml": "43dd605c2d4386f0cd9b30e1960246cb96cab17dc50e33c133dd1f758c0e93b4",
+    "crates/wiggle/src/lib.rs": "9fee3c8755490b2aac5409ca2e9cd4ac4e98786619e09e7ecd5e0ff6b3f93b91",
+    "crates/wiggle/src/guest_type.rs": "5d6532a5a1827bb02502a64db41ae609c34d4fb8c390cb63605b265d3032488f",
+    "crates/wiggle/src/guest_error.rs": "03f35e9b18117d2928d51279c925db108bceb8aca08d6a37bd8eb590a7ef226d",
+    "crates/wiggle/src/region.rs": "5a4e9284148747f00dbe08831b87c5c2528e68eff266a6f1996fcb11d00ed821",
+    "crates/wiggle/generate/src/wasmtime.rs": "321ba0c244565bca845906d96a7e258455d67353da21c5155ecfca42365b64e9",
+    "crates/wiggle/generate/src/funcs.rs": "70fa853f25103a9341d69539d91dff00ce8e1e16ca25b74db9acf5b6ab3ec6cb",
+    "crates/wiggle/generate/src/types/record.rs": "7bffc7c5ea311387821fc0bad4d5d6f1ea37ba2189b0c10216f33a72689a4d0a",
+    "crates/wiggle/generate/src/module_trait.rs": "ee7ace6b9e04913286efa62fa8359436fdaf1c36a5559bda939c1852d2d4c5cb",
+    "crates/wiggle/macro/src/lib.rs": "862c8e7c4314cf345c8dcc4b70e0f816703cc41a5aebddfb65c6d9f01dacb770",
+    "crates/wasi/src/p1.rs": "c735fc98a6eaa582b4821c54fdb3a69b3d970c0ab8444a4709bb9ce2afd03093",
+    "crates/wasi/src/filesystem.rs": "59a0dd0965e02e7e11afeab3a9d8ea92fda65a337a90f7eed80ab6bcc550730a",
+    "crates/wasi/src/filesystem/unix.rs": "c4032ed7b80f9b52871df7a5effc70647ff896320502f5dc67642a3052e17fc2",
+    "crates/wasi/src/runtime.rs": "7c7e78e102c7b587797f9cf305bbe4daab4ee5331fccb9fcddd906a15f635619",
+    "crates/wasmtime/src/runtime/memory.rs": "798642cb7abb69d209f00f89700dbcc887b221648a836ee06ecb649078dfda18",
+    "crates/wasi/src/p2/host/io.rs": "d10928e92a5ca520eb1e36a2ac1624ec67d728c7d375c4627d1e3d08caf073ee",
+    "crates/wasi-io/src/impls.rs": "4684abc7147a10a601f344c320a16d5c601bd0e70b8003bb9da30720c1d4b0b4",
+    "crates/wasi-io/src/streams.rs": "0911d8de54526b5cf9086de6336ab71e748aa16f2c5426c2a57be4f22a6f5ba7",
+    "crates/wasi/witx/p1/wasi_snapshot_preview1.witx": "7bcedd2dc45f952ffe36266ca59b9e3a55f94e648ed82f6c4864d003b2f260b4",
+    "crates/wasi/witx/p1/typenames.witx": "838d37c5bb36c55d378eb3ebdd83ef56ef0b6eeec08ffc028647a04a92e30ac0"
+  }
+}

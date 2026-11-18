@@ -1,0 +1,22 @@
+{
+  "baseline": "7c83a428028b44e1a73b40aa6a912d6700983624",
+  "historical_experiment": "c6a59fc114302c2f6438893994138a0cbcfe2b12",
+  "flux_revision": "b68c177c5ace7cb3644fdeea140dc5d18669c6cc",
+  "toolchain": "nightly-2026-10-22",
+  "target": "x86_64-unknown-linux-gnu",
+  "runner": "ubuntu-24.04",
+  "wasi_features": ["p1", "p2"],
+  "wasi_default_features": false,
+  "z3_version": "5.3.3",
+  "z3_archive_sha256": "d56f60b06f432f33de5810f7f1a384a339131f361e2d54d08ea83eea14326880",
+  "fixpoint_release_asset": 648710606,
+  "fixpoint_archive_sha256": "7f23b085b848d42ce91618c722cf867ca16e2b570d5d2427138ed80a99d80f9a",
+  "reviewed_flux_spec_git_blobs": {
+    "lib/flux-core/src/slice/mod.rs": "c8922ac0482a0cffe1ddec5de06528072fc1d95b",
+    "lib/flux-core/src/slice/index.rs": "bf5942da3c72407fb36c9be23551179f8f6cf5fb",
+    "lib/flux-core/src/ptr/mod.rs": "bbdca5c0b76889aec726d4c292301e639eac1743",
+    "lib/flux-core/src/num/mod.rs": "f7269aaf58028f8d898edc858e3d75fb0a73f452"
+  },
+  "proof_flags": ["--cfg", "flux", "-Fcheck-overflow=strict", "-Fallow-raw-deref=none"],
+  "bootstrap_limitation": "Upstream cargo xtask install may resolve wrapper dependencies; bootstrap is not hermetic. Historical success is not this branch's M0 result."
+}

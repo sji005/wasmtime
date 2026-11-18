@@ -1,0 +1,43 @@
+# Trust boundaries and open obligations
+
+No production body is checked, trusted by annotation, or ignored by a checker
+in this branch. All production edges in `coverage.json` are open or explicitly
+excluded. The M0 probes load external `flux_core` contracts; zero local trusted
+bodies does not eliminate those external assumptions. Historical experiment
+proof results do not apply to the original baseline.
+
+| ID | External assumption / machinery | Exact boundary and limitation |
+| --- | --- | --- |
+| T-LINMEM | Correct live selected linear-memory allocation, base/length, permissions and lifetime | The binding selects a Wasmtime Memory belonging to the caller's store. `MemoryRanges` retains Memory instance/index plus the StoreOpaque borrow; `.data()` and `.into_range_mut()` obtain base/current_length from that definition. Allocation origin correctness is assumed. Accessor forwarding, the consistency of `.len()` with that definition and guest offset validation still require checked contracts. The assumption never supplies guest-pointer validity. |
+| T-FILE | Rust std / OS read primitive | `std::os::unix::fs::FileExt::read_at(&File, &mut [u8], u64)` writes only inside its supplied slice on success AND error; success count <= slice length; unrelated allocations are unchanged by that buffer write. The existing `filesystem/unix.rs::read_at_cursor_unspecified` body remains to be checked for forwarding that same slice. Do not trust that local wrapper to hide a guest-memory access. |
+| T-RUST | Rust model, valid references and borrow/lifetime guarantees | Supplied slices describe valid initialized bytes for their stated lifetime. Rust references contribute provenance and exclusive/shared access guarantees. Numerical base/extent refinements are not a proof of those facts for an unsafe slice constructor. |
+| T-CORE | Pinned Flux standard-library specifications | Reviewed slice len/as_ptr/as_mut_ptr/get/index and pointer add/copy semantics are pinned by Git blob IDs in `pins.json`; arithmetic Option/refinement specs are pinned with the same source revision. Slice indexing uses `start <= end <= len`; pointer specs retain base, address and remaining capacity. These specifications do not prove temporal safety or general heap framing. `from_raw_parts`, align_to, atomics, generic transparent types, conversions and async dependencies need further narrow specs/review in M1 onward. |
+| T-VEC | Standard owned Vec behavior | Allocation, initialized elements, length/capacity and truncate semantics. Caller use of the read count, closure ownership, selected guest destination, and copy length remain obligations; no whole-worker wrapper is assumed safe. |
+| T-STREAM | Owned host stream result | Stream/Bytes/Vec ownership and valid contents; no guest buffer is supplied to the primitive. P1's explicit returned-length check remains to be verified. A dynamic embedder stream's other effects must be declared at that external boundary; debug assertions do not prove its contract. |
+| T-TASK | Tokio task/ownership semantics | Blocking closures and their return values satisfy Send + static. Aborting/dropping the handle need not stop running blocking work. The actual closure must be shown to capture only owned host buffers/file state; no general assumption that spawn_blocking makes guest borrows safe is permitted. |
+| T-MACHINERY | Flux, Rust compiler model, solver and external specs | Flux revision/toolchain, fixpoint archive and Z3 archive pins are recorded in `pins.json`. Installer archive verification does not establish checker soundness or hermetic Cargo wrapper installation. M0 positive/negative compatibility remains unrun on Linux. |
+
+Local M0 probe functions: `addition`, `slice_read`, `pointer_copy`. No trusted or
+ignored annotations exist in that harness. They are checker tests, not extracted
+or reimplemented models of production functions. The successful case's three
+contracts, the ordinary Rust compilation of all variants, and the specific
+negative Flux diagnostics must all pass before using this candidate checker.
+
+The production trust/ignore inventory is currently empty because no production
+checker run exists, not because all dependencies have been verified. In
+particular, `first_non_empty_iovec`, validation, raw slice formation, atomics,
+file adapter, direct caller, Vec worker, streams, cancellation, selected memory
+identity across await and generated ABI stores are all open. Host-only descriptor
+initialization/lookup/fuel/error code needs narrow no-guest-effect accounting.
+No broad ignore/trust annotation discharges any of these obligations.
+
+A future successful helper proof requires well-typed temporary mutations of its
+original body, including removal of its bounds check and inflated access width or
+offset. Its callers must establish that helper's preconditions. Runtime boundary
+tests supplement that check and cannot close a universal proof obligation.
+
+Excluded surfaces remain those in `PLAN.md`: other hostcalls, general Memory
+read/write, compiler correctness, component ABI, descriptor rights, filesystem
+confinement, file-content correctness and allocator verification. Shared memory
+is a reachable fd_read variant explicitly excluded while its concurrency and
+raw-copy/atomic obligations remain unresolved. These exclusions are not bugs.

@@ -1,0 +1,138 @@
+# Original fd_read memory-isolation investigation
+
+Execution of [the supplied plan](PLAN.md), starting from clean Wasmtime
+`7c83a428028b44e1a73b40aa6a912d6700983624`, on branch
+`flux/fd-read-memory-isolation`. Production code is unchanged. This branch has
+**no checked production functions, no completed fd_read proof, and no bug finding**.
+
+M0 is prepared but has not passed. The current Windows host has no WSL/Linux
+checker environment. Rust 1.98.0 compiled the positive smoke harness and all three
+negative variants as ordinary libraries; that does not check their Flux contracts.
+Logs and source copies are retained in `artifacts/fd-read/windows-rust-only`.
+The source guard, Rust formatting and Python syntax checks passed locally.
+An offline ordinary Wiggle build stopped
+at missing Cargo dependency `anyhow`, before compilation. Linux integration,
+fresh generated expansion, and the negative Flux probes have not run here.
+
+| Milestone | Status | Next evidence required |
+| --- | --- | --- |
+| M0: freeze/environment | 23 frozen input files, 28 inspected edges; checker unavailable | Pinned Linux toolchain bootstrap, all positive/negative probes, baseline compilation and fresh ABI expansion |
+| M1: range/metadata | Open; no annotations added before M0 gate | Check original validation, MemoryRanges, metadata reads, iterator and selector bodies; classify failures |
+| M2: direct file | Open | Compose the original caller, guest slice and local Unix forwarding adapter with the external file contract |
+| M3: worker/stdin | Open | Check source/destination capacities, await ownership, cancellation and selected-memory stability |
+| M4: generated ABI/errors | Open | Prove fresh generated output store, selection, aliases and all error exits |
+| M5: other configurations | Assessed as separate open obligations | Shared-memory concurrency/atomics/raw copies, Windows adapter and 32-bit arithmetic |
+
+Only installer pins, diagnostic recognition, and ABI-capture tooling were reused
+from the old experiment `c6a59fc114302c2f6438893994138a0cbcfe2b12`.
+Its bounds helper, permits, copy_from_bytes, runtime changes, abstract effect
+traces and proof claims are absent. The supplied plan is a task specification,
+not an independent source of authority for publishing or changing machine setup.
+
+## Frozen sources and coverage
+
+`sources.json` pins the baseline Git source of reached dependencies, Cargo
+configuration and WITX inputs. Hashing normalizes CRLF to LF so checkout
+line-ending conversion cannot look like a runtime change. `check_sources.py`
+compares both the baseline object and working tree and rejects changes anywhere
+outside this verification directory, its workflow, and its regression test.
+At this M0 checkpoint even annotation changes to production require a deliberate
+revision of that guard. Do not regenerate baseline hashes from annotated code.
+
+`coverage.json` is the inspection ledger. Each row includes call edge,
+configuration, pinned source, effect, pointer origin, offset/count, existing
+check, primitive sink, status and trust dependency. A row's file hash is in
+`sources.json`. These are obligations, not established dependency contracts or
+a completeness certificate. Generated code is still pending fresh expansion.
+
+Inspection observations to retain when writing contracts:
+
+- The binding selects the caller's export named `memory`, uses
+  `data_ranges_and_store_data_mut` for unshared memory, and constructs
+  `GuestMemory::Ranges`. `Unshared` is a separate helper variant to check too.
+- Metadata iteration uses checked `u32` element multiplication/addition and
+  reads visited 8-byte iovec records in order. It stops at the first non-empty
+  payload. All-empty input produces `(0, 0)`; it does not write every iovec.
+- `validate_range` retains its original `offset + byte_len` expression. The
+  two operands originate as `u32`, but strict-overflow verification on actual
+  `usize` widths remains required. No replacement arithmetic was introduced.
+- `MemoryRanges::into_range_mut` checks `start <= end <= full_length` before
+  pointer addition. A returned sub-slice's length is distinct from the full
+  linear-memory length. The `Ranges` typed write path has separate checked
+  multiplication/addition before `align_cells`.
+- The file branch evaluates `as_slice_mut` even when a worker is needed. That
+  temporary borrow is dropped; the closure owns a host Vec. It truncates that
+  Vec to the OS count and returns it before `get_range(0..n)` and copy-back.
+- Stdin explicitly rejects an overlong returned Vec before copy-back. The
+  stream implementation's debug assertion is not a release-mode guarantee.
+- Empty `copy_from_slice` checks equal lengths and then succeeds before
+  validating its unused destination pointer. `as_slice_mut`, including empty
+  ranges, validates its range. Regression expectations preserve this difference.
+- Metadata precedes descriptor rejection. Position overflow can happen after
+  payload writes. An invalid generated result pointer may trap after payload
+  effects. Fresh expansion must establish actual generated error/store ordering;
+  generator inspection alone does not close that obligation.
+
+## Run the prepared M0 checkpoint
+
+Use x86-64 Ubuntu 24.04 with rustup, Python 3, curl, unzip, git and a C linker.
+Pins, target, features, reviewed primitive-spec Git blobs and proof flags are in
+`pins.json`. This is a candidate toolchain; compatibility remains to be tested.
+
+```sh
+python3 verification/flux/check_sources.py
+rustup toolchain install nightly-2026-10-22 --profile minimal \
+  --component rustfmt --component rust-src --component rustc-dev --component llvm-tools
+export RUSTUP_TOOLCHAIN=nightly-2026-10-22
+bash verification/flux/install.sh
+python3 verification/flux/check_environment.py --output-dir artifacts/fd-read/environment
+cargo check --locked --target x86_64-unknown-linux-gnu -p wiggle --all-features
+cargo check --locked --target x86_64-unknown-linux-gnu \
+  -p wasmtime-wasi --no-default-features --features p1
+cargo test --locked --target x86_64-unknown-linux-gnu \
+  -p wiggle --all-features --test fd_read_memory
+mkdir -p artifacts/fd-read/glue
+cargo rustc --locked --target x86_64-unknown-linux-gnu \
+  -p wasmtime-wasi --no-default-features --features p1 --lib \
+  -- -Zunpretty=expanded > artifacts/fd-read/glue/wasi-expanded.rs
+python3 verification/flux/capture_glue.py artifacts/fd-read/glue/wasi-expanded.rs \
+  --output-dir artifacts/fd-read/glue
+```
+
+`.github/workflows/flux-fd-read.yml` prepares these checks on the personal fork
+only. Preparing that workflow does not mean it has been published or executed.
+Its independent environment and integration jobs separate checker compatibility
+from ordinary compilation/tests. Neither job checks a production Flux body.
+
+The smoke runner requires exactly three checked, zero trusted, zero ignored
+local probe bodies with strict overflow. It compiles all negative sources as
+ordinary Rust before requiring an actual `E0999` refinement/overflow diagnostic.
+Syntax errors, unsupported constructs, timeouts and missing tools fail the gate;
+none count as bug evidence. Negative unsafe copies are compiled, never executed.
+All four probe sources, commands, hashes, versions and full logs are retained.
+The installer verifies solver archive hashes and reviewed external spec blobs;
+the upstream wrapper installation is not hermetic. A mutable fixpoint URL must
+fail closed if its pinned archive has changed.
+
+The memory regression test executes original Wiggle bodies and original
+MemoryRanges accessors. It covers exact-fit/empty/end/beyond-end ranges, untouched
+bytes on rejected copies, scalar width/alignment, multiplication and guest-offset
+overflow, and full-region versus sub-slice length. It does not test the private
+P1 selector, generated Iovec/ABI bodies, file/stdin branches or cancellation;
+those execution cases and all universal production checks remain open.
+
+## Configuration matrix
+
+| Configuration | Status |
+| --- | --- |
+| Linux x86-64, p1+p2, unshared Ranges/direct file | Initial proof target; open |
+| Linux x86-64, unshared Unshared helper variant | Included dependency obligation; open |
+| Linux x86-64, unshared worker and stdin | Open; no async or caller proof |
+| Linux x86-64, shared memory | Reachable; excluded from initial claim; separate concurrency assessment required |
+| Windows and 32-bit hosts | Excluded; no result inherited from Linux x86-64 |
+
+The intended spatial condition uses mathematical `0 <= o <= L` and
+`0 <= n <= L-o`, including exact fits and empty ranges at the end. A separately
+named strict-endpoint comparison must never replace the production half-open
+policy. Pointer validity/provenance/liveness cannot be inferred from those
+numerical conditions alone. See [the trust boundaries](TRUST.md).
