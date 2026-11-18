@@ -70,7 +70,7 @@ fn original_ranges_keep_full_length_and_exact_fit() {
     use wasmtime::{Engine, Memory, MemoryType, Store};
     let engine = Engine::default();
     let mut store = Store::new(&engine, ());
-    let memory = Memory::new(&mut store, MemoryType::new(1, None)).unwrap();
+    let memory = Memory::new(&mut store, MemoryType::new(1, None).unwrap()).unwrap();
     let full_len = memory.data_size(&store);
     let (mut ranges, _) = memory.data_ranges_and_store_data_mut(&mut store);
     assert_eq!(ranges.data_range_mut(full_len..full_len).unwrap().len(), 0);

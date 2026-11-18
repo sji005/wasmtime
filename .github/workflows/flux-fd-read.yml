@@ -22,6 +22,10 @@ jobs:
     if: github.repository == 'sji005/wasmtime'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
+    env:
+      CARGO_INCREMENTAL: '0'
+      CARGO_PROFILE_DEV_DEBUG: '0'
+      CARGO_PROFILE_TEST_DEBUG: '0'
     defaults:
       run:
         shell: bash
@@ -65,12 +69,21 @@ jobs:
           key: ${{ steps.flux-cache.outputs.cache-primary-key }}
       - name: M0 arithmetic, slice and pointer acceptance and rejection
         run: python3 verification/flux/check_environment.py --output-dir artifacts/fd-read/environment
+      - name: Collect original-body feasibility diagnostics (not a spatial proof)
+        run: python3 verification/flux/probe_original.py --output-dir artifacts/fd-read/original-body-probes
       - name: Retain complete environment diagnostics
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: fd-read-environment
           path: artifacts/fd-read/environment
+          if-no-files-found: warn
+      - name: Retain actual compiler invocations and open diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: fd-read-original-body-probes
+          path: artifacts/fd-read/original-body-probes
           if-no-files-found: warn
 
   integration:

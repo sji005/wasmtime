@@ -21,7 +21,7 @@ HERE = Path(__file__).resolve().parent
 TOOLCHAIN = "nightly-2026-10-22"
 TARGET = "x86_64-unknown-linux-gnu"
 DIAGNOSTIC = re.compile(
-    r"error\[E0999\]: (refinement type error|arithmetic operation may (over|under)flow)"
+    r"error\[E0999\]: (refinement type error|arithmetic operation may (over|under)flow|assertion might fail: possible out-of-bounds access)"
 )
 SUMMARY = re.compile(r"3 functions processed: 3 checked; 0 trusted; 0 ignored\.")
 
@@ -113,7 +113,7 @@ def main():
                 if code or not SUMMARY.search(log):
                     raise RuntimeError("Positive probes did not check exactly three untrusted, unignored bodies")
             elif code == 0 or not DIAGNOSTIC.search(log):
-                raise RuntimeError(f"{name}: expected refinement/overflow diagnostic; infrastructure/syntax failures do not count")
+                raise RuntimeError(f"{name}: expected refinement/overflow/bounds diagnostic; infrastructure/syntax failures do not count")
             if re.search(r"(?i)(internal compiler error|solver.*(crash|timeout)|unsupported)", log):
                 raise RuntimeError(f"{name}: unresolved checker/solver limitation")
         report["status"] = "passed"
