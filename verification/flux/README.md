@@ -129,6 +129,8 @@ bytes on rejected copies, scalar width/alignment, multiplication and guest-offse
 overflow, and full-region versus sub-slice length. The WASI regression executes
 the generated P1 binding and checks exact-fit short reads, an all-empty EOF
 read, truncated metadata and the effects preceding an invalid result pointer.
+It also runs separate direct-file and worker-copy paths and checks the order
+when the result pointer aliases the payload.
 These tests cover concrete inputs. The proof and its remaining obligations are
 tracked separately in [the checkpoint](STATUS.md).
 

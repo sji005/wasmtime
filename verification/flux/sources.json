@@ -26,6 +26,10 @@
     "crates/wasi/witx/p1/wasi_snapshot_preview1.witx": "7bcedd2dc45f952ffe36266ca59b9e3a55f94e648ed82f6c4864d003b2f260b4",
     "crates/wasi/witx/p1/typenames.witx": "838d37c5bb36c55d378eb3ebdd83ef56ef0b6eeec08ffc028647a04a92e30ac0",
     "crates/wasmtime/src/runtime/store.rs": "dd09c3f146c2e43a531a787bc4baad8f036dc11e3e7f623b85e039fb2a673505",
-    "crates/wasmtime/src/runtime/vm/vmcontext.rs": "b8df30c2a5e2cdd33b0c9a476a05e1604d38df31047d25583dd33a47954c06f9"
+    "crates/wasmtime/src/runtime/vm/vmcontext.rs": "b8df30c2a5e2cdd33b0c9a476a05e1604d38df31047d25583dd33a47954c06f9",
+    "crates/wasmtime/src/runtime/store/data.rs": "52fbf3e54cbf9c2af1da0741465ad30e0ed5d888e9c80f0b5c93533be106e41b",
+    "crates/wasmtime/src/runtime/vm/instance.rs": "8ffb8b577bb5db1a32e869c167bfcbd695f7dcf865f3ce141c6c1ce7aab6956e",
+    "crates/wasmtime/src/runtime/vm/provenance.rs": "bc9330fa74fb9eadfdb698380751eacbb9fdf475dedd863e04c49dcfd18ff7da",
+    "crates/environ/src/vmtypes.rs": "a7186f11e40b3f8f8a79ecddf95daf14297b886a7c486b5a2aff50b9aca9ba7b"
   }
 }

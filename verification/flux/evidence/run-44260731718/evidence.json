@@ -1,0 +1,14 @@
+{
+  "run_url": "https://github.com/sji005/wasmtime/actions/runs/44260731718",
+  "source_revision": "9cfd8262d7d39d2b150348169def9a6be64f6f5b",
+  "artifact": {
+    "id": 14407779371,
+    "file": "compatibility.zip",
+    "sha256": "13747f882165c172b661d600afcc693c51cd1606348e94ef4e9abefd067e3c6a"
+  },
+  "jobs": {
+    "environment": 134653150454,
+    "integration": 134653150256
+  },
+  "claim": "Range length external contract and wrong-result control; original worker inference reproduced by owned captures; manual downstream rustc linkage remains open."
+}

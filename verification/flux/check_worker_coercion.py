@@ -42,6 +42,19 @@ CASES = {
 """,
 }
 
+CAPTURE_BOUNDS = """#[cfg_attr(flux, flux::sig(fn(&mut [u8]{n: n > 0})))]
+fn needs_room(_buf: &mut [u8]) {}
+
+#[cfg_attr(flux, flux::sig(fn(Vec<u8>{v: v.len > 0}) -> Vec<u8>))]
+pub fn worker(mut buf: Vec<u8>) -> Vec<u8> {
+    let read = move || {
+        needs_room(&mut buf);
+        buf
+    };
+    read()
+}
+"""
+
 
 def main():
     output = ROOT / "artifacts/fd-read/worker-coercion"
@@ -49,9 +62,12 @@ def main():
     primitive = json.loads(Path(os.environ["FD_READ_PRIMITIVE_MANIFEST"]).read_text())
     env = dict(os.environ, RUSTUP_TOOLCHAIN=TOOLCHAIN)
     report = {"scope": "Checker diagnostics for a minimal worker-shaped Rust program", "cases": []}
-    for name, body in CASES.items():
+    cases = {name: PRELUDE + body for name, body in CASES.items()}
+    cases["nonempty-capture"] = CAPTURE_BOUNDS
+    cases["missing-capture-bound"] = CAPTURE_BOUNDS.replace("Vec<u8>{v: v.len > 0}", "Vec<u8>")
+    for name, source in cases.items():
         path = output / (name.replace("-", "_") + ".rs")
-        path.write_text(PRELUDE + body)
+        path.write_text(source)
         case = {"name": name, "runs": []}
         report["cases"].append(case)
         for tool in ("rustc", "flux"):
@@ -72,7 +88,9 @@ def main():
             if tool == "rustc" and result.returncode:
                 raise RuntimeError("Ordinary Rust failed: " + log)
             if tool == "flux":
-                if result.returncode == 0 and "2 checked; 0 trusted; 0 ignored" in log:
+                if name == "missing-capture-bound" and result.returncode and "a precondition cannot be proved" in log:
+                    case["status"] = "rejected-missing-precondition"
+                elif result.returncode == 0 and "2 checked; 0 trusted; 0 ignored" in log:
                     case["status"] = "checked"
                 elif "parameter inference error at function call" in log:
                     case["status"] = "open-parameter-inference"
@@ -82,6 +100,9 @@ def main():
                     raise RuntimeError("Direct slice control failed: " + log)
                 print(f"Worker coercion {name}: {case['status']}", flush=True)
             (output / "worker-coercion.json").write_text(json.dumps(report, indent=2) + "\n")
+    statuses = {case["name"]: case["status"] for case in report["cases"]}
+    if statuses["nonempty-capture"] == "checked" and statuses["missing-capture-bound"] != "rejected-missing-precondition":
+        raise RuntimeError("Captured mutable buffer without its required bound should fail")
 
 
 if __name__ == "__main__":

@@ -414,6 +414,48 @@
       "sink": "MemoryRanges store field and context",
       "status": "open",
       "trust": "T-LINMEM; T-RUST"
+    },
+    {
+      "id": "E31",
+      "edge": "StoreOpaque index -> StoreInstanceId::get",
+      "configuration": "Linux x86-64, p1+p2, unshared",
+      "source": "crates/wasmtime/src/runtime/store/data.rs",
+      "effect": "No guest payload access in this lookup",
+      "origin": "StoreOpaque and copied StoreInstanceId",
+      "offset_count": "Store-instance identity",
+      "original_check": "assert_belongs_to then lookup the stored instance",
+      "sink": "vm::Instance reference",
+      "status": "open",
+      "trust": "T-LINMEM",
+      "open_failure": "A proof must retain which store and instance supplied this reference"
+    },
+    {
+      "id": "E32",
+      "edge": "vm::Instance::memory -> VMMemoryDefinition::load",
+      "configuration": "Linux x86-64, p1+p2, unshared",
+      "source": "crates/wasmtime/src/runtime/vm/instance.rs",
+      "effect": "No guest payload access in this lookup",
+      "origin": "Same vm::Instance and DefinedMemoryIndex",
+      "offset_count": "VM layout memory index",
+      "original_check": "load the VMMemoryDefinition selected by the indexed vmctx pointer",
+      "sink": "base and current_length pair",
+      "status": "open",
+      "trust": "T-LINMEM",
+      "open_failure": "The two observations of this pair need a shared memory identity and logical extent"
+    },
+    {
+      "id": "E33",
+      "edge": "VMMemoryDefinition::base -> VmPtr::as_ptr",
+      "configuration": "Linux x86-64, p1+p2, unshared",
+      "source": "crates/wasmtime/src/runtime/vm/provenance.rs",
+      "effect": "No guest payload access in this lookup",
+      "origin": "VM definition for selected memory",
+      "offset_count": "Full logical extent before the guest offset",
+      "original_check": "reconstructs the pointer from NonZeroUsize via exposed provenance and NonNull",
+      "sink": "pointer add and raw slice formation",
+      "status": "open",
+      "trust": "T-LINMEM",
+      "open_failure": "Flux still needs provenance and capacity tied to the selected logical length"
     }
   ]
 }

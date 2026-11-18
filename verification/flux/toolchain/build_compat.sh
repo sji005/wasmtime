@@ -13,6 +13,7 @@ patches=(
     "$repo_root/verification/flux/toolchain/rpitit-signature-shape.patch"
     "$repo_root/verification/flux/toolchain/rpitit-output-subtyping.patch"
     "$repo_root/verification/flux/toolchain/async-block-output.patch"
+    "$repo_root/verification/flux/toolchain/strong-borrow-witness.patch"
 )
 if python3 - "$driver_dir" "${patches[@]}" <<'PY'
 import hashlib, json, sys
@@ -62,7 +63,7 @@ receipt = {
     'patches': {Path(p).name: hashlib.sha256(Path(p).read_bytes()).hexdigest() for p in sys.argv[3:]},
     'driver_sha256': hashlib.sha256(driver.read_bytes()).hexdigest(),
     'rustc': subprocess.check_output(['rustc', '+nightly-2026-10-22', '-vV'], text=True),
-    'scope': 'Function selection, Rust ghost-shape normalization, fail-closed type projections, opaque diagnostics, RPITIT subtyping and checking explicit async block bodies against their default output; no solver, arithmetic or primitive-spec changes',
+    'scope': 'Function selection, Rust ghost-shape normalization, fail-closed projections, RPITIT subtyping, checked async block default outputs and scope of strong borrow witnesses; no solver, arithmetic or primitive-spec changes',
     'standard_specs': 'Unmodified baseline Flux sysroot; see pins.json',
     'status': 'candidate; require selection regressions and strict M0 positive/negative gate'
 }

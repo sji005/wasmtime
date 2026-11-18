@@ -14,6 +14,8 @@ Flux attributes. The `fd_read` theorem remains open.
 | [Integer layout and ABI run 44255286310](https://github.com/sji005/wasmtime/actions/runs/44255286310) | Original macro-expanded integer `guest_size` and `guest_align` matched the Rust size and alignment. Returning zero failed each contract. The generated P1 binding executed short read, truncated metadata, invalid result pointer and all-empty EOF cases. | One original WASI entry point tested on four concrete inputs. The typed access and end-to-end effect theorem remain open. |
 | [Exact byte count run 44256865241](https://github.com/sji005/wasmtime/actions/runs/44256865241) | Successful `validate_range` results have width equal to the element count times the layout size for types with the checked size equality. The shifted offset, removed guard and halved width mutations were rejected. | Layout equality checked for the original integer implementations. Width and slice-backed bounds still need composition at the effects. |
 | [Slice construction and nested async run 44258374102](https://github.com/sji005/wasmtime/actions/runs/44258374102) | Original `as_slice_mut` checked when built with the two slice-backed variants. The added byte at the end of the selected range failed. An index mutation inside a nested async block also failed. | The slice construction result uses the exact original body without the optional Wasmtime `Ranges` variant. The all-features probe still fails. The nested async control checks block contents, with the block's output using the default refinement. |
+| [File and alias execution run 44259617175](https://github.com/sji005/wasmtime/actions/runs/44259617175) | The generated binding passed distinct direct file and worker copy-back fixtures. It also passed a case in which the result pointer aliases the payload. | Runtime execution. The environment job reached a downstream Rust metadata loader error after the original-body checks. |
+| [Worker and range length run 44260731718](https://github.com/sji005/wasmtime/actions/runs/44260731718) | The `Range<usize>::len` specification checked and rejected an incorrect width. A small closure that owns a Vec reproduced the original worker's inference error. The controls using a mutable slice or a Vec outside a closure checked. | The original Wasmtime slice constructor still lacks the pointer provenance and return-length refinement. The standalone metadata loader error persisted. |
 
 The immutable Action archives and their SHA-256 receipts are retained under
 `evidence/`. The range bound for `Shared` concerns the validator's returned
@@ -59,12 +61,18 @@ parameter inference failure on the `&mut buf` argument to the Unix adapter.
 No preservation of an input-dependent result refinement across a nested
 `await` has been shown.
 
+For the worker, the candidate opens a strong place's existing existential
+before introducing the callee's inference variables. It keeps the original
+subtyping check and place blocking. The regression checks that a captured
+buffer must still establish a callee's positive-length precondition.
+
 ## Open production obligations
 
 - The generated linker uses `GuestMemory::Ranges`. Establish that
   `MemoryRanges::len` and raw slice formation refer to the same selected
   allocation and logical extent. Then prove the original range guard, byte
-  footprint and returned slice against that extent.
+  footprint and returned slice against that extent. The original lookup chain
+  and the source-level provenance argument are in [MEMORY_RANGES.md](MEMORY_RANGES.md).
 - Relate pointer stride, typed widths, alignment and complete metadata reads.
   Check the original iterator and first non-empty iovec selection.
 - Compose the direct file branch with the verified slice and the external file

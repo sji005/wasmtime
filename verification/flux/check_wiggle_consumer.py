@@ -1,99 +1,100 @@
 #!/usr/bin/env python3
-"""Check that another crate can consume the original Wiggle size contract."""
+"""Use Cargo's real dependency invocation to test checked Wiggle metadata."""
 
-import hashlib
 import json
 import os
 from pathlib import Path
 import shutil
 import subprocess
 
-from check_environment import ROOT, TARGET, TOOLCHAIN
+from check_environment import HERE, ROOT, TARGET, TOOLCHAIN
 
 SOURCE = """use wiggle::GuestType;
 
 #[cfg_attr(flux, flux::sig(fn() -> u32[4]))]
 pub fn width() -> u32 { u32::guest_size() }
 """
+FLAGS = ["-Fcheck-overflow=strict", "-Fallow-raw-deref=none", "-Fstd-extern-specs=on",
+         "-Ffull-compilation=on", "-Ffixpoint-timeout=30"]
+
+
+def wrap(args):
+    compiler, *rustargs = args
+    crate = rustargs[rustargs.index("--crate-name") + 1] if "--crate-name" in rustargs else None
+    mode = os.environ["FD_READ_CONSUMER_MODE"]
+    output = Path(os.environ["FD_READ_CONSUMER_OUTPUT"])
+    selected = {"fd_read_wiggle_consumer"}
+    if mode == "with-metadata":
+        selected.add("wiggle")
+    command = [compiler, *rustargs]
+    if crate in selected:
+        command = ["flux", *rustargs, *FLAGS, "-Flog-dir=" + str(output / (crate + "-flux-log"))]
+        if crate == "wiggle":
+            command.append("-Finclude=def:>::guest_size")
+    if crate in ("wiggle", "fd_read_wiggle_consumer"):
+        (output / (crate + "-invocation.json")).write_text(json.dumps(command, indent=2) + "\n")
+    return subprocess.run(command, close_fds=False).returncode
 
 
 def main():
     artifacts = ROOT / "artifacts/fd-read"
     output = artifacts / "wiggle-consumer"
     output.mkdir(parents=True, exist_ok=True)
-    mutations = json.loads((artifacts / "original-contract-mutations/contracts.json").read_text())
-    checked = next(case for case in mutations["cases"] if case["name"] == "guest-size")
-    report = {"scope": "Cross-crate use of the actual verified Wiggle integer size contract",
-              "status": "open", "producer_mutation": checked, "runs": []}
+    project = output / "project"
+    source_path = project / "src/lib.rs"
+    source_path.parent.mkdir(parents=True, exist_ok=True)
+    wiggle = json.dumps(str(ROOT / "crates/wiggle"))
+    (project / "Cargo.toml").write_text(f"""[package]
+name = "fd-read-wiggle-consumer"
+version = "0.0.0"
+edition = "2024"
 
-    def save():
-        (output / "consumer.json").write_text(json.dumps(report, indent=2) + "\n")
+[dependencies]
+wiggle = {{ path = {wiggle}, default-features = false }}
 
-    save()
-    if checked["status"] != "original-contract-checked-well-typed-body-mutation-rejected":
-        print("Open: the original Wiggle size contract has no passing mutation evidence")
-        return
-
-    invocation = json.loads(
-        (artifacts / "compat-original-body-probes/guest-size/compiler-invocation.json").read_text()
-    )
-    out_dir = Path(invocation[invocation.index("--out-dir") + 1])
-    suffix, = [arg.split("=", 1)[1] for arg in invocation if arg.startswith("extra-filename=")]
-    rmeta = out_dir / f"libwiggle{suffix}.rmeta"
-    rlib = rmeta.with_suffix(".rlib")
-    fluxmeta = rmeta.with_suffix(".fluxmeta")
-    report["producer_artifacts"] = {
-        str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in (rmeta, rlib, fluxmeta)
-    }
-    # Keep the Rust type identity and link search paths. Remove only the
-    # adjacent Flux metadata for the negative control.
-    plain = output / "without-flux-metadata"
-    plain.mkdir(exist_ok=True)
-    shutil.copyfile(rmeta, plain / rmeta.name)
-    shutil.copyfile(rlib, plain / rlib.name)
-    library_paths = [invocation[i + 1] for i, value in enumerate(invocation) if value == "-L"]
-    # The Flux wrapper adds its own dependency paths when compiling Wiggle.
-    # The explicit Rust consumer must be able to find those same dependencies.
-    default_home = Path(os.environ.get("FLUX_HOME", Path.home() / ".flux"))
-    sysroot = Path(os.environ.get("FLUX_SYSROOT", default_home / "sysroot"))
-    library_paths.extend(["dependency=" + str(sysroot), "dependency=" + str(out_dir)])
-    rust_flags = ["--edition=2024", "--crate-type=lib", "--target", TARGET, "--color=never",
-                  "--emit=metadata", "--out-dir", str(output)]
-    for path in library_paths:
-        rust_flags.extend(["-L", path])
-    env = dict(os.environ, RUSTUP_TOOLCHAIN=TOOLCHAIN)
-    for name, source, spec, expect_pass in (
-        ("positive", SOURCE, rmeta, True),
-        ("wrong-width", SOURCE.replace("u32[4]", "u32[5]"), rmeta, False),
-        ("without-metadata", SOURCE, plain / rmeta.name, False),
+[workspace]
+""")
+    shutil.copyfile(ROOT / "Cargo.lock", project / "Cargo.lock")
+    wrapper = output / "rustc-wrapper"
+    wrapper.write_text("#!/usr/bin/env python3\nimport sys\nsys.path.insert(0, " + repr(str(HERE)) +
+                       ")\nfrom check_wiggle_consumer import wrap\nsys.exit(wrap(sys.argv[1:]))\n")
+    wrapper.chmod(0o755)
+    base = ["cargo", "check", "--offline", "--target", TARGET, "--lib"]
+    env = dict(os.environ, RUSTUP_TOOLCHAIN=TOOLCHAIN, CARGO_TERM_COLOR="never", CARGO_INCREMENTAL="0")
+    report = {"scope": "Use of the original scoped Wiggle size proof in a Cargo consumer", "status": "open", "runs": []}
+    for name, source, mode, passes in (
+        ("ordinary", SOURCE, "ordinary", True),
+        ("positive", SOURCE, "with-metadata", True),
+        ("wrong-width", SOURCE.replace("u32[4]", "u32[5]"), "with-metadata", False),
+        ("without-metadata", SOURCE, "without-metadata", False),
     ):
-        path = output / (name.replace("-", "_") + ".rs")
-        path.write_text(source)
-        for compiler in ("rustc", "flux"):
-            command = [compiler, *rust_flags, "--extern", "wiggle=" + str(spec),
-                       "--extern", "wiggle=" + str(spec.with_suffix(".rlib"))]
-            if compiler == "flux":
-                command += ["--cfg", "flux", "-Fcheck-overflow=strict", "-Fallow-raw-deref=none",
-                            "-Fstd-extern-specs=on", "-Flog-dir=" + str(output / "flux-log")]
-            command.append(str(path))
-            run = subprocess.run(command, cwd=ROOT, env=env, text=True, capture_output=True, timeout=120)
-            log = run.stdout + run.stderr
-            log_name = f"{name}-{compiler}.log"
-            (output / log_name).write_text(log)
-            report["runs"].append({"name": name, "command": command, "log": log_name, "exit_code": run.returncode})
-            save()
-            if compiler == "rustc" and run.returncode:
-                raise RuntimeError("Consumer failed ordinary Rust compilation: " + log)
-            if compiler == "flux":
-                if expect_pass and (run.returncode or "1 checked; 0 trusted; 0 ignored" not in log):
-                    raise RuntimeError("Consumer could not use the exported Wiggle contract: " + log)
-                if not expect_pass and (not run.returncode or "error[E0999]: refinement type error" not in log):
-                    raise RuntimeError("Consumer control did not fail refinement checking: " + log)
-                if any(word in log for word in ("internal flux error", "internal compiler error", "unsupported")):
-                    raise RuntimeError("A checker limitation is not a consumer result: " + log)
+        source_path.write_text(source)
+        case = output / name
+        case.mkdir(exist_ok=True)
+        (case / "consumer.rs").write_text(source)
+        case_env = dict(env, CARGO_TARGET_DIR=str(ROOT / "target/fd-read-wiggle-consumer" / mode))
+        command = [*base]
+        if mode != "ordinary":
+            command.append("--locked")
+            case_env.update(RUSTC_WRAPPER=str(wrapper), FD_READ_CONSUMER_MODE=mode,
+                            FD_READ_CONSUMER_OUTPUT=str(case))
+        run = subprocess.run(command, cwd=project, env=case_env, text=True, capture_output=True, timeout=900)
+        log = run.stdout + run.stderr
+        (case / "compile.log").write_text(log)
+        report["runs"].append({"name": name, "command": command, "exit_code": run.returncode})
+        (output / "consumer.json").write_text(json.dumps(report, indent=2) + "\n")
+        if passes and run.returncode:
+            raise RuntimeError("Consumer compilation failed in " + name + ": " + log[-6000:])
+        if name == "positive":
+            if "12 checked;" not in log or "1 checked; 0 trusted; 0 ignored" not in log:
+                raise RuntimeError("Expected both the original Wiggle and consumer body checks")
+        if not passes and (not run.returncode or "error[E0999]: refinement type error" not in log):
+            raise RuntimeError("Consumer control did not fail refinement checking: " + log[-6000:])
+        if any(word in log for word in ("internal flux error", "internal compiler error", "unsupported")):
+            raise RuntimeError("A checker limitation is not a consumer result: " + log[-6000:])
     report["status"] = "passed"
-    save()
-    print("PASS: downstream crate uses the original integer size contract and rejects both controls")
+    (output / "consumer.json").write_text(json.dumps(report, indent=2) + "\n")
+    print("PASS: Cargo consumer uses the original Wiggle size contract and rejects both controls")
 
 
 if __name__ == "__main__":

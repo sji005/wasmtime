@@ -1,0 +1,54 @@
+diff --git a/crates/flux-infer/src/fn_subtyping.rs b/crates/flux-infer/src/fn_subtyping.rs
+index aa69d32cb..21be85575 100644
+--- a/crates/flux-infer/src/fn_subtyping.rs
++++ b/crates/flux-infer/src/fn_subtyping.rs
+@@ -87,3 +87,3 @@ pub fn check_fn_subtyping(
+     let actuals = unfold_local_ptrs(&mut infcx, env, sub_sig.poly_sig(), &actuals)?;
+-    let actuals = infer_under_mut_ref_hack(&mut infcx, &actuals[..], sub_sig.poly_sig());
++    let actuals = infer_under_mut_ref_hack(&mut infcx, env, &actuals, sub_sig.poly_sig(), span);
+ 
+@@ -223,4 +223,6 @@ pub fn infer_under_mut_ref_hack(
+     rcx: &mut InferCtxt,
++    env: &mut impl LocEnv,
+     actuals: &[Ty],
+     fn_sig: &PolyFnSig,
++    span: Span,
+ ) -> Vec<Ty> {
+@@ -228,9 +230,22 @@ pub fn infer_under_mut_ref_hack(
+         .map(|(actual, formal)| {
+-            if let rty::Ref!(re, deref_ty, Mutability::Mut) = actual.kind()
+-                && is_indexed_mut_skipping_constr(formal)
+-            {
+-                rty::Ty::mk_ref(*re, rcx.unpack(deref_ty), Mutability::Mut)
+-            } else {
+-                actual.clone()
++            if is_indexed_mut_skipping_constr(formal) {
++                match actual.kind() {
++                    rty::Ref!(re, deref_ty, Mutability::Mut) => {
++                        return rty::Ty::mk_ref(*re, rcx.unpack(deref_ty), Mutability::Mut);
++                    }
++                    TyKind::Ptr(PtrKind::Mut(_), path) => {
++                        // A strong place, such as an owned closure capture,
++                        // can hold an existential. Open it before instantiating
++                        // the callee's index variables, so the witness is in
++                        // their scope. The call still checks the reference
++                        // conversion and blocks the place in the usual way.
++                        let ty = env.get(path);
++                        if matches!(ty.kind(), TyKind::Exists(..) | TyKind::Constr(..)) {
++                            env.update_path(path, rcx.unpack(&ty), span);
++                        }
++                    }
++                    _ => {}
++                }
+             }
++            actual.clone()
+         })
+diff --git a/crates/flux-refineck/src/checker.rs b/crates/flux-refineck/src/checker.rs
+index cfa1fc4f3..91698ab78 100644
+--- a/crates/flux-refineck/src/checker.rs
++++ b/crates/flux-refineck/src/checker.rs
+@@ -783,3 +783,3 @@ impl<'ck, 'genv, 'tcx, M: Mode> Checker<'ck, 'genv, 'tcx, M> {
+             unfold_local_ptrs(infcx, env, fn_sig.skip_binder_ref(), actuals).with_span(span)?;
+-        let actuals = infer_under_mut_ref_hack(infcx, &actuals, fn_sig.skip_binder_ref());
++        let actuals = infer_under_mut_ref_hack(infcx, env, &actuals, fn_sig.skip_binder_ref(), span);
+         infcx.push_evar_scope();
