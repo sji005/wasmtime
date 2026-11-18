@@ -9,6 +9,7 @@ on:
       - 'verification/flux/sequential_vec_specs.rs'
       - 'verification/flux/check_sequential_worker.py'
       - 'verification/flux/probe_original.py'
+      - 'verification/flux/check_original_contracts.py'
       - '.github/workflows/flux-sequential.yml'
 
 permissions:
@@ -29,7 +30,7 @@ jobs:
       - name: Check source scope and Python syntax
         run: |
           python3 verification/flux/check_sources.py
-          python3 -m py_compile verification/flux/check_sequential_worker.py verification/flux/probe_original.py
+          python3 -m py_compile verification/flux/check_sequential_worker.py verification/flux/probe_original.py verification/flux/check_original_contracts.py
       - name: Install pinned Rust compiler
         run: |
           rustup toolchain install nightly-2026-10-22 --profile minimal --component rustfmt --component rust-src --component rustc-dev --component llvm-tools
@@ -83,6 +84,14 @@ jobs:
         run: |
           unset FLUX_DRIVER FLUX_COMPAT_RECEIPT
           python3 verification/flux/probe_original.py --case range --selector def:validate_range --slice-backed-only --stop-on-crash --environment-dir artifacts/fd-read/environment-baseline --output-dir artifacts/fd-read/baseline-original-range
+      - name: Check existing range primitive controls with baseline Flux
+        run: python3 verification/flux/check_clone_specs.py
+      - name: Reject three well-typed mutations of the original range validator
+        run: python3 verification/flux/check_original_contracts.py --only-range --positive-report artifacts/fd-read/baseline-original-range/original-body-probes.json
+      - name: Probe original mutable slice construction and pause on a Flux crash
+        run: |
+          unset FLUX_DRIVER FLUX_COMPAT_RECEIPT
+          python3 verification/flux/probe_original.py --case payload-slice-variants --selector def:as_slice_mut --stop-on-crash --environment-dir artifacts/fd-read/environment-baseline --output-dir artifacts/fd-read/baseline-original-payload
       - name: Retain complete diagnostics including failures
         if: always()
         uses: actions/upload-artifact@v7

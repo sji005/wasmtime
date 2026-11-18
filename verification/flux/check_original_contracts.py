@@ -7,6 +7,7 @@ Each experiment compiles a full temporary source snapshot using Cargo's actual
 target, features, dependencies and manifest environment.
 """
 
+import argparse
 import hashlib
 import json
 import os
@@ -32,14 +33,20 @@ CASES = (
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--positive-report", type=Path, default=ROOT / "artifacts/fd-read/compat-original-body-probes/original-body-probes.json")
+    parser.add_argument("--only-range", action="store_true")
+    args = parser.parse_args()
     output = ROOT / "artifacts/fd-read/original-contract-mutations"
     output.mkdir(parents=True, exist_ok=True)
-    positive = json.loads((ROOT / "artifacts/fd-read/compat-original-body-probes/original-body-probes.json").read_text())
+    positive = json.loads(args.positive_report.read_text())
     observed = {case["name"]: case for case in positive["cases"]}
     report = {"claim": "Pointer identities, scalar layout, and slice-variant range contracts only; binding's Ranges path, typed accesses and effects remain open",
               "positive": positive, "cases": [], "status": "open"}
     clone = json.loads((ROOT / "artifacts/fd-read/clone-primitive-specs/clone.json").read_text())
     for name, anchor, before, after in CASES:
+        if args.only_range and not name.startswith("range"):
+            continue
         result_case = {"name": name, "runs": []}
         report["cases"].append(result_case)
         checked = observed["range" if name.startswith("range-") else name]
@@ -76,7 +83,7 @@ def main():
             mutant = copied / "src" / source.name
             mutant.write_text(mutated)
             line = mutated[:mutated.index(anchor)].count("\n") + 1
-            selector = (checked["selector"] if name.startswith("guest-")
+            selector = (checked["selector"] if name.startswith("guest-") or checked["selector"].startswith("def:")
                         else f"span:{mutant.relative_to(ROOT).as_posix()}:{line}:5")
             case_dir = output / name
             case_dir.mkdir(exist_ok=True)
@@ -108,6 +115,8 @@ def main():
             result_case["mutation"] = {"before": before, "after": after, "source_sha256_lf": hashlib.sha256(mutated.encode()).hexdigest()}
             result_case["status"] = "original-contract-checked-well-typed-body-mutation-rejected"
             print(name + ": " + result_case["status"], flush=True)
+    if args.only_range and any(case.get("status") != "original-contract-checked-well-typed-body-mutation-rejected" for case in report["cases"]):
+        raise RuntimeError("Focused baseline range mutation gate remains open")
     report["status"] = "classified"
     (output / "contracts.json").write_text(json.dumps(report, indent=2) + "\n")
 

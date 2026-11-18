@@ -1,0 +1,15 @@
+{
+  "run_url": "https://github.com/sji005/wasmtime/actions/runs/44395574688",
+  "source_revision": "8f4ed16d34808395fbbcd35b5f4e5ca4eeecb33e",
+  "checker": "unmodified pinned Flux; def:validate_range selection",
+  "artifact_id": 14470920606,
+  "artifact_sha256": "c06e5826ef75e15dfe42f405cde63d601576e3cebc0369ca3df9b91cd4e7bc6f",
+  "job_id": 135124418118,
+  "configuration": "original Wiggle with --no-default-features, slice-backed variants",
+  "checked": 1,
+  "excluded_bodies_counted_as_trusted": 101,
+  "constraints_solved": 7,
+  "flux_crash": false,
+  "mutation_gate": "pending separate run",
+  "claim": "Original selected range contract checked; no MemoryRanges or hostcall proof"
+}
