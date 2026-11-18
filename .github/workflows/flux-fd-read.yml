@@ -97,12 +97,14 @@ jobs:
         run: python3 verification/flux/check_environment.py --output-dir artifacts/fd-read/environment-compat
       - name: Isolate async trait and nested block support with well-typed mutations
         run: python3 verification/flux/toolchain/check_async.py
-      - name: Compile narrow external file primitive specification
+      - name: Compile narrow external file and range specifications
         run: python3 verification/flux/compile_primitive_specs.py
-      - name: Diagnose field-wise std range-clone contract loading across crates
+      - name: Diagnose std range clone and length contracts across crates
         run: python3 verification/flux/check_clone_specs.py
       - name: Validate cross-crate external specification loading
         run: python3 verification/flux/check_adapter.py --external-specs --output-dir artifacts/fd-read/adapter-external
+      - name: Isolate the worker Vec-to-slice inference diagnostic
+        run: python3 verification/flux/check_worker_coercion.py
       - name: Check original full-crate Unix adapter with the explicit primitive contract
         run: python3 verification/flux/probe_original.py --case unix-read-adapter --output-dir artifacts/fd-read/compat-adapter-original
       - name: Reject a well-typed adapter mutation in a temporary full source copy
@@ -150,6 +152,7 @@ jobs:
             artifacts/fd-read/file-primitive-specs
             artifacts/fd-read/clone-primitive-specs
             artifacts/fd-read/adapter-external
+            artifacts/fd-read/worker-coercion
             artifacts/fd-read/compat-adapter-original
             artifacts/fd-read/adapter-original-mutation
             artifacts/fd-read/compat-original-body-probes

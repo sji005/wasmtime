@@ -3,10 +3,11 @@
 Execution of [the supplied plan](PLAN.md), starting from clean Wasmtime
 `7c83a428028b44e1a73b40aa6a912d6700983624`, on branch
 `flux/fd-read-memory-isolation`. Production changes consist of Flux annotations.
-The original Unix adapter's count contract and the original Wiggle validator's
-range arithmetic contract each passed in their full crate, including rejected
-mutations that compiled as Rust. The selected memory bound and the end-to-end
-`fd_read` effect theorem remain open. See [the checkpoint](STATUS.md).
+The original Unix adapter's count contract, Wiggle's integer layout contracts,
+and the original range validator's byte-count and slice bounds contracts passed.
+Flux rejected well-typed mutations of each checked contract. The generated
+entry uses `MemoryRanges`, whose selected-memory bound remains open along with
+the end-to-end `fd_read` effect theorem. See [the checkpoint](STATUS.md).
 
 M0 passed on the authorized GitHub Actions Linux runner. Three positive probe
 functions checked (six constraints, zero local trusted/ignored bodies), all three
@@ -24,7 +25,7 @@ The unpatched checker remains available for comparison.
 | Milestone | Status | Next evidence required |
 | --- | --- | --- |
 | M0: freeze/environment | Passed; 25 frozen inputs and 30 inspected edges | Preserve exact environment/evidence |
-| M1: range/metadata | Arithmetic contract checked. Memory-relative bound, pointer refinements and typed access open | Check original bounds and provenance before composing the metadata reads |
+| M1: range/metadata | Arithmetic, exact integer width and slice-backed range bound checked. `MemoryRanges`, pointer refinements and typed access open | Check the selected allocation and original metadata reads |
 | M2: direct file | Original adapter count checked in the full WASI crate. Slice and caller proof open | Compose original caller, range and slice contracts with external file confinement |
 | M3: worker/stdin | Open | Check source/destination capacities, await ownership, cancellation and selected-memory stability |
 | M4: generated ABI/errors | Fresh expansion inspected; proof open | Prove captured output store, selection, aliases and all error exits |
@@ -122,19 +123,21 @@ The installer verifies solver archive hashes and reviewed external spec blobs;
 the upstream wrapper installation is not hermetic. A mutable fixpoint URL must
 fail closed if its pinned archive has changed.
 
-The memory regression test executes original Wiggle bodies and original
+The Wiggle regression test executes original Wiggle bodies and original
 MemoryRanges accessors. It covers exact-fit/empty/end/beyond-end ranges, untouched
 bytes on rejected copies, scalar width/alignment, multiplication and guest-offset
-overflow, and full-region versus sub-slice length. It does not test the private
-P1 selector, generated Iovec/ABI bodies, file/stdin branches or cancellation;
-those execution cases and all universal production checks remain open.
+overflow, and full-region versus sub-slice length. The WASI regression executes
+the generated P1 binding and checks exact-fit short reads, an all-empty EOF
+read, truncated metadata and the effects preceding an invalid result pointer.
+These tests cover concrete inputs. The proof and its remaining obligations are
+tracked separately in [the checkpoint](STATUS.md).
 
 ## Configuration matrix
 
 | Configuration | Status |
 | --- | --- |
 | Linux x86-64, p1+p2, unshared Ranges/direct file | Initial proof target; open |
-| Linux x86-64, unshared Unshared helper variant | Included dependency obligation; open |
+| Linux x86-64, unshared Unshared helper variant | Original range and slice-return contracts checked without the optional `Ranges` variant |
 | Linux x86-64, unshared worker and stdin | Open; no async or caller proof |
 | Linux x86-64, shared memory | Reachable; excluded from initial claim; separate concurrency assessment required |
 | Windows and 32-bit hosts | Excluded; no result inherited from Linux x86-64 |

@@ -13,6 +13,7 @@ Flux attributes. The `fd_read` theorem remains open.
 | [Slice bounds run 44252707563](https://github.com/sji005/wasmtime/actions/runs/44252707563) | The original `validate_range` also proved `end <= slice_len` for `Unshared` and `Shared`. The shift and removed bounds check mutations compiled as Rust and were rejected. The external `Range<usize>::clone` control checked both endpoints and rejected the wrong end. | One of 102 functions selected for Flux. The 101 excluded bodies remain unverified. The run's integration job passed. A later, independent generic tuple sort control failed. |
 | [Integer layout and ABI run 44255286310](https://github.com/sji005/wasmtime/actions/runs/44255286310) | Original macro-expanded integer `guest_size` and `guest_align` matched the Rust size and alignment. Returning zero failed each contract. The generated P1 binding executed short read, truncated metadata, invalid result pointer and all-empty EOF cases. | One original WASI entry point tested on four concrete inputs. The typed access and end-to-end effect theorem remain open. |
 | [Exact byte count run 44256865241](https://github.com/sji005/wasmtime/actions/runs/44256865241) | Successful `validate_range` results have width equal to the element count times the layout size for types with the checked size equality. The shifted offset, removed guard and halved width mutations were rejected. | Layout equality checked for the original integer implementations. Width and slice-backed bounds still need composition at the effects. |
+| [Slice construction and nested async run 44258374102](https://github.com/sji005/wasmtime/actions/runs/44258374102) | Original `as_slice_mut` checked when built with the two slice-backed variants. The added byte at the end of the selected range failed. An index mutation inside a nested async block also failed. | The slice construction result uses the exact original body without the optional Wasmtime `Ranges` variant. The all-features probe still fails. The nested async control checks block contents, with the block's output using the default refinement. |
 
 The immutable Action archives and their SHA-256 receipts are retained under
 `evidence/`. The range bound for `Shared` concerns the validator's returned
@@ -52,7 +53,11 @@ wrong body results were rejected. The original `fd_read` then reached a
 `Future::Output` projection for tracing's nested async block. The new candidate
 checks explicit local async block bodies before using their compiler-provided
 default output type. A separate nested array access control requires checking
-the block itself.
+the block itself. That control passed and rejected the out-of-bounds index
+mutation. The original `fd_read` now reaches its worker closure and has a
+parameter inference failure on the `&mut buf` argument to the Unix adapter.
+No preservation of an input-dependent result refinement across a nested
+`await` has been shown.
 
 ## Open production obligations
 

@@ -98,5 +98,11 @@
       "expected_count": 2,
       "occurrence": 0
     }
+  ],
+  "crates/wasmtime/src/runtime/memory.rs": [
+    {
+      "anchor": "    fn into_range_mut(self, range: Range<usize>) -> Result<&'a mut [u8], MemoryAccessError> {\n",
+      "annotation": "    #[cfg_attr(flux, flux::sig(fn(MemoryRanges, Range<usize>[@r]) -> Result<&mut [u8][r.end - r.start], MemoryAccessError>))]\n"
+    }
   ]
 }

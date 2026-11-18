@@ -30,6 +30,24 @@ impl<Idx: Clone> Clone for Range<Idx> {
     fn clone(&self) -> Self;
 }
 
+// Rust at 1a2c4797ef2570bd76ca5dee34449169bc7dc457:
+// core/src/iter/range.rs, blob 331c367314e635195cd72ff81a4e7447c53dcb22
+// core/src/iter/traits/exact_size.rs, blob 908830d8a95141763e1db55464e48faa9e8ee5c4
+// Range<usize> uses the default len with an exact size hint, including zero
+// for an empty or reversed range.
+#[flux_rs::extern_spec(core::iter)]
+#[flux_rs::assoc(fn length_matches(r: Self, n: int) -> bool { true })]
+trait ExactSizeIterator: Iterator {
+    #[flux::sig(fn(&Self[@r]) -> usize{n: <Self as ExactSizeIterator>::length_matches(r, n)})]
+    fn len(&self) -> usize;
+}
+
+#[flux_rs::extern_spec]
+#[flux_rs::assoc(fn length_matches(r: Self, n: int) -> bool {
+    n == (if r.start <= r.end { r.end - r.start } else { 0 })
+})]
+impl std::iter::ExactSizeIterator for Range<usize> {}
+
 #[flux_rs::extern_spec]
 impl FileExt for File {
     #[flux::sig(fn(&File, &mut [u8][@n], u64) -> Result<usize{v: v <= n}, io::Error>)]

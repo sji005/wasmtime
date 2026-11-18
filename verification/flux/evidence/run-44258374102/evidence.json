@@ -1,0 +1,14 @@
+{
+  "run_url": "https://github.com/sji005/wasmtime/actions/runs/44258374102",
+  "source_revision": "92f3726b528b874851968c3de15139d414e75122",
+  "artifact": {
+    "id": 14406802624,
+    "file": "compatibility.zip",
+    "sha256": "d812d54555324b5f4c8d765ecd651ace5648095971f86abc96b5a9e07167d38e"
+  },
+  "jobs": {
+    "environment": 134645443574,
+    "integration": 134645443723
+  },
+  "claim": "Original slice-only as_slice_mut check and rejected extra-byte mutation. Nested async guard checks. Original caller reaches worker Vec-to-slice parameter inference."
+}

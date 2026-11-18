@@ -40,16 +40,23 @@ def main():
     out_dir = Path(invocation[invocation.index("--out-dir") + 1])
     suffix, = [arg.split("=", 1)[1] for arg in invocation if arg.startswith("extra-filename=")]
     rmeta = out_dir / f"libwiggle{suffix}.rmeta"
+    rlib = rmeta.with_suffix(".rlib")
     fluxmeta = rmeta.with_suffix(".fluxmeta")
     report["producer_artifacts"] = {
-        str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in (rmeta, fluxmeta)
+        str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in (rmeta, rlib, fluxmeta)
     }
     # Keep the Rust type identity and link search paths. Remove only the
     # adjacent Flux metadata for the negative control.
     plain = output / "without-flux-metadata"
     plain.mkdir(exist_ok=True)
     shutil.copyfile(rmeta, plain / rmeta.name)
+    shutil.copyfile(rlib, plain / rlib.name)
     library_paths = [invocation[i + 1] for i, value in enumerate(invocation) if value == "-L"]
+    # The Flux wrapper adds its own dependency paths when compiling Wiggle.
+    # The explicit Rust consumer must be able to find those same dependencies.
+    default_home = Path(os.environ.get("FLUX_HOME", Path.home() / ".flux"))
+    sysroot = Path(os.environ.get("FLUX_SYSROOT", default_home / "sysroot"))
+    library_paths.extend(["dependency=" + str(sysroot), "dependency=" + str(out_dir)])
     rust_flags = ["--edition=2024", "--crate-type=lib", "--target", TARGET, "--color=never",
                   "--emit=metadata", "--out-dir", str(output)]
     for path in library_paths:
@@ -63,7 +70,8 @@ def main():
         path = output / (name.replace("-", "_") + ".rs")
         path.write_text(source)
         for compiler in ("rustc", "flux"):
-            command = [compiler, *rust_flags, "--extern", "wiggle=" + str(spec)]
+            command = [compiler, *rust_flags, "--extern", "wiggle=" + str(spec),
+                       "--extern", "wiggle=" + str(spec.with_suffix(".rlib"))]
             if compiler == "flux":
                 command += ["--cfg", "flux", "-Fcheck-overflow=strict", "-Fallow-raw-deref=none",
                             "-Fstd-extern-specs=on", "-Flog-dir=" + str(output / "flux-log")]

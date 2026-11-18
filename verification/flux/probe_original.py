@@ -75,7 +75,9 @@ def wrap(arguments):
         command = ["flux", *rustargs, *FLAGS, "-Ffull-compilation=on",
                    f"-Finclude={os.environ['FD_READ_PROBE_SELECTOR']}",
                    f"-Flog-dir={output / 'flux-log'}"]
-        if selected in ("wasmtime_wasi", "wiggle") and "FD_READ_PRIMITIVE_MANIFEST" in os.environ:
+        if os.environ.get("FD_READ_PROBE_CASE") == "fd-read-caller":
+            command.append("-Fdump-rty=on")
+        if selected in ("wasmtime", "wasmtime_wasi", "wiggle") and "FD_READ_PRIMITIVE_MANIFEST" in os.environ:
             primitive = json.loads(Path(os.environ["FD_READ_PRIMITIVE_MANIFEST"]).read_text())
             command.append("-Zunstable-options")
             for kind in ("rmeta", "rlib"):
@@ -93,6 +95,8 @@ def classify(code, log, invoked):
         return "open-checker-limitation"
     if re.search(r"error\[E0999\]: (mismatched sorts|no field|invalid refinement|cannot refine|expected a sort|.*primitive sort.*doesn't have fields)", log):
         return "open-specification-error"
+    if "error[E0999]: parameter inference error at function call" in log:
+        return "open-parameter-inference"
     if re.search(r"error\[E0999\]: (refinement type error|arithmetic operation may (over|under)flow|type invariant may not hold)", log):
         return "open-refinement-obligation-not-a-bug-finding"
     if code == 0 and re.search(r"[1-9]\d* checked;", log):
@@ -156,7 +160,7 @@ def main():
         if rust.returncode:
             raise RuntimeError(f"Ordinary Rust compilation failed for {name}; not a Flux rejection")
         env.update(RUSTC_WORKSPACE_WRAPPER=str(wrapper), FD_READ_PROBE_CRATE=package.replace("-", "_"),
-                   FD_READ_PROBE_OUTPUT=str(case_dir), FD_READ_PROBE_SELECTOR=selector)
+                   FD_READ_PROBE_OUTPUT=str(case_dir), FD_READ_PROBE_SELECTOR=selector, FD_READ_PROBE_CASE=name)
         command = ["cargo", "rustc", "--locked", "--target", TARGET, "-p", package, *features,
                    "--lib", "--", "--cfg", "fd_read_probe_" + name.replace("-", "_")]
         print("+", " ".join(command), flush=True)

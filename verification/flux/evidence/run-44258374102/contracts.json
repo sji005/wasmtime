@@ -1,0 +1,1291 @@
+{
+  "claim": "Pointer identities, scalar layout, and slice-variant range contracts only; binding's Ranges path, typed accesses and effects remain open",
+  "positive": {
+    "claim": "Checker feasibility only; original bodies, no spatial theorem",
+    "source_revision": "92f3726b528b874851968c3de15139d414e75122",
+    "pins": {
+      "baseline": "7c83a428028b44e1a73b40aa6a912d6700983624",
+      "historical_experiment": "c6a59fc114302c2f6438893994138a0cbcfe2b12",
+      "flux_revision": "b68c177c5ace7cb3644fdeea140dc5d18669c6cc",
+      "toolchain": "nightly-2026-10-22",
+      "target": "x86_64-unknown-linux-gnu",
+      "runner": "ubuntu-24.04",
+      "wasi_features": [
+        "p1",
+        "p2"
+      ],
+      "wasi_default_features": false,
+      "z3_version": "5.3.3",
+      "z3_archive_sha256": "d56f60b06f432f33de5810f7f1a384a339131f361e2d54d08ea83eea14326880",
+      "fixpoint_release_asset": 648710606,
+      "fixpoint_archive_sha256": "7f23b085b848d42ce91618c722cf867ca16e2b570d5d2427138ed80a99d80f9a",
+      "reviewed_flux_spec_git_blobs": {
+        "lib/flux-core/src/slice/mod.rs": "c8922ac0482a0cffe1ddec5de06528072fc1d95b",
+        "lib/flux-core/src/slice/index.rs": "bf5942da3c72407fb36c9be23551179f8f6cf5fb",
+        "lib/flux-core/src/ptr/mod.rs": "bbdca5c0b76889aec726d4c292301e639eac1743",
+        "lib/flux-core/src/num/mod.rs": "f7269aaf58028f8d898edc858e3d75fb0a73f452"
+      },
+      "proof_flags": [
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none"
+      ],
+      "bootstrap_limitation": "Upstream cargo xtask install may resolve wrapper dependencies; bootstrap is not hermetic. Historical success is not this branch's M0 result."
+    },
+    "checker_variant": {
+      "base_revision": "b68c177c5ace7cb3644fdeea140dc5d18669c6cc",
+      "patches": {
+        "include-selection.patch": "5672857a49a8614839459980138b720a916951d4c9f69abc6d34c2720b52abd7",
+        "associated-field-normalization.patch": "5dd2d9b7cf48e5af504416af1e5ced18ac48e2fd19455123ea9512a5b03e1158",
+        "strict-type-projections.patch": "b5184ec3c226a3aa303186942d1dbc14db6a7b0fff3e8c1353c690dc10d4651c",
+        "opaque-diagnostic.patch": "bffd827befcc42ef999139c87eca7ecabacc86384af882f3e96394aeabfd68ee",
+        "rpitit-signature-shape.patch": "6d40559c1ceca5ad7b0824dcbbb8716afdf054cd9edc0308c0cabb3a75e8e0b1",
+        "rpitit-output-subtyping.patch": "0488567f058fbb387c55c33e651c3e88a6138dd0d997877a35c65c2deb3509d3",
+        "async-block-output.patch": "7b66c7377e3e7e4455d76f50c6f5c1ef19d84d7d82abaf693d7c4117abe24bbe"
+      },
+      "driver_sha256": "0e7ea2e10eabdcb1b1a97214a9c107eec2407440dde66f538160bf42cb21bf66",
+      "rustc": "rustc 1.101.0-nightly (1a2c4797e 2026-10-21)\nbinary: rustc\ncommit-hash: 1a2c4797ef2570bd76ca5dee34449169bc7dc457\ncommit-date: 2026-10-21\nhost: x86_64-unknown-linux-gnu\nrelease: 1.101.0-nightly\nLLVM version: 23.1.4\n",
+      "scope": "Function selection, Rust ghost-shape normalization, fail-closed type projections, opaque diagnostics, RPITIT subtyping and checking explicit async block bodies against their default output; no solver, arithmetic or primitive-spec changes",
+      "standard_specs": "Unmodified baseline Flux sysroot; see pins.json",
+      "status": "candidate; require selection regressions and strict M0 positive/negative gate"
+    },
+    "external_file_primitive": {
+      "command": [
+        "flux",
+        "--crate-name",
+        "fd_read_file_primitive",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--emit=metadata,link",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs",
+        "--cfg",
+        "flux",
+        "-Ffull-compilation=on",
+        "-Fstd-extern-specs=on",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/flux-log",
+        "/home/runner/work/wasmtime/wasmtime/verification/flux/file_read_specs.rs"
+      ],
+      "artifacts": {
+        "rlib": "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rlib",
+        "rmeta": "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rmeta",
+        "fluxmeta": "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.fluxmeta"
+      },
+      "trusted": "std FileExt::read_at for File; usize identity Clone; Range<Idx> fieldwise Clone preserving Idx::cloned, no local wrapper trusted"
+    },
+    "target": "x86_64-unknown-linux-gnu",
+    "explicitly_trusted_local_bodies": [],
+    "explicitly_ignored_local_bodies": [],
+    "unchecked": "Every unselected body/dependency remains unverified; Flux counts excluded functions as trusted. No spatial postcondition or caller contract is discharged by this probe.",
+    "cases": [
+      {
+        "name": "pointer-new",
+        "package": "wiggle",
+        "features": [
+          "--all-features"
+        ],
+        "source": "crates/wiggle/src/lib.rs",
+        "source_sha256_lf": "f324a99a1454ff76aa7dc9be32d022c1afa236b5094271581823649102c0243a",
+        "selector": "span:crates/wiggle/src/lib.rs:438:5",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_pointer_new"
+        ],
+        "exit_code": 101,
+        "status": "open-checker-limitation",
+        "log": "pointer-new/flux.log"
+      },
+      {
+        "name": "pointer-offset",
+        "package": "wiggle",
+        "features": [
+          "--all-features"
+        ],
+        "source": "crates/wiggle/src/lib.rs",
+        "source_sha256_lf": "f324a99a1454ff76aa7dc9be32d022c1afa236b5094271581823649102c0243a",
+        "selector": "span:crates/wiggle/src/lib.rs:447:5",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_pointer_offset"
+        ],
+        "exit_code": 101,
+        "status": "open-checker-limitation",
+        "log": "pointer-offset/flux.log"
+      },
+      {
+        "name": "pointer-cast",
+        "package": "wiggle",
+        "features": [
+          "--all-features"
+        ],
+        "source": "crates/wiggle/src/lib.rs",
+        "source_sha256_lf": "f324a99a1454ff76aa7dc9be32d022c1afa236b5094271581823649102c0243a",
+        "selector": "span:crates/wiggle/src/lib.rs:458:5",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_pointer_cast"
+        ],
+        "exit_code": 101,
+        "status": "open-checker-limitation",
+        "log": "pointer-cast/flux.log"
+      },
+      {
+        "name": "pointer-array",
+        "package": "wiggle",
+        "features": [
+          "--all-features"
+        ],
+        "source": "crates/wiggle/src/lib.rs",
+        "source_sha256_lf": "f324a99a1454ff76aa7dc9be32d022c1afa236b5094271581823649102c0243a",
+        "selector": "span:crates/wiggle/src/lib.rs:488:5",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_pointer_array"
+        ],
+        "exit_code": 101,
+        "status": "open-specification-error",
+        "log": "pointer-array/flux.log"
+      },
+      {
+        "name": "pointer-base",
+        "package": "wiggle",
+        "features": [
+          "--all-features"
+        ],
+        "source": "crates/wiggle/src/lib.rs",
+        "source_sha256_lf": "f324a99a1454ff76aa7dc9be32d022c1afa236b5094271581823649102c0243a",
+        "selector": "span:crates/wiggle/src/lib.rs:502:5",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_pointer_base"
+        ],
+        "exit_code": 101,
+        "status": "open-specification-error",
+        "log": "pointer-base/flux.log"
+      },
+      {
+        "name": "pointer-len",
+        "package": "wiggle",
+        "features": [
+          "--all-features"
+        ],
+        "source": "crates/wiggle/src/lib.rs",
+        "source_sha256_lf": "f324a99a1454ff76aa7dc9be32d022c1afa236b5094271581823649102c0243a",
+        "selector": "span:crates/wiggle/src/lib.rs:508:5",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_pointer_len"
+        ],
+        "exit_code": 101,
+        "status": "open-specification-error",
+        "log": "pointer-len/flux.log"
+      },
+      {
+        "name": "pointer-as-ptr",
+        "package": "wiggle",
+        "features": [
+          "--all-features"
+        ],
+        "source": "crates/wiggle/src/lib.rs",
+        "source_sha256_lf": "f324a99a1454ff76aa7dc9be32d022c1afa236b5094271581823649102c0243a",
+        "selector": "span:crates/wiggle/src/lib.rs:527:5",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_pointer_as_ptr"
+        ],
+        "exit_code": 101,
+        "status": "open-specification-error",
+        "log": "pointer-as-ptr/flux.log"
+      },
+      {
+        "name": "range",
+        "package": "wiggle",
+        "features": [
+          "--all-features"
+        ],
+        "source": "crates/wiggle/src/lib.rs",
+        "source_sha256_lf": "f324a99a1454ff76aa7dc9be32d022c1afa236b5094271581823649102c0243a",
+        "selector": "span:crates/wiggle/src/lib.rs:344:5",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_range"
+        ],
+        "exit_code": 0,
+        "status": "conditional-slice-bound-checked-mutations-required",
+        "log": "range/flux.log"
+      },
+      {
+        "name": "typed-read-range",
+        "package": "wiggle",
+        "features": [
+          "--all-features"
+        ],
+        "source": "crates/wiggle/src/lib.rs",
+        "source_sha256_lf": "f324a99a1454ff76aa7dc9be32d022c1afa236b5094271581823649102c0243a",
+        "selector": "span:crates/wiggle/src/lib.rs:259:5",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_typed_read_range"
+        ],
+        "exit_code": 101,
+        "status": "open-refinement-obligation-not-a-bug-finding",
+        "log": "typed-read-range/flux.log"
+      },
+      {
+        "name": "typed-write-range",
+        "package": "wiggle",
+        "features": [
+          "--all-features"
+        ],
+        "source": "crates/wiggle/src/lib.rs",
+        "source_sha256_lf": "f324a99a1454ff76aa7dc9be32d022c1afa236b5094271581823649102c0243a",
+        "selector": "span:crates/wiggle/src/lib.rs:282:5",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_typed_write_range"
+        ],
+        "exit_code": 101,
+        "status": "open-refinement-obligation-not-a-bug-finding",
+        "log": "typed-write-range/flux.log"
+      },
+      {
+        "name": "align-cells",
+        "package": "wiggle",
+        "features": [
+          "--all-features"
+        ],
+        "source": "crates/wiggle/src/lib.rs",
+        "source_sha256_lf": "f324a99a1454ff76aa7dc9be32d022c1afa236b5094271581823649102c0243a",
+        "selector": "span:crates/wiggle/src/lib.rs:319:5",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_align_cells"
+        ],
+        "exit_code": 0,
+        "status": "feasibility-only-no-spatial-postcondition",
+        "log": "align-cells/flux.log"
+      },
+      {
+        "name": "payload-slice",
+        "package": "wiggle",
+        "features": [
+          "--all-features"
+        ],
+        "source": "crates/wiggle/src/lib.rs",
+        "source_sha256_lf": "f324a99a1454ff76aa7dc9be32d022c1afa236b5094271581823649102c0243a",
+        "selector": "span:crates/wiggle/src/lib.rs:164:5",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_payload_slice"
+        ],
+        "exit_code": 101,
+        "status": "open-refinement-obligation-not-a-bug-finding",
+        "log": "payload-slice/flux.log"
+      },
+      {
+        "name": "payload-slice-variants",
+        "package": "wiggle",
+        "features": [
+          "--no-default-features"
+        ],
+        "source": "crates/wiggle/src/lib.rs",
+        "source_sha256_lf": "f324a99a1454ff76aa7dc9be32d022c1afa236b5094271581823649102c0243a",
+        "selector": "span:crates/wiggle/src/lib.rs:164:5",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--no-default-features",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--no-default-features",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_payload_slice_variants"
+        ],
+        "exit_code": 0,
+        "status": "slice-backed-payload-contract-checked-mutation-required",
+        "log": "payload-slice-variants/flux.log"
+      },
+      {
+        "name": "copy-back",
+        "package": "wiggle",
+        "features": [
+          "--all-features"
+        ],
+        "source": "crates/wiggle/src/lib.rs",
+        "source_sha256_lf": "f324a99a1454ff76aa7dc9be32d022c1afa236b5094271581823649102c0243a",
+        "selector": "span:crates/wiggle/src/lib.rs:216:5",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_copy_back"
+        ],
+        "exit_code": 101,
+        "status": "open-specification-error",
+        "log": "copy-back/flux.log"
+      },
+      {
+        "name": "pointer-add",
+        "package": "wiggle",
+        "features": [
+          "--all-features"
+        ],
+        "source": "crates/wiggle/src/lib.rs",
+        "source_sha256_lf": "f324a99a1454ff76aa7dc9be32d022c1afa236b5094271581823649102c0243a",
+        "selector": "span:crates/wiggle/src/lib.rs:471:5",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_pointer_add"
+        ],
+        "exit_code": 101,
+        "status": "open-checker-limitation",
+        "log": "pointer-add/flux.log"
+      },
+      {
+        "name": "pointer-iter",
+        "package": "wiggle",
+        "features": [
+          "--all-features"
+        ],
+        "source": "crates/wiggle/src/lib.rs",
+        "source_sha256_lf": "f324a99a1454ff76aa7dc9be32d022c1afa236b5094271581823649102c0243a",
+        "selector": "span:crates/wiggle/src/lib.rs:516:5",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_pointer_iter"
+        ],
+        "exit_code": 101,
+        "status": "open-specification-error",
+        "log": "pointer-iter/flux.log"
+      },
+      {
+        "name": "pointer-subrange",
+        "package": "wiggle",
+        "features": [
+          "--all-features"
+        ],
+        "source": "crates/wiggle/src/lib.rs",
+        "source_sha256_lf": "f324a99a1454ff76aa7dc9be32d022c1afa236b5094271581823649102c0243a",
+        "selector": "span:crates/wiggle/src/lib.rs:546:5",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_pointer_subrange"
+        ],
+        "exit_code": 101,
+        "status": "open-specification-error",
+        "log": "pointer-subrange/flux.log"
+      },
+      {
+        "name": "memory-slice",
+        "package": "wasmtime",
+        "features": [
+          "--no-default-features",
+          "--features",
+          "runtime,std,component-model,async"
+        ],
+        "source": "crates/wasmtime/src/runtime/memory.rs",
+        "source_sha256_lf": "798642cb7abb69d209f00f89700dbcc887b221648a836ee06ecb649078dfda18",
+        "selector": "span:crates/wasmtime/src/runtime/memory.rs:1771:5",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wasmtime",
+          "--no-default-features",
+          "--features",
+          "runtime,std,component-model,async",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wasmtime",
+          "--no-default-features",
+          "--features",
+          "runtime,std,component-model,async",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_memory_slice"
+        ],
+        "exit_code": 101,
+        "status": "open-refinement-obligation-not-a-bug-finding",
+        "log": "memory-slice/flux.log"
+      },
+      {
+        "name": "guest-size",
+        "package": "wiggle",
+        "features": [
+          "--all-features"
+        ],
+        "source": "crates/wiggle/src/guest_type.rs",
+        "source_sha256_lf": "03fd2b97c733da6e49447101d8f04a0077be4c52a421f0a0374b1629770fb7f1",
+        "selector": "def:>::guest_size",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_guest_size"
+        ],
+        "exit_code": 0,
+        "status": "scalar-layout-contract-checked-mutations-required",
+        "log": "guest-size/flux.log"
+      },
+      {
+        "name": "guest-align",
+        "package": "wiggle",
+        "features": [
+          "--all-features"
+        ],
+        "source": "crates/wiggle/src/guest_type.rs",
+        "source_sha256_lf": "03fd2b97c733da6e49447101d8f04a0077be4c52a421f0a0374b1629770fb7f1",
+        "selector": "def:>::guest_align",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wiggle",
+          "--all-features",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_guest_align"
+        ],
+        "exit_code": 0,
+        "status": "scalar-layout-contract-checked-mutations-required",
+        "log": "guest-align/flux.log"
+      },
+      {
+        "name": "iovec-selector",
+        "package": "wasmtime-wasi",
+        "features": [
+          "--no-default-features",
+          "--features",
+          "p1"
+        ],
+        "source": "crates/wasi/src/p1.rs",
+        "source_sha256_lf": "c735fc98a6eaa582b4821c54fdb3a69b3d970c0ab8444a4709bb9ce2afd03093",
+        "selector": "span:crates/wasi/src/p1.rs:203:5",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wasmtime-wasi",
+          "--no-default-features",
+          "--features",
+          "p1",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wasmtime-wasi",
+          "--no-default-features",
+          "--features",
+          "p1",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_iovec_selector"
+        ],
+        "exit_code": 0,
+        "status": "feasibility-only-no-spatial-postcondition",
+        "log": "iovec-selector/flux.log"
+      },
+      {
+        "name": "fd-read-caller",
+        "package": "wasmtime-wasi",
+        "features": [
+          "--no-default-features",
+          "--features",
+          "p1"
+        ],
+        "source": "crates/wasi/src/p1.rs",
+        "source_sha256_lf": "c735fc98a6eaa582b4821c54fdb3a69b3d970c0ab8444a4709bb9ce2afd03093",
+        "selector": "span:crates/wasi/src/p1.rs:1665:5",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wasmtime-wasi",
+          "--no-default-features",
+          "--features",
+          "p1",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wasmtime-wasi",
+          "--no-default-features",
+          "--features",
+          "p1",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_fd_read_caller"
+        ],
+        "exit_code": 101,
+        "status": "open-unclassified-diagnostic",
+        "log": "fd-read-caller/flux.log"
+      },
+      {
+        "name": "unix-read-adapter",
+        "package": "wasmtime-wasi",
+        "features": [
+          "--no-default-features",
+          "--features",
+          "p1"
+        ],
+        "source": "crates/wasi/src/filesystem/unix.rs",
+        "source_sha256_lf": "471b8d0a4b8ed7115c0aea7a1b15479fa7fe0eb67866723700531843e2a8e384",
+        "selector": "span:crates/wasi/src/filesystem/unix.rs:99:1",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wasmtime-wasi",
+          "--no-default-features",
+          "--features",
+          "p1",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wasmtime-wasi",
+          "--no-default-features",
+          "--features",
+          "p1",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_unix_read_adapter"
+        ],
+        "exit_code": 0,
+        "status": "feasibility-only-no-spatial-postcondition",
+        "log": "unix-read-adapter/flux.log"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "pointer-array",
+      "runs": [],
+      "status": "open-positive-contract-did-not-check"
+    },
+    {
+      "name": "pointer-base",
+      "runs": [],
+      "status": "open-positive-contract-did-not-check"
+    },
+    {
+      "name": "pointer-len",
+      "runs": [],
+      "status": "open-positive-contract-did-not-check"
+    },
+    {
+      "name": "pointer-as-ptr",
+      "runs": [],
+      "status": "open-positive-contract-did-not-check"
+    },
+    {
+      "name": "range",
+      "runs": [
+        {
+          "mode": "ordinary",
+          "command": [
+            "cargo",
+            "rustc",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-p",
+            "wiggle",
+            "--all-features",
+            "--lib",
+            "--",
+            "--cfg",
+            "fd_read_contract_mutant_range_ordinary"
+          ],
+          "exit_code": 0
+        },
+        {
+          "mode": "flux",
+          "command": [
+            "cargo",
+            "rustc",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-p",
+            "wiggle",
+            "--all-features",
+            "--lib",
+            "--",
+            "--cfg",
+            "fd_read_contract_mutant_range_flux"
+          ],
+          "exit_code": 101
+        }
+      ],
+      "mutation": {
+        "before": "let range = offset..offset + byte_len;",
+        "after": "let range = offset + 1..offset + byte_len;",
+        "source_sha256_lf": "c55386fb4ca8b649d37bb74ff5d55fbc989ce2a6d23ef98a70056751c154fb56"
+      },
+      "status": "original-contract-checked-well-typed-body-mutation-rejected"
+    },
+    {
+      "name": "range-no-bounds-check",
+      "runs": [
+        {
+          "mode": "ordinary",
+          "command": [
+            "cargo",
+            "rustc",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-p",
+            "wiggle",
+            "--all-features",
+            "--lib",
+            "--",
+            "--cfg",
+            "fd_read_contract_mutant_range_no_bounds_check_ordinary"
+          ],
+          "exit_code": 0
+        },
+        {
+          "mode": "flux",
+          "command": [
+            "cargo",
+            "rustc",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-p",
+            "wiggle",
+            "--all-features",
+            "--lib",
+            "--",
+            "--cfg",
+            "fd_read_contract_mutant_range_no_bounds_check_flux"
+          ],
+          "exit_code": 101
+        }
+      ],
+      "mutation": {
+        "before": "if oob {",
+        "after": "if false {",
+        "source_sha256_lf": "41a60a55a576c8f402143b0086afef713a932d2a0bb909f14cbad163b6f52742"
+      },
+      "status": "original-contract-checked-well-typed-body-mutation-rejected"
+    },
+    {
+      "name": "range-wrong-byte-count",
+      "runs": [
+        {
+          "mode": "ordinary",
+          "command": [
+            "cargo",
+            "rustc",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-p",
+            "wiggle",
+            "--all-features",
+            "--lib",
+            "--",
+            "--cfg",
+            "fd_read_contract_mutant_range_wrong_byte_count_ordinary"
+          ],
+          "exit_code": 0
+        },
+        {
+          "mode": "flux",
+          "command": [
+            "cargo",
+            "rustc",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-p",
+            "wiggle",
+            "--all-features",
+            "--lib",
+            "--",
+            "--cfg",
+            "fd_read_contract_mutant_range_wrong_byte_count_flux"
+          ],
+          "exit_code": 101
+        }
+      ],
+      "mutation": {
+        "before": "let range = offset..offset + byte_len;",
+        "after": "let range = offset..offset + byte_len / 2;",
+        "source_sha256_lf": "c9d651d2d73764ca6d0e4a1d3f7fc0a3f0281d35e184872ef5513609f5e2474c"
+      },
+      "status": "original-contract-checked-well-typed-body-mutation-rejected"
+    },
+    {
+      "name": "guest-size",
+      "runs": [
+        {
+          "mode": "ordinary",
+          "command": [
+            "cargo",
+            "rustc",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-p",
+            "wiggle",
+            "--all-features",
+            "--lib",
+            "--",
+            "--cfg",
+            "fd_read_contract_mutant_guest_size_ordinary"
+          ],
+          "exit_code": 0
+        },
+        {
+          "mode": "flux",
+          "command": [
+            "cargo",
+            "rustc",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-p",
+            "wiggle",
+            "--all-features",
+            "--lib",
+            "--",
+            "--cfg",
+            "fd_read_contract_mutant_guest_size_flux"
+          ],
+          "exit_code": 101
+        }
+      ],
+      "mutation": {
+        "before": "mem::size_of::<Self>() as u32",
+        "after": "0",
+        "source_sha256_lf": "f62a9e12c83dd0780bdd605225e5b75054d3cdd5a03ac511bafff38c72bdbecf"
+      },
+      "status": "original-contract-checked-well-typed-body-mutation-rejected"
+    },
+    {
+      "name": "guest-align",
+      "runs": [
+        {
+          "mode": "ordinary",
+          "command": [
+            "cargo",
+            "rustc",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-p",
+            "wiggle",
+            "--all-features",
+            "--lib",
+            "--",
+            "--cfg",
+            "fd_read_contract_mutant_guest_align_ordinary"
+          ],
+          "exit_code": 0
+        },
+        {
+          "mode": "flux",
+          "command": [
+            "cargo",
+            "rustc",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-p",
+            "wiggle",
+            "--all-features",
+            "--lib",
+            "--",
+            "--cfg",
+            "fd_read_contract_mutant_guest_align_flux"
+          ],
+          "exit_code": 101
+        }
+      ],
+      "mutation": {
+        "before": "mem::align_of::<Self>()",
+        "after": "0",
+        "source_sha256_lf": "51cd8eeafbcb76ed5e7fac35bed61e64f128bb8ac963992acfb8498911cbe2c4"
+      },
+      "status": "original-contract-checked-well-typed-body-mutation-rejected"
+    },
+    {
+      "name": "payload-slice-variants",
+      "runs": [
+        {
+          "mode": "ordinary",
+          "command": [
+            "cargo",
+            "rustc",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-p",
+            "wiggle",
+            "--no-default-features",
+            "--lib",
+            "--",
+            "--cfg",
+            "fd_read_contract_mutant_payload_slice_variants_ordinary"
+          ],
+          "exit_code": 0
+        },
+        {
+          "mode": "flux",
+          "command": [
+            "cargo",
+            "rustc",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-p",
+            "wiggle",
+            "--no-default-features",
+            "--lib",
+            "--",
+            "--cfg",
+            "fd_read_contract_mutant_payload_slice_variants_flux"
+          ],
+          "exit_code": 101
+        }
+      ],
+      "mutation": {
+        "before": "&mut slice[range]",
+        "after": "&mut slice[range.start..range.end + 1]",
+        "source_sha256_lf": "10a7832d5cc4397dbecbd17648dd78dfd3688a6ed2e95406079e70fb7e93a9d0"
+      },
+      "status": "original-contract-checked-well-typed-body-mutation-rejected"
+    }
+  ],
+  "status": "classified"
+}

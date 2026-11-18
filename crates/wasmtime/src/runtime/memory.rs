@@ -1768,6 +1768,7 @@ impl<'a> MemoryRanges<'a> {
         .into_range_mut(range)
     }
 
+    #[cfg_attr(flux, flux::sig(fn(MemoryRanges, Range<usize>[@r]) -> Result<&mut [u8][r.end - r.start], MemoryAccessError>))]
     fn into_range_mut(self, range: Range<usize>) -> Result<&'a mut [u8], MemoryAccessError> {
         let len = self.len();
         if range.start > range.end || range.end > len {
