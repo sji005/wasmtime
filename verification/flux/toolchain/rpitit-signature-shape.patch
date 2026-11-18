@@ -1,5 +1,5 @@
 diff --git a/crates/flux-fhir-analysis/src/conv/struct_compat.rs b/crates/flux-fhir-analysis/src/conv/struct_compat.rs
-index e58a0188b..a796c56d8 100644
+index e58a0188b..9f85c5d46 100644
 --- a/crates/flux-fhir-analysis/src/conv/struct_compat.rs
 +++ b/crates/flux-fhir-analysis/src/conv/struct_compat.rs
 @@ -12,5 +12,5 @@ use flux_middle::{
@@ -32,9 +32,9 @@ index e58a0188b..a796c56d8 100644
 +    // This is a compatibility check on shape only. The projection is neither
 +    // replaced in callers nor normalized by erasing refinements.
 +    let rust_fn_sig = rust_fn_sig.map_bound(|sig| {
-+        use rustc_middle::ty::{self as rustc_ty, AliasTermKind, ImplTraitInTraitData};
++        use rustc_middle::ty::{self as rustc_ty, AliasTyKind, ImplTraitInTraitData};
 +        if let rustc_ty::Alias(_, alias) = *sig.output().kind()
-+            && let AliasTermKind::ProjectionTy { def_id: assoc_id } = alias.kind
++            && let AliasTyKind::Projection { def_id: assoc_id } = alias.kind
 +            && let Some(ImplTraitInTraitData::Trait { fn_def_id, .. }) =
 +                tcx.opt_rpitit_info(assoc_id)
 +            && fn_def_id == owner
