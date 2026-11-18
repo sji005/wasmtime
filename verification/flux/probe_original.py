@@ -111,8 +111,11 @@ def main():
     parser.add_argument("--selector", help="Existing Flux selector override for exactly one case")
     parser.add_argument("--slice-backed-only", action="store_true", help="Probe range without the optional Wasmtime variant")
     parser.add_argument("--stop-on-crash", action="store_true")
+    parser.add_argument("--without-std", action="store_true", help="Exclude Wasmtime's Linux pagemap implementation")
     parser.add_argument("--environment-dir", type=Path, default=ROOT / "artifacts/fd-read/environment")
     args = parser.parse_args()
+    if args.without_std and args.case != ["memory-slice"]:
+        parser.error("without-std is limited to the Wasmtime memory slice probe")
     if args.selector and len(args.case or []) != 1:
         parser.error("a selector override requires exactly one case")
     if args.slice_backed_only and args.case != ["range"]:
@@ -147,6 +150,8 @@ def main():
             continue
         if args.slice_backed_only:
             features = ["--no-default-features"]
+        if args.without_std:
+            features = ["--no-default-features", "--features", "runtime,component-model,async"]
         text = (ROOT / source).read_text()
         if anchor.startswith("def:"):
             # Integer primitive methods share a macro callsite. Select the
