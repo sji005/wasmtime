@@ -29,8 +29,8 @@ CASES = [
     ("pointer-offset", "wiggle", "crates/wiggle/src/lib.rs", "    pub fn offset(&self)", ["--all-features"]),
     ("pointer-cast", "wiggle", "crates/wiggle/src/lib.rs", "    pub fn cast<U>", ["--all-features"]),
     ("pointer-array", "wiggle", "crates/wiggle/src/lib.rs", "    pub fn as_array(&self", ["--all-features"]),
-    ("pointer-base", "wiggle", "crates/wiggle/src/lib.rs", "    #[cfg_attr(flux, flux::sig(fn(&GuestPtr<[T]>[@p]) -> u32[p.0]))]\n    pub fn offset_base", ["--all-features"]),
-    ("pointer-len", "wiggle", "crates/wiggle/src/lib.rs", "    #[cfg_attr(flux, flux::sig(fn(&GuestPtr<[T]>[@p]) -> u32[p.1]))]\n    pub fn len", ["--all-features"]),
+    ("pointer-base", "wiggle", "crates/wiggle/src/lib.rs", "    pub fn offset_base(&self) -> u32", ["--all-features"]),
+    ("pointer-len", "wiggle", "crates/wiggle/src/lib.rs", "    pub fn len(&self) -> u32", ["--all-features"]),
     ("pointer-as-ptr", "wiggle", "crates/wiggle/src/lib.rs", "    pub fn as_ptr(&self)", ["--all-features"]),
     ("range", "wiggle", "crates/wiggle/src/lib.rs", "    fn validate_range<T>", ["--all-features"]),
     ("typed-read-range", "wiggle", "crates/wiggle/src/lib.rs", "    fn validate_size_align<T>", ["--all-features"]),
@@ -55,6 +55,16 @@ def wrap(arguments):
     command = [compiler, *rustargs]
     if crate == selected:
         output = Path(os.environ["FD_READ_PROBE_OUTPUT"])
+        if "FD_READ_SOURCE_COPY" in os.environ:
+            original_root = ROOT / "crates/wasi/src/lib.rs"
+            matches = [i for i, value in enumerate(rustargs) if value.endswith("crates/wasi/src/lib.rs") or value == str(original_root)]
+            if selected != "wasmtime_wasi" or len(matches) != 1:
+                raise RuntimeError("Unexpected source-copy compiler context")
+            rustargs[matches[0]] = str(Path(os.environ["FD_READ_SOURCE_COPY"]) / "src/lib.rs")
+        if os.environ.get("FD_READ_PROBE_MODE") == "ordinary":
+            command = [compiler, *rustargs]
+            (output / "ordinary-compiler-invocation.json").write_text(json.dumps(command, indent=2) + "\n")
+            return subprocess.run(command, close_fds=False).returncode
         command = ["flux", *rustargs, *FLAGS, "-Ffull-compilation=on",
                    f"-Finclude={os.environ['FD_READ_PROBE_SELECTOR']}",
                    f"-Flog-dir={output / 'flux-log'}"]
@@ -74,6 +84,8 @@ def classify(code, log, invoked):
         return "infrastructure-no-flux-invocation"
     if re.search(r"(?i)(unsupported|not supported|internal compiler error|internal flux error|panicked at|not yet implemented)", log):
         return "open-checker-limitation"
+    if re.search(r"error\[E0999\]: (mismatched sorts|no field|invalid refinement|cannot refine)", log):
+        return "open-specification-error"
     if re.search(r"error\[E0999\]: (refinement type error|arithmetic operation may (over|under)flow|type invariant may not hold)", log):
         return "open-refinement-obligation-not-a-bug-finding"
     if code == 0 and re.search(r"[1-9]\d* checked;", log):
@@ -115,7 +127,8 @@ def main():
         if args.case and name not in args.case:
             continue
         text = (ROOT / source).read_text()
-        if text.count(anchor) != 1:
+        expected_count = 2 if name in ("pointer-base", "pointer-len") else 1
+        if text.count(anchor) != expected_count:
             raise RuntimeError(f"Original source anchor changed or ambiguous: {name}")
         line = text[:text.index(anchor)].count("\n") + 1 + anchor.count("\n")
         last_line = anchor.split("\n")[-1]
@@ -154,7 +167,7 @@ def main():
         })
         (output / "original-body-probes.json").write_text(json.dumps(report, indent=2) + "\n")
         # Full logs remain artifacts; print diagnostics without flooding CI logs.
-        diagnostic = [s for s in log.splitlines() if not s.startswith("FD_READ_ACTUAL_BODY:") and any(k in s for k in ("error", "unsupported", "summary."))]
+        diagnostic = [s for s in log.splitlines() if s.lstrip().startswith(("error[", "error:", "summary."))]
         print(f"{name}: {status}\n" + "\n".join(diagnostic[:12]), flush=True)
     print("Probe collection finished; no production spatial proof is claimed.")
     return 0

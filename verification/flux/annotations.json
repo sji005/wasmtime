@@ -16,35 +16,35 @@
     },
     {
       "anchor": "    pub fn new(pointer: T::Pointer) -> GuestPtr<T> {\n",
-      "annotation": "    #[cfg_attr(flux, flux::sig(fn(T::Pointer[@p]) -> GuestPtr<T>[p]))]\n"
+      "annotation": "    #[cfg_attr(flux, flux::sig(fn(T::Pointer[@p]) -> GuestPtr<T>[GuestPtr { pointer: p }]))]\n"
     },
     {
       "anchor": "    pub fn offset(&self) -> T::Pointer {\n",
-      "annotation": "    #[cfg_attr(flux, flux::sig(fn(&GuestPtr<T>[@p]) -> T::Pointer[p]))]\n"
+      "annotation": "    #[cfg_attr(flux, flux::sig(fn(&GuestPtr<T>[@p]) -> T::Pointer[p.pointer]))]\n"
     },
     {
       "anchor": "    pub fn cast<U>(&self) -> GuestPtr<U>\n",
-      "annotation": "    #[cfg_attr(flux, flux::sig(fn(&GuestPtr<T>[@p]) -> GuestPtr<U>[p]))]\n"
+      "annotation": "    #[cfg_attr(flux, flux::sig(fn(&GuestPtr<T>[@p]) -> GuestPtr<U>[GuestPtr { pointer: p.pointer }]))]\n"
     },
     {
       "anchor": "    pub fn as_array(&self, elems: u32) -> GuestPtr<[T]>\n",
-      "annotation": "    #[cfg_attr(flux, flux::sig(fn(&GuestPtr<T>[@p], elems: u32) -> GuestPtr<[T]>[(p, elems)]))]\n"
+      "annotation": "    #[cfg_attr(flux, flux::sig(fn(&GuestPtr<T>[@p], elems: u32) -> GuestPtr<[T]>[GuestPtr { pointer: (p.pointer, elems) }]))]\n"
     },
     {
       "anchor": "    pub fn offset_base(&self) -> u32 {\n",
-      "annotation": "    #[cfg_attr(flux, flux::sig(fn(&GuestPtr<[T]>[@p]) -> u32[p.0]))]\n",
+      "annotation": "    #[cfg_attr(flux, flux::sig(fn(&GuestPtr<[T]>[@p]) -> u32[p.pointer.0]))]\n",
       "expected_count": 2,
       "occurrence": 0
     },
     {
       "anchor": "    pub fn len(&self) -> u32 {\n",
-      "annotation": "    #[cfg_attr(flux, flux::sig(fn(&GuestPtr<[T]>[@p]) -> u32[p.1]))]\n",
+      "annotation": "    #[cfg_attr(flux, flux::sig(fn(&GuestPtr<[T]>[@p]) -> u32[p.pointer.1]))]\n",
       "expected_count": 2,
       "occurrence": 0
     },
     {
       "anchor": "    pub fn as_ptr(&self) -> GuestPtr<T> {\n",
-      "annotation": "    #[cfg_attr(flux, flux::sig(fn(&GuestPtr<[T]>[@p]) -> GuestPtr<T>[p.0]))]\n"
+      "annotation": "    #[cfg_attr(flux, flux::sig(fn(&GuestPtr<[T]>[@p]) -> GuestPtr<T>[GuestPtr { pointer: p.pointer.0 }]))]\n"
     }
   ]
 }

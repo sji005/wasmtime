@@ -102,6 +102,8 @@ jobs:
         run: python3 verification/flux/check_adapter.py --external-specs --output-dir artifacts/fd-read/adapter-external
       - name: Check original full-crate Unix adapter with the explicit primitive contract
         run: python3 verification/flux/probe_original.py --case unix-read-adapter --output-dir artifacts/fd-read/compat-adapter-original
+      - name: Reject a well-typed adapter mutation in a temporary full source copy
+        run: python3 verification/flux/check_adapter_original.py
       - name: Check associated-field normalization and reject a wrong postcondition
         run: python3 verification/flux/toolchain/check_projection.py
       - name: Collect original-body diagnostics with the candidate driver
@@ -140,6 +142,7 @@ jobs:
             artifacts/fd-read/file-primitive-specs
             artifacts/fd-read/adapter-external
             artifacts/fd-read/compat-adapter-original
+            artifacts/fd-read/adapter-original-mutation
             artifacts/fd-read/compat-original-body-probes
           if-no-files-found: warn
 
