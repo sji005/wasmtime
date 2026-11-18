@@ -1,0 +1,96 @@
+FD_READ_ACTUAL_BODY: ["flux", "--crate-name", "wasmtime", "--edition=2024", "crates/wasmtime/src/lib.rs", "--error-format=json", "--json=diagnostic-rendered-ansi,artifacts,future-incompat,unused-externs-silent", "--crate-type", "lib", "--emit=dep-info,metadata,link", "-Z", "embed-metadata=no", "-C", "embed-bitcode=no", "-C", "debuginfo=2", "--allow=clippy::all", "--warn=clippy::useless_conversion", "--warn=unused_macro_rules", "--warn=unused_lifetimes", "--warn=unused_import_braces", "--warn=unused_extern_crates", "--warn=unstable_features", "--warn=clippy::unnecessary_to_owned", "--warn=clippy::unnecessary_mut_passed", "--warn=clippy::unnecessary_fallible_conversions", "--warn=clippy::unnecessary_cast", "--warn=clippy::uninlined_format_args", "--warn=unexpected_cfgs", "--warn=trivial_numeric_casts", "--warn=clippy::redundant_field_names", "--warn=clippy::multiple_bound_locations", "--warn=clippy::map_clone", "--warn=clippy::manual_strip", "--warn=clippy::from_over_into", "--warn=clippy::extra_unused_type_parameters", "--warn=clippy::clone_on_copy", "--warn=clippy::allow_attributes_without_reason", "--check-cfg", "cfg(pulley_tail_calls)", "--check-cfg", "cfg(pulley_assume_llvm_makes_tail_calls)", "--check-cfg", "cfg(pulley_disable_interp_simd)", "--check-cfg", "cfg(arc_try_new)", "--check-cfg", "cfg(fuzzing)", "--check-cfg", "cfg(gc_zeal)", "--cfg", "feature=\"async\"", "--cfg", "feature=\"component-model\"", "--cfg", "feature=\"pulley-interpreter\"", "--cfg", "feature=\"runtime\"", "--check-cfg", "cfg(docsrs,test)", "--check-cfg", "cfg(feature, values(\"addr2line\", \"all-arch\", \"anyhow\", \"async\", \"backtrace\", \"cache\", \"call-hook\", \"compile-time-builtins\", \"component-model\", \"component-model-async\", \"component-model-bytes\", \"coredump\", \"cranelift\", \"custom-fiber\", \"custom-native-signals\", \"custom-sync-primitives\", \"custom-virtual-memory\", \"debug\", \"debug-builtins\", \"default\", \"demangle\", \"gc\", \"gc-copying\", \"gc-drc\", \"gc-null\", \"incremental-cache\", \"memory-protection-keys\", \"once_cell\", \"parallel-compilation\", \"pooling-allocator\", \"profile-pulley\", \"profiling\", \"pulley\", \"pulley-interpreter\", \"reexport-wasmparser\", \"rr\", \"runtime\", \"stack-switching\", \"std\", \"task-group-hook\", \"threads\", \"trace-log\", \"wasmtime-jit-debug\", \"wat\", \"wave\", \"winch\", \"wit-parser\", \"wmemcheck\"))", "-C", "metadata=d77dc599a1e5e58c", "-C", "extra-filename=-3109bf6b0ac00433", "--out-dir", "/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/wasmtime/3109bf6b0ac00433/out", "--target", "x86_64-unknown-linux-gnu", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/debug/build/pulley-macros/4860402c66a33ef8/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/debug/build/serde_derive/279203a70bfe3824/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/debug/build/thiserror-impl/78f49543d1202d2c/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/anyhow/308d40f63ead09df/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/bitflags/4c7b0b1c429cf197/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/cfg-if/f090c1b66e80a751/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/cobs/2be887ba86a976d8/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/cranelift-bforest/102a9cc3a79d907f/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/cranelift-bitset/bf16421db7cb8283/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/cranelift-entity/c5924bad2222707d/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/equivalent/a9c03d86d7cd01bf/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/foldhash/436165cfe2c67d5f/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/hashbrown/bb7b4b772b7b252d/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/indexmap/bb52ff9a46d58243/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/libm/9333901e25932f6c/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/linux-raw-sys/5d447bfd0204e7b0/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/log/0fd272b1644249eb/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/memchr/e3de26f652aa50b3/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/object/65f6afd706b3c27c/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/rustix/a30fc051683635ad/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/semver/d644759bdd0e4a36/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/serde/ce7cfa578cba6a6e/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/serde_core/bc14d5dd3b922886/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/smallvec/0043e467310e304f/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/target-lexicon/f1b7a5c6e7773a19/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/thiserror/8af1d02d2110de4d/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/wasmparser/32dd7a85e6930d2c/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/wasmtime-environ/2cceb3d20edaab2b/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/wasmtime-internal-component-util/fcb5b5a6f85e940b/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/wasmtime-internal-core/e848ec4c73be0c3e/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/debug/build/wasmtime/3109bf6b0ac00433/out", "--extern", "async_trait=/home/runner/work/wasmtime/wasmtime/target/debug/build/async-trait/2bfe521221116548/out/libasync_trait-2bfe521221116548.so", "--extern", "bitflags=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/bitflags/4c7b0b1c429cf197/out/libbitflags-4c7b0b1c429cf197.rmeta", "--extern", "bumpalo=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/bumpalo/ce63627665f4932e/out/libbumpalo-ce63627665f4932e.rmeta", "--extern", "encoding_rs=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/encoding_rs/b13fd133d6f07ed6/out/libencoding_rs-b13fd133d6f07ed6.rmeta", "--extern", "foldhash=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/foldhash/436165cfe2c67d5f/out/libfoldhash-436165cfe2c67d5f.rmeta", "--extern", "indexmap=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/indexmap/bb52ff9a46d58243/out/libindexmap-bb52ff9a46d58243.rmeta", "--extern", "libc=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/libc/c4e40d3d30d1de26/out/liblibc-c4e40d3d30d1de26.rmeta", "--extern", "log=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/log/0fd272b1644249eb/out/liblog-0fd272b1644249eb.rmeta", "--extern", "memfd=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/memfd/bb51254724629b73/out/libmemfd-bb51254724629b73.rmeta", "--extern", "object=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/object/65f6afd706b3c27c/out/libobject-65f6afd706b3c27c.rmeta", "--extern", "postcard=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/postcard/81a1132b77252eb8/out/libpostcard-81a1132b77252eb8.rmeta", "--extern", "pulley_interpreter=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/pulley-interpreter/a142a0b1535bd500/out/libpulley_interpreter-a142a0b1535bd500.rmeta", "--extern", "rustix=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/rustix/a30fc051683635ad/out/librustix-a30fc051683635ad.rmeta", "--extern", "semver=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/semver/d644759bdd0e4a36/out/libsemver-d644759bdd0e4a36.rmeta", "--extern", "serde=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/serde/ce7cfa578cba6a6e/out/libserde-ce7cfa578cba6a6e.rmeta", "--extern", "serde_derive=/home/runner/work/wasmtime/wasmtime/target/debug/build/serde_derive/279203a70bfe3824/out/libserde_derive-279203a70bfe3824.so", "--extern", "smallvec=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/smallvec/0043e467310e304f/out/libsmallvec-0043e467310e304f.rmeta", "--extern", "target_lexicon=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/target-lexicon/f1b7a5c6e7773a19/out/libtarget_lexicon-f1b7a5c6e7773a19.rmeta", "--extern", "wasmparser=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/wasmparser/32dd7a85e6930d2c/out/libwasmparser-32dd7a85e6930d2c.rmeta", "--extern", "wasmtime_environ=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/wasmtime-environ/2cceb3d20edaab2b/out/libwasmtime_environ-2cceb3d20edaab2b.rmeta", "--extern", "wasmtime_component_macro=/home/runner/work/wasmtime/wasmtime/target/debug/build/wasmtime-internal-component-macro/d300a691fc37d13b/out/libwasmtime_internal_component_macro-d300a691fc37d13b.so", "--extern", "wasmtime_component_util=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/wasmtime-internal-component-util/fcb5b5a6f85e940b/out/libwasmtime_internal_component_util-fcb5b5a6f85e940b.rmeta", "--extern", "wasmtime_core=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/wasmtime-internal-core/e848ec4c73be0c3e/out/libwasmtime_internal_core-e848ec4c73be0c3e.rmeta", "--extern", "wasmtime_fiber=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/wasmtime-internal-fiber/01982cfe856eb245/out/libwasmtime_internal_fiber-01982cfe856eb245.rmeta", "--extern", "wasmtime_unwinder=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/wasmtime-internal-unwinder/53f324d3dd2078ed/out/libwasmtime_internal_unwinder-53f324d3dd2078ed.rmeta", "--extern", "wasmtime_versioned_export_macros=/home/runner/work/wasmtime/wasmtime/target/debug/build/wasmtime-internal-versioned-export-macros/0f38e2519bb99ab5/out/libwasmtime_internal_versioned_export_macros-0f38e2519bb99ab5.so", "--cfg", "fd_read_probe_memory_slice", "--force-warn=unused_crate_dependencies", "--cfg", "has_host_compiler_backend", "--check-cfg", "cfg(asan)", "--check-cfg", "cfg(has_native_signals)", "--check-cfg", "cfg(has_virtual_memory)", "--check-cfg", "cfg(has_custom_fiber)", "--check-cfg", "cfg(has_custom_sync)", "--check-cfg", "cfg(has_host_compiler_backend)", "--check-cfg", "cfg(has_mmu_interruption_runtime)", "--check-cfg", "cfg(gc_zeal)", "--check-cfg", "cfg(default_target_pulley)", "-Fcheck-overflow=strict", "-Fallow-raw-deref=none", "-Fstd-extern-specs=on", "-Ffixpoint-timeout=30", "-Ffull-compilation=on", "-Finclude=def:into_range_mut", "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/baseline-memory-ranges/memory-slice/flux-log", "-Zunstable-options", "--extern", "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rmeta", "--extern", "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rlib", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs"]
+   Compiling serde v1.0.228
+   Compiling wasmtime-internal-core v52.0.0-dev (/home/runner/work/wasmtime/wasmtime/crates/core)
+   Compiling bitflags v2.11.1
+   Compiling wasmtime-internal-versioned-export-macros v52.0.0-dev (/home/runner/work/wasmtime/wasmtime/crates/versioned-export-macros)
+   Compiling semver v1.0.27
+   Compiling object v0.40.0
+   Compiling wasmtime-internal-component-util v52.0.0-dev (/home/runner/work/wasmtime/wasmtime/crates/component-util)
+   Compiling thiserror v2.0.17
+   Compiling wasmtime-internal-fiber v52.0.0-dev (/home/runner/work/wasmtime/wasmtime/crates/fiber)
+   Compiling wasmtime-internal-unwinder v52.0.0-dev (/home/runner/work/wasmtime/wasmtime/crates/unwinder)
+   Compiling wasmparser v0.263.0
+   Compiling smallvec v1.15.1
+   Compiling linux-raw-sys v0.12.1
+   Compiling cranelift-bitset v0.139.0-dev (/home/runner/work/wasmtime/wasmtime/cranelift/bitset)
+   Compiling rustix v1.1.6
+   Compiling cranelift-entity v0.139.0-dev (/home/runner/work/wasmtime/wasmtime/cranelift/entity)
+   Compiling cranelift-bforest v0.139.0-dev (/home/runner/work/wasmtime/wasmtime/cranelift/bforest)
+   Compiling wasmtime-internal-wit-bindgen v52.0.0-dev (/home/runner/work/wasmtime/wasmtime/crates/wit-bindgen)
+   Compiling cobs v0.3.0
+   Compiling wasmtime v52.0.0-dev (/home/runner/work/wasmtime/wasmtime/crates/wasmtime)
+   Compiling pulley-macros v52.0.0-dev (/home/runner/work/wasmtime/wasmtime/pulley/macros)
+   Compiling cfg-if v1.0.0
+   Compiling encoding_rs v0.8.31
+   Compiling memfd v0.6.5
+   Compiling pulley-interpreter v52.0.0-dev (/home/runner/work/wasmtime/wasmtime/pulley)
+   Compiling wasmtime-internal-component-macro v52.0.0-dev (/home/runner/work/wasmtime/wasmtime/crates/component-macro)
+   Compiling postcard v1.1.3
+   Compiling libc v0.2.190
+   Compiling bumpalo v3.20.4
+   Compiling wasmtime-environ v52.0.0-dev (/home/runner/work/wasmtime/wasmtime/crates/environ)
+warning: unexpected `cfg` condition name: `flux`
+    --> crates/wasmtime/src/runtime/memory.rs:1771:16
+     |
+1771 |     #[cfg_attr(flux, flux::sig(fn(MemoryRanges, Range<usize>[@r]) -> Result<&mut [u8][r.end - r.start], MemoryAccessError>))]
+     |                ^^^^
+     |
+     = help: expected names are: `arc_try_new`, `asan`, `default_target_pulley`, `docsrs`, `feature`, `fuzzing`, `gc_zeal`, `has_custom_fiber`, `has_custom_sync`, `has_host_compiler_backend`, `has_mmu_interruption_runtime`, `has_native_signals`, `has_virtual_memory`, `pulley_assume_llvm_makes_tail_calls`, `pulley_disable_interp_simd`, `pulley_tail_calls`, and `test` and 34 more
+     = help: consider using a Cargo feature instead
+     = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+              [lints.rust]
+              unexpected_cfgs = { level = "warn", check-cfg = ['cfg(flux)'] }
+     = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(flux)");` to the top of the `build.rs`
+     = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+     = note: requested on the command line with `-W unexpected-cfgs`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool, custom_inner_attributes)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `-W unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:27
+  |
+1 | #![feature(register_tool, custom_inner_attributes)]
+  |                           ^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0999]: refinement type error
+    --> crates/wasmtime/src/runtime/memory.rs:1781:13
+     |
+1781 | /             Ok(slice::from_raw_parts_mut(
+1782 | |                 definition.base.as_ptr().add(range.start),
+1783 | |                 range.len(),
+1784 | |             ))
+     | |______________^ a postcondition cannot be proved
+     |
+note: this is the condition that cannot be proved
+    --> crates/wasmtime/src/runtime/memory.rs:1771:87
+     |
+1771 |     #[cfg_attr(flux, flux::sig(fn(MemoryRanges, Range<usize>[@r]) -> Result<&mut [u8][r.end - r.start], MemoryAccessError>))]
+     |                                                                                       ^^^^^^^^^^^^^^^
+
+error[E0999]: refinement type error
+    --> crates/wasmtime/src/runtime/memory.rs:1782:17
+     |
+1782 |                 definition.base.as_ptr().add(range.start),
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ a precondition cannot be proved
+     |
+note: this is the condition that cannot be proved
+    --> lib/flux-core/src/ptr/mod.rs:86:29
+
+error[E0999]: refinement type error
+    --> crates/wasmtime/src/runtime/memory.rs:1781:13
+     |
+1781 | /             Ok(slice::from_raw_parts_mut(
+1782 | |                 definition.base.as_ptr().add(range.start),
+1783 | |                 range.len(),
+1784 | |             ))
+     | |______________^ a postcondition cannot be proved
+
+Error: process exited unsuccessfully: exit status: 1
+warning: `wasmtime` (lib) generated 3 warnings
+error: could not compile `wasmtime` (lib) due to 3 previous errors; 3 warnings emitted

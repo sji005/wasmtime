@@ -1,0 +1,11 @@
+{
+  "run_url": "https://github.com/sji005/wasmtime/actions/runs/44403043130",
+  "job_id": 135150870430,
+  "artifact_id": 14473942525,
+  "artifact_sha256": "641ede41b67b68f096922b9b611b8c619f9e18dc7b443e6bea915ec79ef527a5",
+  "checker": "unmodified pinned Flux",
+  "isolated_extent": "1 checked, 7 constraints solved, weakened guard rejected",
+  "original_constructor_without_std": "open: pointer add precondition and returned slice postcondition",
+  "wasmtime_enabled_accessor": "open: success precondition of Result::expect",
+  "flux_crash": false
+}

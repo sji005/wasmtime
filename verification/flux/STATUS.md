@@ -54,6 +54,21 @@ crashed in the unrelated `pagemap.rs` bitflags expansion while comparing
 Wasmtime-enabled Wiggle check was skipped. Work stopped at the crash for user
 review. The trust boundary is unchanged. See `evidence/run-44401676665`.
 
+The [isolated extent run](https://github.com/sji005/wasmtime/actions/runs/44403043130)
+checked the pointer offset and raw slice descriptor under the existing live
+allocation assumption. Baseline Flux solved seven constraints and rejected a
+weakened guard that allowed the end to exceed the extent. This experiment takes
+the matching base and extent as inputs and returns a raw descriptor, without
+proving the Wasmtime VM lookup or the creation of a Rust mutable reference.
+
+The original constructor probe excluded `pagemap` by disabling `std`. Flux
+completed with ordinary refinement failures at the pointer addition and slice
+postcondition. Wasmtime-enabled Wiggle also reached the `expect` on
+`data_range_mut`, whose success is still unproved. The next shared obligation
+is carrying the selected allocation's extent into the VM pointer refinement and
+establishing the success and exact-length contract of `data_range_mut`.
+No checker crash occurred in either probe. Evidence is in `evidence/run-44403043130`.
+
 | Evidence | Checked result | Scope |
 | --- | --- | --- |
 | [Baseline run 44240968739](https://github.com/sji005/wasmtime/actions/runs/44240968739) | Passed M0 with three positive functions and three rejected mutations. Ordinary builds, three boundary regressions and fresh P1 expansion passed. | Environment, original behavior on tested inputs, and generated source inspection |
