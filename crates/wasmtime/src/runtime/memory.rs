@@ -26,6 +26,10 @@ impl<T> [T] {
     #[no_panic]
     #[spec(fn(&[T][@n], mid: usize{mid <= n}) -> (&[T][mid], &[T][n - mid]))]
     fn split_at(&self, mid: usize) -> (&[T], &[T]);
+
+    #[no_panic]
+    #[spec(fn(&mut [T][@n], mid: usize{mid <= n}) -> (&mut [T][mid], &mut [T][n - mid]))]
+    fn split_at_mut(&mut self, mid: usize) -> (&mut [T], &mut [T]);
 }
 
 /// Error for out of bounds [`Memory`] access.
@@ -373,11 +377,7 @@ impl Memory {
         buffer: &mut [u8],
     ) -> Result<(), MemoryAccessError> {
         let store = store.as_context();
-        let slice = self
-            .data(&store)
-            .get(offset..)
-            .and_then(|s| s.get(..buffer.len()))
-            .ok_or(MemoryAccessError { _private: () })?;
+        let slice = checked_memory_range(self.data(&store), offset, buffer.len())?;
         buffer.copy_from_slice(slice);
         Ok(())
     }
@@ -404,10 +404,7 @@ impl Memory {
         buffer: &[u8],
     ) -> Result<(), MemoryAccessError> {
         let mut context = store.as_context_mut();
-        self.data_mut(&mut context)
-            .get_mut(offset..)
-            .and_then(|s| s.get_mut(..buffer.len()))
-            .ok_or(MemoryAccessError { _private: () })?
+        checked_memory_range_mut(self.data_mut(&mut context), offset, buffer.len())?
             .copy_from_slice(buffer);
         Ok(())
     }
@@ -1566,6 +1563,34 @@ mod tests {
         assert_eq!(ranges.data_range(1..3).unwrap(), b"ab");
     }
 
+    #[test]
+    fn memory_read_write_checked_ranges() -> Result<()> {
+        let mut store = Store::new(&Engine::default(), ());
+        let memory = Memory::new(&mut store, MemoryType::new(1, None)?)?;
+        let size = memory.data_size(&store);
+
+        memory.write(&mut store, 0, b"ab").unwrap();
+
+        let mut contents = [0; 2];
+        memory.read(&store, 0, &mut contents)?;
+        assert_eq!(&contents, b"ab");
+
+        assert!(memory.read(&store, size, &mut []).is_ok());
+        assert!(memory.write(&mut store, size, &[]).is_ok());
+
+        let mut buffer = [0xff; 2];
+        assert!(memory.read(&store, usize::MAX, &mut buffer).is_err());
+        assert_eq!(buffer, [0xff; 2]);
+        assert!(memory.read(&store, size - 1, &mut buffer).is_err());
+        assert_eq!(buffer, [0xff; 2]);
+
+        assert!(memory.write(&mut store, usize::MAX, b"x").is_err());
+        assert!(memory.write(&mut store, size - 1, b"xy").is_err());
+        assert_eq!(&memory.data(&store)[..2], b"ab");
+
+        Ok(())
+    }
+
     // Assert that creating a memory via `Memory::new` respects the limits/tunables
     // in `Config`.
     #[test]
@@ -1775,6 +1800,27 @@ struct ValidatedMemoryRange {
     limit: usize,
 }
 
+#[spec(fn(start: usize, len: usize, limit: usize) ->
+    Result<ValidatedMemoryRange[{start: start, end: start + len, limit: limit}], MemoryAccessError>)]
+#[no_panic]
+fn validate_memory_range_len(
+    start: usize,
+    len: usize,
+    limit: usize,
+) -> Result<ValidatedMemoryRange, MemoryAccessError> {
+    if start > limit || len > limit - start {
+        return Err(MemoryAccessError { _private: () });
+    }
+
+    let range = ValidatedMemoryRange {
+        start,
+        end: start + len,
+        limit,
+    };
+    flux_rs::assert(range.start <= range.end && range.end <= range.limit);
+    Ok(range)
+}
+
 #[spec(fn(start: usize, end: usize, limit: usize) ->
     Result<ValidatedMemoryRange[{start: start, end: end, limit: limit}], MemoryAccessError>)]
 #[no_panic]
@@ -1790,6 +1836,46 @@ fn validate_memory_range(
     let range = ValidatedMemoryRange { start, end, limit };
     flux_rs::assert(range.start <= range.end && range.end <= range.limit);
     Ok(range)
+}
+
+#[spec(fn(data: &[u8][@memory_len], start: usize, end: usize) ->
+    &[u8][end - start]
+    requires start <= end && end <= memory_len)]
+#[no_panic]
+fn memory_range_slice(data: &[u8], start: usize, end: usize) -> &[u8] {
+    let (_, tail) = data.split_at(start);
+    let (slice, _) = tail.split_at(end - start);
+    slice
+}
+
+#[spec(fn(data: &mut [u8][@memory_len], start: usize, end: usize) ->
+    &mut [u8][end - start]
+    requires start <= end && end <= memory_len)]
+#[no_panic]
+fn memory_range_slice_mut(data: &mut [u8], start: usize, end: usize) -> &mut [u8] {
+    let (_, tail) = data.split_at_mut(start);
+    let (slice, _) = tail.split_at_mut(end - start);
+    slice
+}
+
+#[spec(fn(data: &[u8][@memory_len], start: usize, len: usize) ->
+    Result<&[u8][len], MemoryAccessError>)]
+#[no_panic]
+fn checked_memory_range(data: &[u8], start: usize, len: usize) -> Result<&[u8], MemoryAccessError> {
+    let range = validate_memory_range_len(start, len, data.len())?;
+    Ok(memory_range_slice(data, range.start, range.end))
+}
+
+#[spec(fn(data: &mut [u8][@memory_len], start: usize, len: usize) ->
+    Result<&mut [u8][len], MemoryAccessError>)]
+#[no_panic]
+fn checked_memory_range_mut(
+    data: &mut [u8],
+    start: usize,
+    len: usize,
+) -> Result<&mut [u8], MemoryAccessError> {
+    let range = validate_memory_range_len(start, len, data.len())?;
+    Ok(memory_range_slice_mut(data, range.start, range.end))
 }
 
 #[trusted]
@@ -1846,9 +1932,7 @@ impl<'a> MemoryRanges<'a> {
     pub fn data_range(&self, range: Range<usize>) -> Result<&[u8], MemoryAccessError> {
         let data = self.data();
         let range = validate_memory_range(range.start, range.end, data.len())?;
-        let (_, tail) = data.split_at(range.start);
-        let (slice, _) = tail.split_at(range.end - range.start);
-        Ok(slice)
+        Ok(memory_range_slice(data, range.start, range.end))
     }
 
     /// `range` of the memory, for modification, or an error if it is out of
@@ -1867,7 +1951,9 @@ impl<'a> MemoryRanges<'a> {
     #[doc(hidden)]
     #[no_panic]
     #[spec(
-        fn(self: &mut Self[@memory_len], start: usize, end: usize) -> Option<&mut [u8]>
+        fn(self: &mut Self[@memory_len], start: usize, end: usize) ->
+            Option<&mut [u8][end - start]>
+            requires start <= end
     )]
     pub fn data_range_mut_if_in_bounds(&mut self, start: usize, end: usize) -> Option<&mut [u8]> {
         if start > end || end > self.len {
