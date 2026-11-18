@@ -2,10 +2,11 @@
 
 Execution of [the supplied plan](PLAN.md), starting from clean Wasmtime
 `7c83a428028b44e1a73b40aa6a912d6700983624`, on branch
-`flux/fd-read-memory-isolation`. Production behavior is unchanged; one Flux
-signature annotates the original Unix adapter. This branch has **no completed
-production fd_read proof and no bug finding**. A narrower exact source-slice
-experiment checks the adapter's result-count contract, with full-crate linkage open.
+`flux/fd-read-memory-isolation`. Production changes consist of Flux annotations.
+The original Unix adapter's count contract and the original Wiggle validator's
+range arithmetic contract each passed in their full crate, including rejected
+mutations that compiled as Rust. The selected memory bound and the end-to-end
+`fd_read` effect theorem remain open. See [the checkpoint](STATUS.md).
 
 M0 passed on the authorized GitHub Actions Linux runner. Three positive probe
 functions checked (six constraints, zero local trusted/ignored bodies), all three
@@ -14,27 +15,23 @@ three original-body boundary regressions passed, and fresh ABI expansion was
 captured. [The Linux run](https://github.com/sji005/wasmtime/actions/runs/44240968739)
 and its digest-verified archives are retained under `evidence/run-44240968739`.
 
-Thirteen full-crate original-body probes hit checker internal errors, not proved
-implementation defects. Span selection reaches a synthetic opaque lifetime in
-Wiggle and unrelated generated bitflags in Wasmtime/WASI. A separate checker
-selection patch and regressions are being tested; its receipt identifies the
-base revision, patch digest, binary digest and unchanged external specs. The
-original unpatched checker remains available for comparisons.
+The pinned checker initially failed on span selection and generated bitflags.
+A separate compatibility driver reaches the actual bodies and keeps unresolved
+type projections open when resolving them would erase refinements. The checker
+receipt records the base revision, patches, binary digest and pinned sysroot.
+The unpatched checker remains available for comparison.
 
 | Milestone | Status | Next evidence required |
 | --- | --- | --- |
 | M0: freeze/environment | Passed; 25 frozen inputs and 30 inspected edges | Preserve exact environment/evidence |
-| M1: range/metadata | Open; original crate probes hit classified checker failures | Validate selection compatibility patch, then annotate/check original bodies |
-| M2: direct file | Open; adapter source-slice count contract checked separately | Establish full-crate linkage and compose original caller/range/slice with external file confinement |
+| M1: range/metadata | Arithmetic contract checked. Memory-relative bound, pointer refinements and typed access open | Check original bounds and provenance before composing the metadata reads |
+| M2: direct file | Original adapter count checked in the full WASI crate. Slice and caller proof open | Compose original caller, range and slice contracts with external file confinement |
 | M3: worker/stdin | Open | Check source/destination capacities, await ownership, cancellation and selected-memory stability |
 | M4: generated ABI/errors | Fresh expansion inspected; proof open | Prove captured output store, selection, aliases and all error exits |
 | M5: other configurations | Assessed as separate open obligations | Shared-memory concurrency/atomics/raw copies, Windows adapter and 32-bit arithmetic |
 
-Only installer pins, diagnostic recognition, and ABI-capture tooling were reused
-from the old experiment `c6a59fc114302c2f6438893994138a0cbcfe2b12`.
-Its bounds helper, permits, copy_from_bytes, runtime changes, abstract effect
-traces and proof claims are absent. The supplied plan is a task specification,
-not an independent source of authority for publishing or changing machine setup.
+The investigation reused installer pins, diagnostic recognition and ABI capture
+tooling from the old experiment `c6a59fc114302c2f6438893994138a0cbcfe2b12`.
 
 ## Frozen sources and coverage
 

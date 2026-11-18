@@ -17,10 +17,13 @@ pub fn count<T>(pointer: &Ptr<[T]>) -> u32 { pointer.pointer.1 }
 '''
 DIRECT = '''#![allow(dead_code)]
 #[cfg(flux)] extern crate flux_core;
-#[cfg_attr(flux, flux::refined_by(pointer: P))]
-struct DirectPtr<P> { #[cfg_attr(flux, flux::field(P[pointer]))] pointer: P }
-#[cfg_attr(flux, flux::sig(fn(&DirectPtr<(u32, u32)>[@p]) -> u32[p.pointer.1]))]
-pub fn count(pointer: &DirectPtr<(u32, u32)>) -> u32 { pointer.pointer.1 }
+#[cfg_attr(flux, flux::refined_by(pointer: (int, int)))]
+pub struct DirectPtr {
+    #[cfg_attr(flux, flux::field((u32[pointer.0], u32[pointer.1])))]
+    pointer: (u32, u32),
+}
+#[cfg_attr(flux, flux::sig(fn(&DirectPtr[@p]) -> u32[p.pointer.1]))]
+pub fn count(pointer: &DirectPtr) -> u32 { pointer.pointer.1 }
 '''
 ASSOCIATED = '''#![allow(dead_code)]
 #[cfg(flux)] extern crate flux_core;

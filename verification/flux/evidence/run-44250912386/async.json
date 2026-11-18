@@ -1,0 +1,162 @@
+{
+  "scope": "checker regression only; no WASI/async ownership theorem",
+  "runs": [
+    {
+      "name": "free-positive",
+      "compiler": "rustc",
+      "command": [
+        "rustc",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/free_positive.rs"
+      ],
+      "exit_code": 0,
+      "log": "free-positive-rustc.log"
+    },
+    {
+      "name": "free-positive",
+      "compiler": "flux",
+      "command": [
+        "flux",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/flux-log",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/free_positive.rs"
+      ],
+      "exit_code": 0,
+      "log": "free-positive-flux.log"
+    },
+    {
+      "name": "free-wrong-result",
+      "compiler": "rustc",
+      "command": [
+        "rustc",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/free_wrong_result.rs"
+      ],
+      "exit_code": 0,
+      "log": "free-wrong-result-rustc.log"
+    },
+    {
+      "name": "free-wrong-result",
+      "compiler": "flux",
+      "command": [
+        "flux",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/flux-log",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/free_wrong_result.rs"
+      ],
+      "exit_code": 1,
+      "log": "free-wrong-result-flux.log"
+    },
+    {
+      "name": "trait-positive",
+      "compiler": "rustc",
+      "command": [
+        "rustc",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/trait_positive.rs"
+      ],
+      "exit_code": 0,
+      "log": "trait-positive-rustc.log"
+    },
+    {
+      "name": "trait-positive",
+      "compiler": "flux",
+      "command": [
+        "flux",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/flux-log",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/trait_positive.rs"
+      ],
+      "exit_code": 1,
+      "log": "trait-positive-flux.log"
+    },
+    {
+      "name": "trait-wrong-result",
+      "compiler": "rustc",
+      "command": [
+        "rustc",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/trait_wrong_result.rs"
+      ],
+      "exit_code": 0,
+      "log": "trait-wrong-result-rustc.log"
+    },
+    {
+      "name": "trait-wrong-result",
+      "compiler": "flux",
+      "command": [
+        "flux",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/flux-log",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/trait_wrong_result.rs"
+      ],
+      "exit_code": 1,
+      "log": "trait-wrong-result-flux.log"
+    }
+  ],
+  "free": "checked-with-rejected-well-typed-mutation",
+  "trait": "open-checker-limitation",
+  "status": "classified",
+  "checker_variant": {
+    "base_revision": "b68c177c5ace7cb3644fdeea140dc5d18669c6cc",
+    "patches": {
+      "include-selection.patch": "5672857a49a8614839459980138b720a916951d4c9f69abc6d34c2720b52abd7",
+      "associated-field-normalization.patch": "5dd2d9b7cf48e5af504416af1e5ced18ac48e2fd19455123ea9512a5b03e1158",
+      "strict-type-projections.patch": "b5184ec3c226a3aa303186942d1dbc14db6a7b0fff3e8c1353c690dc10d4651c",
+      "opaque-diagnostic.patch": "bffd827befcc42ef999139c87eca7ecabacc86384af882f3e96394aeabfd68ee"
+    },
+    "driver_sha256": "41abcdcbd9c7668b62121b65b82d2fb7eea0edf3acdce6c707788250c44663cd",
+    "rustc": "rustc 1.101.0-nightly (1a2c4797e 2026-10-21)\nbinary: rustc\ncommit-hash: 1a2c4797ef2570bd76ca5dee34449169bc7dc457\ncommit-date: 2026-10-21\nhost: x86_64-unknown-linux-gnu\nrelease: 1.101.0-nightly\nLLVM version: 23.1.4\n",
+    "scope": "Function selection, Rust ghost-shape normalization, fail-closed type projections and opaque diagnostics; no solver, arithmetic or primitive-spec changes",
+    "standard_specs": "Unmodified baseline Flux sysroot; see pins.json",
+    "status": "candidate; require selection regressions and strict M0 positive/negative gate"
+  }
+}

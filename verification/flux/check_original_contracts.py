@@ -43,7 +43,9 @@ def main():
         checked = observed["range" if name == "range-no-bounds-check" else name]
         if checked["source_sha256_lf"] != hashlib.sha256(original.encode()).hexdigest():
             raise RuntimeError("Proof and mutation source hashes differ")
-        if checked["exit_code"] != 0 or checked["status"] != "feasibility-only-no-spatial-postcondition":
+        expected = ("conditional-slice-bound-checked-mutations-required" if name.startswith("range")
+                    else "feasibility-only-no-spatial-postcondition")
+        if checked["exit_code"] != 0 or checked["status"] != expected:
             result_case["status"] = "open-positive-contract-did-not-check"
             continue
         if name.startswith("range") and clone["status"] != "passed":

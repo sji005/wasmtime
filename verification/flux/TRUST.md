@@ -1,16 +1,15 @@
 # Trust boundaries and open obligations
 
-No full-crate production proof has completed. An exact source-slice experiment
-checks the Unix adapter count contract; its original crate linkage and heap
-effects remain open. All production edges in `coverage.json` are open or explicitly
-excluded. The M0 probes load external `flux_core` contracts; zero local trusted
-bodies does not eliminate those external assumptions. Historical experiment
-proof results do not apply to the original baseline.
+The full WASI crate check established the original Unix adapter's success-count
+contract relative to the explicit `FileExt::read_at` contract. Heap effects and
+caller composition remain open. The original Wiggle range arithmetic contract
+also checked, with the selected memory's bound still open. The checked bodies
+depend on the external primitive and standard-library assumptions below.
 
 | ID | External assumption / machinery | Exact boundary and limitation |
 | --- | --- | --- |
 | T-LINMEM | Correct live selected linear-memory allocation, base/length, permissions and lifetime | The binding selects a Wasmtime Memory belonging to the caller's store. `MemoryRanges` retains Memory instance/index plus the StoreOpaque borrow; `.data()` and `.into_range_mut()` obtain base/current_length from that definition. Allocation origin correctness is assumed. Accessor forwarding, the consistency of `.len()` with that definition and guest offset validation still require checked contracts. The assumption never supplies guest-pointer validity. |
-| T-FILE | Rust std / OS read primitive | `std::os::unix::fs::FileExt::read_at(&File, &mut [u8], u64)` writes only inside its supplied slice on success AND error; success count <= slice length; unrelated allocations are unchanged by that buffer write. The existing `filesystem/unix.rs::read_at_cursor_unspecified` body remains to be checked for forwarding that same slice. Do not trust that local wrapper to hide a guest-memory access. |
+| T-FILE | Rust std / OS read primitive | The checked external signature bounds the successful count by the supplied mutable slice length. Confinement to that slice on success and error and lack of effects on unrelated allocations are explicit external assumptions. The original Unix adapter forwards the same slice directly. Its checked postcondition encodes the count only. |
 | T-RUST | Rust model, valid references and borrow/lifetime guarantees | Supplied slices describe valid initialized bytes for their stated lifetime. Rust references contribute provenance and exclusive/shared access guarantees. Numerical base/extent refinements are not a proof of those facts for an unsafe slice constructor. |
 | T-CORE | Pinned Flux standard-library specifications | Reviewed slice len/as_ptr/as_mut_ptr/get/index and pointer add/copy semantics are pinned by Git blob IDs in `pins.json`; arithmetic Option/refinement specs are pinned with the same source revision. Slice indexing uses `start <= end <= len`; pointer specs retain base, address and remaining capacity. These specifications do not prove temporal safety or general heap framing. `from_raw_parts`, align_to, atomics, generic transparent types, conversions and async dependencies need further narrow specs/review in M1 onward. |
 | T-VEC | Standard owned Vec behavior | Allocation, initialized elements, length/capacity and truncate semantics. Caller use of the read count, closure ownership, selected guest destination, and copy length remain obligations; no whole-worker wrapper is assumed safe. |
@@ -28,8 +27,8 @@ There are no explicitly trusted/ignored production annotations. Flux counts
 functions excluded by an include selector as trusted; all such bodies remain
 unverified here. The local empty explicit-annotation inventory never means all
 dependencies have been verified. In
-particular, `first_non_empty_iovec`, validation, raw slice formation, atomics,
-file adapter, direct caller, Vec worker, streams, cancellation, selected memory
+particular, `first_non_empty_iovec`, spatial validation, raw slice formation,
+atomics, the direct caller, Vec worker, streams, cancellation, selected memory
 identity across await and generated ABI stores are all open. Host-only descriptor
 initialization/lookup/fuel/error code needs narrow no-guest-effect accounting.
 No broad ignore/trust annotation discharges any of these obligations.

@@ -1,0 +1,14 @@
+{
+  "run_url": "https://github.com/sji005/wasmtime/actions/runs/44250912386",
+  "source_revision": "2d60e10eb7a4371ce00d9d3aeb5d43a6c3aa87d1",
+  "artifact": {
+    "id": 14404470981,
+    "file": "compatibility.zip",
+    "sha256": "b82331928da57385f8ef228c46422e2ab2f9fdb8ab0480331f3bd79e09302bcf"
+  },
+  "claim": "Original range arithmetic and rejected offset mutant",
+  "jobs": {
+    "environment": 134621082282,
+    "integration": 134621082718
+  }
+}

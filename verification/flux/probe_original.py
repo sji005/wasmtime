@@ -163,6 +163,8 @@ def main():
             code = 124
         (case_dir / "flux.log").write_text(log)
         status = classify(code, log, (case_dir / "compiler-invocation.json").is_file())
+        if name == "range" and status == "feasibility-only-no-spatial-postcondition":
+            status = "conditional-slice-bound-checked-mutations-required"
         report["cases"].append({
             "name": name, "package": package, "features": features, "source": source,
             "source_sha256_lf": hashlib.sha256(text.encode()).hexdigest(),

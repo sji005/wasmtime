@@ -10,6 +10,7 @@ patches=(
     "$repo_root/verification/flux/toolchain/associated-field-normalization.patch"
     "$repo_root/verification/flux/toolchain/strict-type-projections.patch"
     "$repo_root/verification/flux/toolchain/opaque-diagnostic.patch"
+    "$repo_root/verification/flux/toolchain/rpitit-signature-shape.patch"
 )
 if python3 - "$driver_dir" "${patches[@]}" <<'PY'
 import hashlib, json, sys
@@ -59,7 +60,7 @@ receipt = {
     'patches': {Path(p).name: hashlib.sha256(Path(p).read_bytes()).hexdigest() for p in sys.argv[3:]},
     'driver_sha256': hashlib.sha256(driver.read_bytes()).hexdigest(),
     'rustc': subprocess.check_output(['rustc', '+nightly-2026-10-22', '-vV'], text=True),
-    'scope': 'Function selection, Rust ghost-shape normalization, fail-closed type projections and opaque diagnostics; no solver, arithmetic or primitive-spec changes',
+    'scope': 'Function selection, Rust ghost-shape normalization, fail-closed type projections, opaque diagnostics and RPITIT signature comparison; no solver, arithmetic or primitive-spec changes',
     'standard_specs': 'Unmodified baseline Flux sysroot; see pins.json',
     'status': 'candidate; require selection regressions and strict M0 positive/negative gate'
 }

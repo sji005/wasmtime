@@ -1,0 +1,14 @@
+{
+  "run_url": "https://github.com/sji005/wasmtime/actions/runs/44252707563",
+  "source_revision": "43f6de9475df6cac4e3eebe61663f91b42256109",
+  "artifact": {
+    "id": 14403654817,
+    "file": "compatibility.zip",
+    "sha256": "d87d6eb06702398d96fe9fbe150b6959727e820fd72b0e85dd5b8d4e39bf329d"
+  },
+  "claim": "Original slice-backed range bound and rejected offset and removed-guard mutants. Independent generic tuple control failed.",
+  "jobs": {
+    "environment": 134626976489,
+    "integration": 134626976165
+  }
+}
