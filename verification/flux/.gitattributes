@@ -1,0 +1,2 @@
+# Unified diff context includes required single-space blank lines.
+toolchain/*.patch whitespace=-blank-at-eol
