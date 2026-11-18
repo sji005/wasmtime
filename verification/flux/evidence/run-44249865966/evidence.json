@@ -1,0 +1,14 @@
+{
+  "run_url": "https://github.com/sji005/wasmtime/actions/runs/44249865966",
+  "source_revision": "e33c235d9fbf851bc1209c8213497e471f91251b",
+  "artifact": {
+    "id": 14404060739,
+    "file": "compatibility.zip",
+    "sha256": "696be450f36605b1cf3012996116d082394ea6b3d873199b05baf13d91398aa1"
+  },
+  "claim": "Original full WASI crate Unix adapter count contract with rejected well-typed body mutation; fd_read heap effects and callers remain open",
+  "jobs": {
+    "environment": 134617615419,
+    "integration": 134617615026
+  }
+}

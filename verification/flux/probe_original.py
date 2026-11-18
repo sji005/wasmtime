@@ -72,7 +72,7 @@ def wrap(arguments):
         command = ["flux", *rustargs, *FLAGS, "-Ffull-compilation=on",
                    f"-Finclude={os.environ['FD_READ_PROBE_SELECTOR']}",
                    f"-Flog-dir={output / 'flux-log'}"]
-        if selected == "wasmtime_wasi" and "FD_READ_PRIMITIVE_MANIFEST" in os.environ:
+        if selected in ("wasmtime_wasi", "wiggle") and "FD_READ_PRIMITIVE_MANIFEST" in os.environ:
             primitive = json.loads(Path(os.environ["FD_READ_PRIMITIVE_MANIFEST"]).read_text())
             command.append("-Zunstable-options")
             for kind in ("rmeta", "rlib"):

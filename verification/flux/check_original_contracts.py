@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Mutation gates for original Wiggle pointer identities and range arithmetic.
 
-These contracts do not establish a memory bound, typed access or fd_read theorem.
+The range bound is conditional on the two slice-backed variants; the binding's
+Ranges variant, typed accesses and the fd_read theorem remain open.
 Each experiment compiles a full temporary source snapshot using Cargo's actual
 target, features, dependencies and manifest environment.
 """
@@ -22,6 +23,7 @@ CASES = (
     ("pointer-len", "    pub fn len(&self) -> u32", "self.pointer.1", "self.pointer.0"),
     ("pointer-as-ptr", "    pub fn as_ptr(&self)", "GuestPtr::new(self.offset_base())", "GuestPtr::new(0)"),
     ("range", "    fn validate_range<T>", "let range = offset..offset + byte_len;", "let range = offset + 1..offset + byte_len;"),
+    ("range-no-bounds-check", "    fn validate_range<T>", "if oob {", "if false {"),
 )
 
 
@@ -30,14 +32,14 @@ def main():
     output.mkdir(parents=True, exist_ok=True)
     positive = json.loads((ROOT / "artifacts/fd-read/compat-original-body-probes/original-body-probes.json").read_text())
     observed = {case["name"]: case for case in positive["cases"]}
-    report = {"claim": "Pointer identity and range arithmetic contracts only; no logical-memory bound or effect theorem",
+    report = {"claim": "Pointer identities and slice-variant range contract only; binding's Ranges path, typed accesses and effects remain open",
               "positive": positive, "cases": [], "status": "open"}
     source = ROOT / "crates/wiggle/src/lib.rs"
     original = source.read_text()
     for name, anchor, before, after in CASES:
         result_case = {"name": name, "runs": []}
         report["cases"].append(result_case)
-        checked = observed[name]
+        checked = observed["range" if name == "range-no-bounds-check" else name]
         if checked["source_sha256_lf"] != hashlib.sha256(original.encode()).hexdigest():
             raise RuntimeError("Proof and mutation source hashes differ")
         if checked["exit_code"] != 0 or checked["status"] != "feasibility-only-no-spatial-postcondition":

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compile the narrow std File read contract as an explicit extern-spec crate."""
+"""Compile explicit std File and field-wise Range clone primitive contracts."""
 
 import json
 import os
@@ -31,7 +31,7 @@ def main():
             raise RuntimeError(f"Expected one primitive-spec {kind} artifact: {paths}")
         artifacts[kind] = str(paths[0])
     manifest = output / "extern-specs.json"
-    manifest.write_text(json.dumps({"command": command, "artifacts": artifacts, "trusted": "std FileExt::read_at implementation for File; no local wrapper trusted"}, indent=2) + "\n")
+    manifest.write_text(json.dumps({"command": command, "artifacts": artifacts, "trusted": "std FileExt::read_at for File; usize/u32 identity Clone; Range<Idx> fieldwise Clone preserving Idx::cloned, no local wrapper trusted"}, indent=2) + "\n")
     with Path(os.environ["GITHUB_ENV"]).open("a") as env_file:
         env_file.write("FD_READ_PRIMITIVE_MANIFEST=" + str(manifest) + "\n")
 

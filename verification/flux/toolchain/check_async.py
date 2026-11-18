@@ -22,13 +22,16 @@ impl Read for Reader {
     async fn read(&mut self, n: usize) -> usize { n }
 }
 '''
+RPIT = TRAIT.replace("async fn read(&mut self, n: usize) -> usize;",
+                     "fn read(&mut self, n: usize) -> impl std::future::Future<Output = usize> + Send;")
+NESTED = RPIT.replace("-> usize { n }", "-> usize { async move { n }.await }")
 
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     env = dict(os.environ, RUSTUP_TOOLCHAIN="nightly-2026-10-22")
     report = {"scope": "checker regression only; no WASI/async ownership theorem", "runs": []}
-    for kind, source in (("free", FREE), ("trait", TRAIT)):
+    for kind, source in (("free", FREE), ("trait", TRAIT), ("rpit-trait", RPIT), ("nested-rpit-trait", NESTED)):
         compatible = False
         for mutation in (False, True):
             name = kind + ("-wrong-result" if mutation else "-positive")
@@ -64,7 +67,7 @@ def main():
     report["status"] = "classified"
     report["checker_variant"] = json.loads(Path(os.environ["FLUX_COMPAT_RECEIPT"]).read_text())
     (OUT / "async.json").write_text(json.dumps(report, indent=2) + "\n")
-    print("Async compatibility: free=" + report["free"] + "; native trait=" + report["trait"])
+    print("Async compatibility: " + "; ".join(kind + "=" + report[kind] for kind in ("free", "trait", "rpit-trait", "nested-rpit-trait")))
 
 
 if __name__ == "__main__":

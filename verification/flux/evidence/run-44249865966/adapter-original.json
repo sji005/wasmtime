@@ -1,0 +1,190 @@
+{
+  "claim": "Original Unix forwarding adapter's success-count contract only; fd_read callers and heap effects remain open",
+  "positive": {
+    "claim": "Checker feasibility only; original bodies, no spatial theorem",
+    "source_revision": "e33c235d9fbf851bc1209c8213497e471f91251b",
+    "pins": {
+      "baseline": "7c83a428028b44e1a73b40aa6a912d6700983624",
+      "historical_experiment": "c6a59fc114302c2f6438893994138a0cbcfe2b12",
+      "flux_revision": "b68c177c5ace7cb3644fdeea140dc5d18669c6cc",
+      "toolchain": "nightly-2026-10-22",
+      "target": "x86_64-unknown-linux-gnu",
+      "runner": "ubuntu-24.04",
+      "wasi_features": [
+        "p1",
+        "p2"
+      ],
+      "wasi_default_features": false,
+      "z3_version": "5.3.3",
+      "z3_archive_sha256": "d56f60b06f432f33de5810f7f1a384a339131f361e2d54d08ea83eea14326880",
+      "fixpoint_release_asset": 648710606,
+      "fixpoint_archive_sha256": "7f23b085b848d42ce91618c722cf867ca16e2b570d5d2427138ed80a99d80f9a",
+      "reviewed_flux_spec_git_blobs": {
+        "lib/flux-core/src/slice/mod.rs": "c8922ac0482a0cffe1ddec5de06528072fc1d95b",
+        "lib/flux-core/src/slice/index.rs": "bf5942da3c72407fb36c9be23551179f8f6cf5fb",
+        "lib/flux-core/src/ptr/mod.rs": "bbdca5c0b76889aec726d4c292301e639eac1743",
+        "lib/flux-core/src/num/mod.rs": "f7269aaf58028f8d898edc858e3d75fb0a73f452"
+      },
+      "proof_flags": [
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none"
+      ],
+      "bootstrap_limitation": "Upstream cargo xtask install may resolve wrapper dependencies; bootstrap is not hermetic. Historical success is not this branch's M0 result."
+    },
+    "checker_variant": {
+      "base_revision": "b68c177c5ace7cb3644fdeea140dc5d18669c6cc",
+      "patches": {
+        "include-selection.patch": "5672857a49a8614839459980138b720a916951d4c9f69abc6d34c2720b52abd7",
+        "associated-field-normalization.patch": "5dd2d9b7cf48e5af504416af1e5ced18ac48e2fd19455123ea9512a5b03e1158",
+        "strict-type-projections.patch": "b5184ec3c226a3aa303186942d1dbc14db6a7b0fff3e8c1353c690dc10d4651c",
+        "opaque-diagnostic.patch": "bffd827befcc42ef999139c87eca7ecabacc86384af882f3e96394aeabfd68ee"
+      },
+      "driver_sha256": "41abcdcbd9c7668b62121b65b82d2fb7eea0edf3acdce6c707788250c44663cd",
+      "rustc": "rustc 1.101.0-nightly (1a2c4797e 2026-10-21)\nbinary: rustc\ncommit-hash: 1a2c4797ef2570bd76ca5dee34449169bc7dc457\ncommit-date: 2026-10-21\nhost: x86_64-unknown-linux-gnu\nrelease: 1.101.0-nightly\nLLVM version: 23.1.4\n",
+      "scope": "Function selection, Rust ghost-shape normalization, fail-closed type projections and opaque diagnostics; no solver, arithmetic or primitive-spec changes",
+      "standard_specs": "Unmodified baseline Flux sysroot; see pins.json",
+      "status": "candidate; require selection regressions and strict M0 positive/negative gate"
+    },
+    "external_file_primitive": {
+      "command": [
+        "flux",
+        "--crate-name",
+        "fd_read_file_primitive",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--emit=metadata,link",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs",
+        "--cfg",
+        "flux",
+        "-Ffull-compilation=on",
+        "-Fstd-extern-specs=on",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/flux-log",
+        "/home/runner/work/wasmtime/wasmtime/verification/flux/file_read_specs.rs"
+      ],
+      "artifacts": {
+        "rlib": "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rlib",
+        "rmeta": "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rmeta",
+        "fluxmeta": "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.fluxmeta"
+      },
+      "trusted": "std FileExt::read_at implementation for File; no local wrapper trusted"
+    },
+    "target": "x86_64-unknown-linux-gnu",
+    "explicitly_trusted_local_bodies": [],
+    "explicitly_ignored_local_bodies": [],
+    "unchecked": "Every unselected body/dependency remains unverified; Flux counts excluded functions as trusted. No spatial postcondition or caller contract is discharged by this probe.",
+    "cases": [
+      {
+        "name": "unix-read-adapter",
+        "package": "wasmtime-wasi",
+        "features": [
+          "--no-default-features",
+          "--features",
+          "p1"
+        ],
+        "source": "crates/wasi/src/filesystem/unix.rs",
+        "source_sha256_lf": "471b8d0a4b8ed7115c0aea7a1b15479fa7fe0eb67866723700531843e2a8e384",
+        "selector": "span:crates/wasi/src/filesystem/unix.rs:99:1",
+        "ordinary_command": [
+          "cargo",
+          "check",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wasmtime-wasi",
+          "--no-default-features",
+          "--features",
+          "p1",
+          "--lib"
+        ],
+        "flux_command": [
+          "cargo",
+          "rustc",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-p",
+          "wasmtime-wasi",
+          "--no-default-features",
+          "--features",
+          "p1",
+          "--lib",
+          "--",
+          "--cfg",
+          "fd_read_probe_unix_read_adapter"
+        ],
+        "exit_code": 0,
+        "status": "feasibility-only-no-spatial-postcondition",
+        "log": "unix-read-adapter/flux.log"
+      }
+    ]
+  },
+  "checker_variant": {
+    "base_revision": "b68c177c5ace7cb3644fdeea140dc5d18669c6cc",
+    "patches": {
+      "include-selection.patch": "5672857a49a8614839459980138b720a916951d4c9f69abc6d34c2720b52abd7",
+      "associated-field-normalization.patch": "5dd2d9b7cf48e5af504416af1e5ced18ac48e2fd19455123ea9512a5b03e1158",
+      "strict-type-projections.patch": "b5184ec3c226a3aa303186942d1dbc14db6a7b0fff3e8c1353c690dc10d4651c",
+      "opaque-diagnostic.patch": "bffd827befcc42ef999139c87eca7ecabacc86384af882f3e96394aeabfd68ee"
+    },
+    "driver_sha256": "41abcdcbd9c7668b62121b65b82d2fb7eea0edf3acdce6c707788250c44663cd",
+    "rustc": "rustc 1.101.0-nightly (1a2c4797e 2026-10-21)\nbinary: rustc\ncommit-hash: 1a2c4797ef2570bd76ca5dee34449169bc7dc457\ncommit-date: 2026-10-21\nhost: x86_64-unknown-linux-gnu\nrelease: 1.101.0-nightly\nLLVM version: 23.1.4\n",
+    "scope": "Function selection, Rust ghost-shape normalization, fail-closed type projections and opaque diagnostics; no solver, arithmetic or primitive-spec changes",
+    "standard_specs": "Unmodified baseline Flux sysroot; see pins.json",
+    "status": "candidate; require selection regressions and strict M0 positive/negative gate"
+  },
+  "mutation": "Replace only file.read_at(buf, pos) with Ok(usize::MAX) in a temporary full-source copy",
+  "status": "original-count-contract-checked-and-mutant-rejected",
+  "runs": [
+    {
+      "mode": "ordinary",
+      "command": [
+        "cargo",
+        "rustc",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wasmtime-wasi",
+        "--no-default-features",
+        "--features",
+        "p1",
+        "--lib",
+        "--",
+        "--cfg",
+        "fd_read_adapter_mutant_ordinary"
+      ],
+      "exit_code": 0
+    },
+    {
+      "mode": "flux",
+      "command": [
+        "cargo",
+        "rustc",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wasmtime-wasi",
+        "--no-default-features",
+        "--features",
+        "p1",
+        "--lib",
+        "--",
+        "--cfg",
+        "fd_read_adapter_mutant_flux"
+      ],
+      "exit_code": 101
+    }
+  ],
+  "original_source_sha256_lf": "471b8d0a4b8ed7115c0aea7a1b15479fa7fe0eb67866723700531843e2a8e384",
+  "mutated_source_sha256_lf": "daefae1da5a4296bea621f6679d86c3f1fcd7a1d69878b519c49b204a1979d6b",
+  "mutated_source_archive_sha256": "873395fcd79351eedbfe4d00ed9e8a4a76c2186271eab0ea6a01a5bd32dd463d"
+}
