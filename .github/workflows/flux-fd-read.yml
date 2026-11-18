@@ -95,6 +95,8 @@ jobs:
         run: python3 verification/flux/toolchain/check_selection.py
       - name: Require strict M0 acceptance and rejection with the candidate driver
         run: python3 verification/flux/check_environment.py --output-dir artifacts/fd-read/environment-compat
+      - name: Isolate async trait and nested block support with well-typed mutations
+        run: python3 verification/flux/toolchain/check_async.py
       - name: Compile narrow external file primitive specification
         run: python3 verification/flux/compile_primitive_specs.py
       - name: Diagnose field-wise std range-clone contract loading across crates
@@ -109,8 +111,6 @@ jobs:
         run: python3 verification/flux/probe_original.py --output-dir artifacts/fd-read/compat-original-body-probes
       - name: Reject well-typed pointer and range mutations in full source snapshots
         run: python3 verification/flux/check_original_contracts.py
-      - name: Isolate native async trait support with well-typed result mutations
-        run: python3 verification/flux/toolchain/check_async.py
       - name: Check associated-field normalization and reject a wrong postcondition
         run: python3 verification/flux/toolchain/check_projection.py
       - name: Retain complete environment diagnostics

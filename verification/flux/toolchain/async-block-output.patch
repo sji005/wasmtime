@@ -1,0 +1,117 @@
+diff --git a/crates/flux-infer/src/lib.rs b/crates/flux-infer/src/lib.rs
+index 19bf6187e..e7ff71206 100644
+--- a/crates/flux-infer/src/lib.rs
++++ b/crates/flux-infer/src/lib.rs
+@@ -2,4 +2,5 @@
+ 
+ extern crate rustc_abi;
++extern crate rustc_attr_ir;
+ extern crate rustc_data_structures;
+ extern crate rustc_errors;
+diff --git a/crates/flux-infer/src/projections.rs b/crates/flux-infer/src/projections.rs
+index f3c2a6690..f1ae078b0 100644
+--- a/crates/flux-infer/src/projections.rs
++++ b/crates/flux-infer/src/projections.rs
+@@ -15,7 +15,8 @@ use flux_middle::{
+     },
+ };
+-use flux_rustc_bridge::{ToRustc, lowering::Lower};
++use flux_rustc_bridge::{ToRustc, lowering::Lower, ty::GenericArgsExt as _};
+ use itertools::izip;
+-use rustc_hir::def_id::DefId;
++use rustc_attr_ir::LangItem;
++use rustc_hir::{CoroutineDesugaring, CoroutineKind, CoroutineSource, def_id::DefId};
+ use rustc_infer::traits::{BuiltinImplSource, Obligation};
+ use rustc_middle::{
+@@ -181,4 +182,5 @@ impl<'a, 'infcx, 'genv, 'tcx> Normalizer<'a, 'infcx, 'genv, 'tcx> {
+         let tcx = self.tcx();
+         match candidate {
++            Candidate::AsyncBlockOutput(ctor) => Ok(ctor),
+             Candidate::ParamEnv(pred) | Candidate::TraitDef(pred) => {
+                 let rustc_obligation = obligation.to_rustc(tcx);
+@@ -388,4 +390,24 @@ impl<'a, 'infcx, 'genv, 'tcx> Normalizer<'a, 'infcx, 'genv, 'tcx> {
+         candidates: &mut Vec<Candidate>,
+     ) -> QueryResult {
++        // An explicit local async block is checked at construction with the
++        // default refinement of its compiler-provided coroutine return type.
++        // Resolve just that built-in projection. Other projection types still
++        // need a refinement-preserving candidate.
++        let tcx = self.tcx();
++        if candidates.is_empty()
++            && tcx.is_lang_item(obligation.def_id(), LangItem::FutureOutput)
++            && let [GenericArg::Base(ctor)] = &obligation.args[..]
++            && let BaseTy::Coroutine(def_id, _, _, args) = ctor.as_bty_skipping_binder()
++            && def_id.is_local()
++            && matches!(
++                tcx.coroutine_kind(*def_id),
++                Some(CoroutineKind::Desugared(CoroutineDesugaring::Async, CoroutineSource::Block))
++            )
++            && let TyOrBase::Base(output) = Refiner::default_for_item(self.genv(), self.def_id())?
++                .refine_ty_or_base(args.as_coroutine().return_ty())?
++        {
++            candidates.push(Candidate::AsyncBlockOutput(output));
++            return Ok(());
++        }
+         let trait_ref = obligation.to_rustc(self.tcx()).trait_ref(self.tcx());
+         let trait_ref = self.tcx().erase_and_anonymize_regions(trait_ref);
+@@ -520,4 +542,5 @@ impl FallibleTypeFolder for Normalizer<'_, '_, '_, '_> {
+ #[derive(Debug)]
+ pub enum Candidate {
++    AsyncBlockOutput(SubsetTyCtor),
+     UserDefinedImpl(DefId),
+     ParamEnv(Binder<ProjectionPredicate>),
+diff --git a/crates/flux-refineck/src/checker.rs b/crates/flux-refineck/src/checker.rs
+index cfa1fc4f3..3e71c336d 100644
+--- a/crates/flux-refineck/src/checker.rs
++++ b/crates/flux-refineck/src/checker.rs
+@@ -44,5 +44,8 @@ use rustc_data_structures::{
+ };
+ use rustc_hash::FxHashMap;
+-use rustc_hir::def_id::{DefId, LocalDefId};
++use rustc_hir::{
++    CoroutineDesugaring, CoroutineKind, CoroutineSource,
++    def_id::{DefId, LocalDefId},
++};
+ use rustc_index::{IndexSlice, bit_set::DenseBitSet};
+ use rustc_infer::infer::TyCtxtInferExt;
+@@ -1450,5 +1453,26 @@ impl<'ck, 'genv, 'tcx, M: Mode> Checker<'ck, 'genv, 'tcx, M> {
+                     .check_operands(infcx, env, stmt_span, ops)
+                     .with_span(stmt_span)?;
+-                Ok(Ty::coroutine(*did, resume_ty, upvar_tys.into(), args.clone()))
++                let upvar_tys: List<Ty> = upvar_tys.into();
++                if matches!(
++                    self.genv.tcx().coroutine_kind(*did),
++                    Some(CoroutineKind::Desugared(CoroutineDesugaring::Async, CoroutineSource::Block))
++                ) {
++                    // Explicit async blocks have no user output signature.
++                    // Check the whole body against the default output type
++                    // used when resolving their built-in Future::Output.
++                    let output = self.refine_default(coroutine_args.return_ty()).with_span(stmt_span)?;
++                    let obligation = CoroutineObligPredicate {
++                        def_id: *did,
++                        resume_ty: resume_ty.clone(),
++                        upvar_tys: upvar_tys.clone(),
++                        output,
++                        args: args.clone(),
++                    };
++                    self.check_coroutine_obligations(
++                        infcx,
++                        vec![Binder::bind_with_vars(obligation, List::empty())],
++                    )?;
++                }
++                Ok(Ty::coroutine(*did, resume_ty, upvar_tys, args.clone()))
+             }
+         }
+diff --git a/crates/flux-rustc-bridge/src/ty/mod.rs b/crates/flux-rustc-bridge/src/ty/mod.rs
+index e4af89e68..0339d458d 100644
+--- a/crates/flux-rustc-bridge/src/ty/mod.rs
++++ b/crates/flux-rustc-bridge/src/ty/mod.rs
+@@ -687,4 +687,8 @@ impl CoroutineArgs {
+     }
+ 
++    pub fn return_ty(&self) -> &Ty {
++        self.split().return_ty
++    }
++
+     fn split(&self) -> CoroutineArgsParts<'_> {
+         match &self.args[..] {

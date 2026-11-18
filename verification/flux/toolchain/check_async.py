@@ -25,6 +25,10 @@ impl Read for Reader {
 RPIT = TRAIT.replace("async fn read(&mut self, n: usize) -> usize;",
                      "fn read(&mut self, n: usize) -> impl std::future::Future<Output = usize> + Send;")
 NESTED = RPIT.replace("-> usize { n }", "-> usize { async move { n }.await }")
+NESTED_GUARD = RPIT.replace("-> usize[n]", "-> usize").replace(
+    "-> usize { n }",
+    "-> usize { async move { let values = [10usize, 20]; values[n % 2] }.await }",
+)
 REFINED_TRAIT = TRAIT.replace(
     "pub trait Read { async fn",
     "pub trait Read {\n    #[cfg_attr(flux, flux::sig(async fn(&mut Self, usize[@n]) -> usize[n]))]\n    async fn",
@@ -36,14 +40,21 @@ def main():
     env = dict(os.environ, RUSTUP_TOOLCHAIN="nightly-2026-10-22")
     report = {"scope": "checker regression only; no WASI/async ownership theorem", "runs": []}
     sources = (("free", FREE), ("trait", TRAIT), ("rpit-trait", RPIT),
-               ("nested-rpit-trait", NESTED), ("refined-trait", REFINED_TRAIT))
+               ("nested-rpit-trait", NESTED), ("nested-guard", NESTED_GUARD),
+               ("refined-trait", REFINED_TRAIT))
     for kind, source in sources:
         compatible = False
-        for mutation in ("positive", "wrong-result", "weaker-impl") if kind == "refined-trait" else ("positive", "wrong-result"):
+        mutations = {
+            "refined-trait": ("positive", "wrong-result", "weaker-impl"),
+            "nested-guard": ("positive", "wrong-index"),
+        }.get(kind, ("positive", "wrong-result"))
+        for mutation in mutations:
             name = kind + "-" + mutation
             expected_positive = mutation == "positive"
             path = OUT / (name.replace("-", "_") + ".rs")
             case_source = source if expected_positive else source.replace("{ n }", "{ 0 }")
+            if mutation == "wrong-index":
+                case_source = source.replace("values[n % 2]", "values[n]")
             if mutation == "weaker-impl":
                 # The mutated implementation body satisfies its own signature.
                 # Its return contract is incompatible with the trait's identity.
@@ -73,7 +84,8 @@ def main():
                             report[kind + "_positive_diagnostic"] = "checker-limitation" if limitation else "unclassified"
                             print(log, flush=True)
                     elif compatible and (result.returncode == 0 or limitation or "error[E0999]:" not in log
-                                         or not any(d in log for d in ("refinement type error", "incompatible refinement"))):
+                                         or not any(d in log for d in ("refinement type error", "incompatible refinement",
+                                                                      "assertion might fail"))):
                         raise RuntimeError("Async negative control needs a refinement rejection: " + log)
                     if kind == "free" and (limitation or (expected_positive and not compatible)):
                         raise RuntimeError("Free async baseline regression failed: " + log)
