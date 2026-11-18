@@ -1,0 +1,7 @@
+{
+  "run_url": "https://github.com/sji005/wasmtime/actions/runs/44241913222",
+  "source_revision": "4df391bd59c9491f05de606880ee78aa92837188",
+  "artifact_id": 14399996604,
+  "artifact_sha256": "ff2e4de1ade04cce08af96e4e9ecb8cdbff51597c25f228e08eaecf97eabc9df",
+  "claim": "Source-slice count contract only; full crate and fd_read proof open"
+}

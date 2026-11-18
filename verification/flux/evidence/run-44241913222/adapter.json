@@ -1,0 +1,85 @@
+{
+  "claim": "Narrow source-slice result-count experiment, not a production fd_read proof",
+  "source": "crates/wasi/src/filesystem/unix.rs",
+  "source_revision": "4df391bd59c9491f05de606880ee78aa92837188",
+  "original_function_sha256_lf": "c7552ab03070be4c943cb255c60d44b7fe851f1f2ddc21034e760174e0eb3894",
+  "original_imports": "use std::fs::File;\nuse std::io;\nuse std::os::unix::fs::FileExt;\n",
+  "trusted_external_primitive": "std::os::unix::fs::FileExt::read_at for std::fs::File only",
+  "unencoded_assumptions": [
+    "writes confined to supplied slice on all outcomes",
+    "other allocations framed",
+    "Rust reference lifetime/provenance"
+  ],
+  "linkage": "Exact source/signature/imports retained; full-crate checker still crashes; callers and heap effects unchecked",
+  "runs": [
+    {
+      "command": [
+        "rustc",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/adapter",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/adapter/original.rs"
+      ],
+      "exit_code": 0,
+      "log": "original-rustc.log"
+    },
+    {
+      "command": [
+        "flux",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/adapter",
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/adapter/original.rs"
+      ],
+      "exit_code": 0,
+      "log": "original-flux.log"
+    },
+    {
+      "command": [
+        "rustc",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/adapter",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/adapter/bad_return_count.rs"
+      ],
+      "exit_code": 0,
+      "log": "bad-return-count-rustc.log"
+    },
+    {
+      "command": [
+        "flux",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/adapter",
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/adapter/bad_return_count.rs"
+      ],
+      "exit_code": 1,
+      "log": "bad-return-count-flux.log"
+    }
+  ],
+  "status": "source-slice-count-contract-checked-full-crate-linkage-open"
+}

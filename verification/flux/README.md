@@ -2,25 +2,32 @@
 
 Execution of [the supplied plan](PLAN.md), starting from clean Wasmtime
 `7c83a428028b44e1a73b40aa6a912d6700983624`, on branch
-`flux/fd-read-memory-isolation`. Production code is unchanged. This branch has
-**no checked production functions, no completed fd_read proof, and no bug finding**.
+`flux/fd-read-memory-isolation`. Production behavior is unchanged; one Flux
+signature annotates the original Unix adapter. This branch has **no completed
+production fd_read proof and no bug finding**. A narrower exact source-slice
+experiment checks the adapter's result-count contract, with full-crate linkage open.
 
-M0 is prepared but has not passed. The current Windows host has no WSL/Linux
-checker environment. Rust 1.98.0 compiled the positive smoke harness and all three
-negative variants as ordinary libraries; that does not check their Flux contracts.
-Logs and source copies are retained in `artifacts/fd-read/windows-rust-only`.
-The source guard, Rust formatting and Python syntax checks passed locally.
-An offline ordinary Wiggle build stopped
-at missing Cargo dependency `anyhow`, before compilation. Linux integration,
-fresh generated expansion, and the negative Flux probes have not run here.
+M0 passed on the authorized GitHub Actions Linux runner. Three positive probe
+functions checked (six constraints, zero local trusted/ignored bodies), all three
+well-typed negative examples were rejected, both original packages compiled,
+three original-body boundary regressions passed, and fresh ABI expansion was
+captured. [The Linux run](https://github.com/sji005/wasmtime/actions/runs/44240968739)
+and its digest-verified archives are retained under `evidence/run-44240968739`.
+
+Thirteen full-crate original-body probes hit checker internal errors, not proved
+implementation defects. Span selection reaches a synthetic opaque lifetime in
+Wiggle and unrelated generated bitflags in Wasmtime/WASI. A separate checker
+selection patch and regressions are being tested; its receipt identifies the
+base revision, patch digest, binary digest and unchanged external specs. The
+original unpatched checker remains available for comparisons.
 
 | Milestone | Status | Next evidence required |
 | --- | --- | --- |
-| M0: freeze/environment | 23 frozen input files, 28 inspected edges; checker unavailable | Pinned Linux toolchain bootstrap, all positive/negative probes, baseline compilation and fresh ABI expansion |
-| M1: range/metadata | Open; no annotations added before M0 gate | Check original validation, MemoryRanges, metadata reads, iterator and selector bodies; classify failures |
-| M2: direct file | Open | Compose the original caller, guest slice and local Unix forwarding adapter with the external file contract |
+| M0: freeze/environment | Passed; 25 frozen inputs and 30 inspected edges | Preserve exact environment/evidence |
+| M1: range/metadata | Open; original crate probes hit classified checker failures | Validate selection compatibility patch, then annotate/check original bodies |
+| M2: direct file | Open; adapter source-slice count contract checked separately | Establish full-crate linkage and compose original caller/range/slice with external file confinement |
 | M3: worker/stdin | Open | Check source/destination capacities, await ownership, cancellation and selected-memory stability |
-| M4: generated ABI/errors | Open | Prove fresh generated output store, selection, aliases and all error exits |
+| M4: generated ABI/errors | Fresh expansion inspected; proof open | Prove captured output store, selection, aliases and all error exits |
 | M5: other configurations | Assessed as separate open obligations | Shared-memory concurrency/atomics/raw copies, Windows adapter and 32-bit arithmetic |
 
 Only installer pins, diagnostic recognition, and ABI-capture tooling were reused
@@ -35,15 +42,18 @@ not an independent source of authority for publishing or changing machine setup.
 configuration and WITX inputs. Hashing normalizes CRLF to LF so checkout
 line-ending conversion cannot look like a runtime change. `check_sources.py`
 compares both the baseline object and working tree and rejects changes anywhere
-outside this verification directory, its workflow, and its regression test.
-At this M0 checkpoint even annotation changes to production require a deliberate
-revision of that guard. Do not regenerate baseline hashes from annotated code.
+outside this verification directory, its workflow, its regression test and the
+exact specification additions registered in `annotations.json`. The guard
+reconstructs each permitted annotated file from the original Git blob and exact
+registered insertion; all other edits fail. Baseline hashes never come from
+annotated code.
 
 `coverage.json` is the inspection ledger. Each row includes call edge,
 configuration, pinned source, effect, pointer origin, offset/count, existing
 check, primitive sink, status and trust dependency. A row's file hash is in
 `sources.json`. These are obligations, not established dependency contracts or
-a completeness certificate. Generated code is still pending fresh expansion.
+a completeness certificate. Fresh generated code and compiler failures are
+retained as evidence, and remain unproved.
 
 Inspection observations to retain when writing contracts:
 
@@ -70,8 +80,9 @@ Inspection observations to retain when writing contracts:
   ranges, validates its range. Regression expectations preserve this difference.
 - Metadata precedes descriptor rejection. Position overflow can happen after
   payload writes. An invalid generated result pointer may trap after payload
-  effects. Fresh expansion must establish actual generated error/store ordering;
-  generator inspection alone does not close that obligation.
+  effects. Fresh expansion confirms `match ret`: only `Ok(e)` performs the
+  `Size=u32` store; `Err(e)` downcasts without a result store. That is inspected
+  ordering evidence, not a checked function contract.
 
 ## Run the prepared M0 checkpoint
 
@@ -99,14 +110,14 @@ python3 verification/flux/capture_glue.py artifacts/fd-read/glue/wasi-expanded.r
   --output-dir artifacts/fd-read/glue
 ```
 
-`.github/workflows/flux-fd-read.yml` prepares these checks on the personal fork
-only. Preparing that workflow does not mean it has been published or executed.
-Its independent environment and integration jobs separate checker compatibility
-from ordinary compilation/tests. Neither job checks a production Flux body.
+`.github/workflows/flux-fd-read.yml` runs these checks on the personal fork
+only. Its independent environment and integration jobs separate checker
+compatibility from ordinary compilation/tests. Original-body feasibility probes
+and the adapter source-slice experiment do not establish a production safety proof.
 
 The smoke runner requires exactly three checked, zero trusted, zero ignored
 local probe bodies with strict overflow. It compiles all negative sources as
-ordinary Rust before requiring an actual `E0999` refinement/overflow diagnostic.
+ordinary Rust before requiring an actual `E0999` refinement/overflow/bounds diagnostic.
 Syntax errors, unsupported constructs, timeouts and missing tools fail the gate;
 none count as bug evidence. Negative unsafe copies are compiled, never executed.
 All four probe sources, commands, hashes, versions and full logs are retained.

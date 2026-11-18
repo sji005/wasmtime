@@ -14,7 +14,8 @@
       "original_check": "export kind match; missing export traps",
       "sink": "data_ranges_and_store_data_mut",
       "status": "open",
-      "trust": "T-LINMEM; fresh linker expansion pending"
+      "trust": "T-LINMEM; fresh linker expansion pending",
+      "inspection_evidence": "evidence/run-44240968739/generated-glue.zip"
     },
     {
       "id": "E02",
@@ -40,7 +41,8 @@
       "original_check": "unsafe slice bridge; allocation validity supplied externally",
       "sink": "slice::from_raw_parts",
       "status": "open",
-      "trust": "T-LINMEM; T-RUST; no assumed guest-offset validity"
+      "trust": "T-LINMEM; T-RUST; no assumed guest-offset validity",
+      "open_failure": "Pinned Flux Wasmtime probe hits generated Categories bitflags associated-type ICE"
     },
     {
       "id": "E04",
@@ -53,7 +55,8 @@
       "original_check": "start <= end && end <= len before base.add",
       "sink": "slice::from_raw_parts_mut",
       "status": "open",
-      "trust": "T-LINMEM; T-PTR; length-definition relation open"
+      "trust": "T-LINMEM; T-PTR; length-definition relation open",
+      "open_failure": "Pinned Flux Wasmtime probe hits generated Categories bitflags associated-type ICE"
     },
     {
       "id": "E05",
@@ -66,7 +69,8 @@
       "original_check": "GuestPtr construction is not validation",
       "sink": "WasiSnapshotPreview1::fd_read",
       "status": "open",
-      "trust": "fresh expansion pending; T-RUST"
+      "trust": "fresh expansion pending; T-RUST",
+      "inspection_evidence": "evidence/run-44240968739/generated-glue.zip"
     },
     {
       "id": "E06",
@@ -79,7 +83,8 @@
       "original_check": "fuel before iteration and before returning selected payload",
       "sink": "GuestMemory::read",
       "status": "open",
-      "trust": "no checked caller contract"
+      "trust": "no checked caller contract",
+      "open_failure": "Pinned Flux full-WASI probe hits generated OpenMode bitflags associated-type ICE before selected caller contract checking"
     },
     {
       "id": "E07",
@@ -92,7 +97,8 @@
       "original_check": "checked_mul and checked_add",
       "sink": "metadata GuestPtr",
       "status": "open",
-      "trust": "T-CORE; target u32/usize widths"
+      "trust": "T-CORE; target u32/usize widths",
+      "open_failure": "Pinned Flux full-Wiggle probe hits iterator opaque-lifetime ICE before a spatial contract can be checked"
     },
     {
       "id": "E08",
@@ -105,7 +111,8 @@
       "original_check": "GuestPtr<u8>::add(field offset), scalar validation",
       "sink": "GuestType for u32",
       "status": "open",
-      "trust": "WITX layout 8-byte record; fresh generated type pending"
+      "trust": "WITX layout 8-byte record; fresh generated type pending",
+      "inspection_evidence": "evidence/run-44240968739/generated-glue.zip"
     },
     {
       "id": "E09",
@@ -131,7 +138,8 @@
       "original_check": "usize conversions; slice.get(range).is_none()",
       "sink": "range consumed by read/slice bridge",
       "status": "open",
-      "trust": "T-CORE; strict overflow must check original addition"
+      "trust": "T-CORE; strict overflow must check original addition",
+      "open_failure": "Pinned Flux full-Wiggle probe hits iterator opaque-lifetime ICE before a spatial contract can be checked"
     },
     {
       "id": "E11",
@@ -144,7 +152,8 @@
       "original_check": "range.end > memory.len()",
       "sink": "as_slice_mut / typed read",
       "status": "open",
-      "trust": "T-LINMEM; original addition open"
+      "trust": "T-LINMEM; original addition open",
+      "open_failure": "Pinned Flux full-Wiggle probe hits iterator opaque-lifetime ICE before a spatial contract can be checked"
     },
     {
       "id": "E12",
@@ -157,7 +166,8 @@
       "original_check": "end <= memory.len(); then data_range_mut",
       "sink": "align_to<UnsafeCell<T>>",
       "status": "open",
-      "trust": "T-LINMEM; returned subslice length differs from full memory"
+      "trust": "T-LINMEM; returned subslice length differs from full memory",
+      "open_failure": "Pinned Flux full-Wiggle probe hits iterator opaque-lifetime ICE before a spatial contract can be checked"
     },
     {
       "id": "E13",
@@ -170,7 +180,8 @@
       "original_check": "align_of<T> <= guest_align; align_to head/tail empty",
       "sink": "UnsafeCell<T> slice",
       "status": "open",
-      "trust": "T-RUST; T-CORE; generic transparent representation"
+      "trust": "T-RUST; T-CORE; generic transparent representation",
+      "open_failure": "Pinned Flux full-Wiggle probe hits iterator opaque-lifetime ICE before a spatial contract can be checked"
     },
     {
       "id": "E14",
@@ -196,7 +207,8 @@
       "original_check": "validate_range<u8>; Ranges data_range_mut",
       "sink": "file adapter buffer",
       "status": "open",
-      "trust": "T-LINMEM; T-CORE; original validation body open"
+      "trust": "T-LINMEM; T-CORE; original validation body open",
+      "open_failure": "Pinned Flux full-Wiggle probe hits iterator opaque-lifetime ICE before a spatial contract can be checked"
     },
     {
       "id": "E16",
@@ -209,7 +221,8 @@
       "original_check": "as_blocking_file and as_slice_mut pair dispatch",
       "sink": "sys::read_at_cursor_unspecified",
       "status": "open",
-      "trust": "T-FILE; late position overflow can follow confined writes"
+      "trust": "T-FILE; late position overflow can follow confined writes",
+      "open_failure": "Pinned Flux full-WASI probe hits generated OpenMode bitflags associated-type ICE before selected caller contract checking"
     },
     {
       "id": "E17",
@@ -222,7 +235,9 @@
       "original_check": "adapter is a single forwarding call",
       "sink": "std::os::unix::fs::FileExt::read_at",
       "status": "open",
-      "trust": "T-FILE external primitive; local adapter body open"
+      "trust": "T-FILE external primitive; local adapter body open",
+      "experiment": "Exact source-slice count contract checked separately, with rejected wrong-count mutation; full-crate linkage and heap effects remain open",
+      "inspection_evidence": "evidence/run-44241913222/adapter-experiment.zip"
     },
     {
       "id": "E18",
@@ -235,7 +250,8 @@
       "original_check": "buf dropped before await; closure owns host Vec",
       "sink": "run_blocking closure returns Vec",
       "status": "open",
-      "trust": "T-FILE; T-VEC; async ownership open"
+      "trust": "T-FILE; T-VEC; async ownership open",
+      "open_failure": "Pinned Flux full-WASI probe hits generated OpenMode bitflags associated-type ICE before selected caller contract checking"
     },
     {
       "id": "E19",
@@ -274,7 +290,8 @@
       "original_check": "end >= start and both <= original len; add(0)",
       "sink": "GuestPtr<[u8]> copy destination",
       "status": "open",
-      "trust": "T-VEC; selected memory stability across await open"
+      "trust": "T-VEC; selected memory stability across await open",
+      "open_failure": "Pinned Flux full-Wiggle probe hits iterator opaque-lifetime ICE before a spatial contract can be checked"
     },
     {
       "id": "E22",
@@ -287,7 +304,8 @@
       "original_check": "empty early return; validate_size_align_mut; assert equal lengths",
       "sink": "std::ptr::copy",
       "status": "open",
-      "trust": "T-PTR; T-RUST; caller source/destination capacity open"
+      "trust": "T-PTR; T-RUST; caller source/destination capacity open",
+      "open_failure": "Pinned Flux full-Wiggle probe hits iterator opaque-lifetime ICE before a spatial contract can be checked"
     },
     {
       "id": "E23",
@@ -300,7 +318,8 @@
       "original_check": "check occurs after stream await, before get_range/copy",
       "sink": "GuestMemory::copy_from_slice",
       "status": "open",
-      "trust": "T-STREAM; closed -> empty; Intr for successful empty; late errors tracked"
+      "trust": "T-STREAM; closed -> empty; Intr for successful empty; late errors tracked",
+      "open_failure": "Pinned Flux full-WASI probe hits generated OpenMode bitflags associated-type ICE before selected caller contract checking"
     },
     {
       "id": "E24",
@@ -323,10 +342,11 @@
       "effect": "4-byte result store",
       "origin": "arg3 as u32, not assumed valid",
       "offset_count": "Size=u32, width 4, alignment 4",
-      "original_check": "memory.write after successful trait call; fresh ordering capture pending",
+      "original_check": "fresh expansion: match ret; only Ok(e) stores Size=u32 through arg3, with memory.write failure propagated as trap; Err(e) downcasts without result store",
       "sink": "GuestType u32::write",
       "status": "open",
-      "trust": "aliases allowed; payload effects can precede invalid result pointer trap"
+      "trust": "aliases allowed; payload effects can precede invalid result pointer trap",
+      "inspection_evidence": "evidence/run-44240968739/generated-glue.zip"
     },
     {
       "id": "E26",
@@ -365,7 +385,34 @@
       "original_check": "transact may lazily initialize descriptors; no payload for Badf",
       "sink": "descriptor lookup and error conversions",
       "status": "open",
-      "trust": "narrow no-guest-access dependency obligation; not trusted wholesale"
+      "trust": "narrow no-guest-access dependency obligation; not trusted wholesale",
+      "open_failure": "Pinned Flux full-WASI probe hits generated OpenMode bitflags associated-type ICE before selected caller contract checking"
+    },
+    {
+      "id": "E29",
+      "edge": "Memory::internal_data_size -> VMMemoryDefinition::current_length",
+      "configuration": "Linux x86-64, p1+p2, unshared",
+      "source": "crates/wasmtime/src/runtime/vm/vmcontext.rs",
+      "effect": "full logical extent",
+      "origin": "store[instance].memory(index)",
+      "offset_count": "same definition current_length(), precise for unshared memory",
+      "original_check": "relaxed atomic length load; selected memory and store relation is a separate obligation",
+      "sink": "length used by MemoryRanges checks",
+      "status": "open",
+      "trust": "T-LINMEM; no guest offset validity assumed"
+    },
+    {
+      "id": "E30",
+      "edge": "binding accessor -> Store::data_and_opaque_mut",
+      "configuration": "Linux x86-64, p1+p2, unshared",
+      "source": "crates/wasmtime/src/runtime/store.rs",
+      "effect": "store/context reborrow",
+      "origin": "same Store<T>",
+      "offset_count": "data_limiter_and_opaque yields host context and StoreOpaque",
+      "original_check": "Rust reborrow/split; runtime allocation origins are trusted separately",
+      "sink": "MemoryRanges store field and context",
+      "status": "open",
+      "trust": "T-LINMEM; T-RUST"
     }
   ]
 }

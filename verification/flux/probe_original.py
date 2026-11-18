@@ -53,7 +53,7 @@ def wrap(arguments):
                    f"-Flog-dir={output / 'flux-log'}"]
         (output / "compiler-invocation.json").write_text(json.dumps(command, indent=2) + "\n")
         print("FD_READ_ACTUAL_BODY: " + json.dumps(command), flush=True)
-    return subprocess.run(command).returncode
+    return subprocess.run(command, close_fds=False).returncode
 
 
 def classify(code, log, invoked):
@@ -90,10 +90,11 @@ def main():
         "claim": "Checker feasibility only; original bodies, no spatial theorem",
         "source_revision": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
         "pins": json.loads((HERE / "pins.json").read_text()),
+        "checker_variant": json.loads(Path(os.environ["FLUX_COMPAT_RECEIPT"]).read_text()) if "FLUX_COMPAT_RECEIPT" in os.environ else "unmodified pinned baseline",
         "target": TARGET,
-        "trusted_local_bodies": [],
-        "ignored_local_bodies": [],
-        "unchecked": "Every body/dependency outside each exact selected crate/span; no caller contract is discharged",
+        "explicitly_trusted_local_bodies": [],
+        "explicitly_ignored_local_bodies": [],
+        "unchecked": "Every unselected body/dependency remains unverified; Flux counts excluded functions as trusted. No spatial postcondition or caller contract is discharged by this probe.",
         "cases": [],
     }
     for name, package, source, anchor, features in CASES:

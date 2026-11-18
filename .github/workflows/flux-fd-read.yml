@@ -70,9 +70,17 @@ jobs:
       - name: M0 arithmetic, slice and pointer acceptance and rejection
         run: python3 verification/flux/check_environment.py --output-dir artifacts/fd-read/environment
       - name: Collect original-body feasibility diagnostics (not a spatial proof)
-        run: python3 verification/flux/probe_original.py --output-dir artifacts/fd-read/original-body-probes
+        run: python3 verification/flux/probe_original.py --case range --case memory-slice --case fd-read-caller --output-dir artifacts/fd-read/original-body-probes
       - name: Check narrow original-adapter source-slice experiment
         run: python3 verification/flux/check_adapter.py --output-dir artifacts/fd-read/adapter
+      - name: Build separate Flux selection-compatibility candidate
+        run: bash verification/flux/toolchain/build_compat.sh
+      - name: Compare baseline and candidate selection with rejected selected mutations
+        run: python3 verification/flux/toolchain/check_selection.py
+      - name: Require strict M0 acceptance and rejection with the candidate driver
+        run: python3 verification/flux/check_environment.py --output-dir artifacts/fd-read/environment-compat
+      - name: Collect original-body diagnostics with the candidate driver
+        run: python3 verification/flux/probe_original.py --output-dir artifacts/fd-read/compat-original-body-probes
       - name: Retain complete environment diagnostics
         if: always()
         uses: actions/upload-artifact@v7
@@ -93,6 +101,17 @@ jobs:
         with:
           name: fd-read-adapter-experiment
           path: artifacts/fd-read/adapter
+          if-no-files-found: warn
+      - name: Retain checker patch, compatibility regressions and original-body diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: fd-read-compatibility
+          path: |
+            artifacts/fd-read/compat-toolchain
+            artifacts/fd-read/compat-selection
+            artifacts/fd-read/environment-compat
+            artifacts/fd-read/compat-original-body-probes
           if-no-files-found: warn
 
   integration:

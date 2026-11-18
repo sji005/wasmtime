@@ -49,6 +49,38 @@ def main():
         raise SystemExit("Expected trait fd_read call followed by arg3 Size result store")
     args.output_dir.mkdir(parents=True, exist_ok=True)
     (args.output_dir / "fd-read-glue.rs").write_text(snippet, encoding="utf-8", newline="\n")
+    fragments = {}
+
+    def preserve(name, start, end):
+        fragment = text[start:end].rstrip() + "\n"
+        (args.output_dir / name).write_text(fragment, encoding="utf-8", newline="\n")
+        fragments[name] = {
+            "expanded_source_line": text[:start].count("\n") + 1,
+            "sha256": hashlib.sha256(fragment.encode()).hexdigest(),
+        }
+
+    # The P1 types module immediately precedes its ABI module. Preserve the last
+    # Iovec GuestType impl before the selected P1 function, excluding P0's types.
+    iovecs = [m for m in re.finditer(r"(?m)^([ \t]*)impl wiggle::GuestType for Iovec\s*\{", text) if m.start() < match.start()]
+    if not iovecs:
+        raise SystemExit("Missing generated Iovec GuestType implementation")
+    iovec = iovecs[-1]
+    iovec_end = re.search(r"(?m)^" + re.escape(iovec[1]) + r"}\s*$", text[iovec.end():])
+    if iovec_end is None:
+        raise SystemExit("Missing generated Iovec closing brace")
+    preserve("p1-iovec-guest-type.rs", iovec.start(), iovec.end() + iovec_end.end())
+    # Capture both sync and async actual linker closures, including memory
+    # selection and GuestMemory construction. The next sibling linker call is
+    # the delimiter; this does not infer branch safety from generator templates.
+    bindings = list(re.finditer(r'(?m)^([ \t]*)linker\.func_wrap(?:_async)?\("wasi_snapshot_preview1", "fd_read",', text))
+    if len(bindings) != 2:
+        raise SystemExit(f"Expected sync and async P1 fd_read bindings; found {len(bindings)}")
+    for binding in bindings:
+        next_call = re.search(r"(?m)^" + re.escape(binding[1]) + r"linker\.", text[binding.end():])
+        if next_call is None:
+            raise SystemExit("Missing fd_read linker closure delimiter")
+        kind = "async" if "func_wrap_async" in binding[0] else "sync"
+        preserve(f"p1-{kind}-linker.rs", binding.start(), binding.end() + next_call.start())
     evidence = {
         "claim": "Expanded ABI syntax inspected; function and memory effects remain unproved",
         "target": "x86_64-unknown-linux-gnu",
@@ -64,6 +96,7 @@ def main():
         "expansion_command": "cargo rustc --locked --target x86_64-unknown-linux-gnu -p wasmtime-wasi --no-default-features --features p1 --lib -- -Zunpretty=expanded",
         "expanded_source_line": text[:match.start()].count("\n") + 1,
         "wrapper_sha256": hashlib.sha256(snippet.encode()).hexdigest(),
+        "generated_fragments": fragments,
         "abi_arguments": {"arg0": "fd", "arg1": "iovs pointer", "arg2": "iovs count", "arg3": "nread output pointer"},
         "observed_output": "Size store through arg3 after the fd_read trait call; Size is u32 in typenames.witx",
         "remaining": ["Flux proof of expanded wrapper", "exact control-flow/error framing", "pointer validity, alignment and aliases", "actual allocation binding"],

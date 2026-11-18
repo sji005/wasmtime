@@ -40,6 +40,7 @@ def main():
         "target": TARGET,
         "toolchain": TOOLCHAIN,
         "pins": json.loads((HERE / "pins.json").read_text()),
+        "checker_variant": json.loads(Path(os.environ["FLUX_COMPAT_RECEIPT"]).read_text()) if "FLUX_COMPAT_RECEIPT" in os.environ else "unmodified pinned baseline",
         "frozen_sources": json.loads((HERE / "sources.json").read_text()),
         "harness_inputs_sha256": {
             name: hashlib.sha256((HERE / name).read_bytes()).hexdigest()
@@ -79,6 +80,10 @@ def main():
         return result.returncode, log
 
     try:
+        if "FLUX_DRIVER" in env:
+            receipt = report["checker_variant"]
+            if not isinstance(receipt, dict) or hashlib.sha256(Path(env["FLUX_DRIVER"]).read_bytes()).hexdigest() != receipt["driver_sha256"]:
+                raise RuntimeError("Selected candidate driver does not match its explicit patch receipt")
         if platform.system() != "Linux" or platform.machine() not in ("x86_64", "AMD64"):
             raise FileNotFoundError("The pinned Flux experiment requires x86-64 Linux; native Windows is not a validated checker host.")
         for tool in ("rustc", "flux", "z3", "fixpoint"):

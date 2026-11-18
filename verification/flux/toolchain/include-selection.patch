@@ -1,0 +1,44 @@
+diff --git a/crates/flux-middle/src/global_env.rs b/crates/flux-middle/src/global_env.rs
+index ef45be3c1..135d42a1f 100644
+--- a/crates/flux-middle/src/global_env.rs
++++ b/crates/flux-middle/src/global_env.rs
+@@ -766,7 +766,9 @@ impl<'genv, 'tcx> GlobalEnv<'genv, 'tcx> {
+     {
+         let def_id = def_id.local_id();
+         let tcx = self.tcx();
+-        let span = tcx.def_span(def_id);
++        // Attribute macro-generated items to their invocation in the checked
++        // crate, rather than to an absolute path in a dependency's sources.
++        let span = tcx.def_span(def_id).source_callsite();
+         let sm = tcx.sess.source_map();
+         let FileName::Real(file_name) = sm.span_to_filename(span) else { return true };
+         let Some(mut file_path) = file_name.local_path() else { return true };
+@@ -790,8 +792,14 @@ impl<'genv, 'tcx> GlobalEnv<'genv, 'tcx> {
+     fn matches_pos(&self, def_id: MaybeExternId, line: usize, col: usize) -> bool {
+         let def_id = def_id.local_id();
+         let tcx = self.tcx();
++        // A position selector denotes a function. Some synthetic lifetime
++        // parameters of opaque return types have no HIR node; querying a HIR
++        // id for those definitions causes a rustc AST-lowering ICE.
++        if !matches!(tcx.def_kind(def_id), DefKind::Fn | DefKind::AssocFn) {
++            return false;
++        }
+         let hir_id = tcx.local_def_id_to_hir_id(def_id);
+-        let body_span = tcx.hir_span_with_body(hir_id);
++        let body_span = tcx.hir_span_with_body(hir_id).source_callsite();
+         let source_map = tcx.sess.source_map();
+         let lo_pos = source_map.lookup_char_pos(body_span.lo());
+         let start_line = lo_pos.line;
+@@ -814,7 +822,11 @@ impl<'genv, 'tcx> GlobalEnv<'genv, 'tcx> {
+     /// is in the `include` pattern, and conservatively return `true` if
+     /// anything unexpected happens.
+     fn matches_pattern(&self, def_id: MaybeExternId, pattern: &IncludePattern) -> bool {
+-        if self.matches_file_path(def_id, |path| pattern.glob.is_match(path)) {
++        // An empty glob set cannot select an item, including synthetic items
++        // whose paths cannot be normalized by matches_file_path.
++        if !pattern.glob.is_empty()
++            && self.matches_file_path(def_id, |path| pattern.glob.is_match(path))
++        {
+             return true;
+         }
+         if pattern.defs.iter().any(|def| self.matches_def(def_id, def)) {

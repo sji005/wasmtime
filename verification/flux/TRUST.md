@@ -1,7 +1,8 @@
 # Trust boundaries and open obligations
 
-No production body is checked, trusted by annotation, or ignored by a checker
-in this branch. All production edges in `coverage.json` are open or explicitly
+No full-crate production proof has completed. An exact source-slice experiment
+checks the Unix adapter count contract; its original crate linkage and heap
+effects remain open. All production edges in `coverage.json` are open or explicitly
 excluded. The M0 probes load external `flux_core` contracts; zero local trusted
 bodies does not eliminate those external assumptions. Historical experiment
 proof results do not apply to the original baseline.
@@ -15,7 +16,7 @@ proof results do not apply to the original baseline.
 | T-VEC | Standard owned Vec behavior | Allocation, initialized elements, length/capacity and truncate semantics. Caller use of the read count, closure ownership, selected guest destination, and copy length remain obligations; no whole-worker wrapper is assumed safe. |
 | T-STREAM | Owned host stream result | Stream/Bytes/Vec ownership and valid contents; no guest buffer is supplied to the primitive. P1's explicit returned-length check remains to be verified. A dynamic embedder stream's other effects must be declared at that external boundary; debug assertions do not prove its contract. |
 | T-TASK | Tokio task/ownership semantics | Blocking closures and their return values satisfy Send + static. Aborting/dropping the handle need not stop running blocking work. The actual closure must be shown to capture only owned host buffers/file state; no general assumption that spawn_blocking makes guest borrows safe is permitted. |
-| T-MACHINERY | Flux, Rust compiler model, solver and external specs | Flux revision/toolchain, fixpoint archive and Z3 archive pins are recorded in `pins.json`. Installer archive verification does not establish checker soundness or hermetic Cargo wrapper installation. M0 positive/negative compatibility remains unrun on Linux. |
+| T-MACHINERY | Flux, Rust compiler model, solver and external specs | Flux revision/toolchain, fixpoint archive and Z3 archive pins are recorded in `pins.json`. Linux M0 acceptance/rejection passed. Full crates hit internal errors. The selection-only compatibility candidate has an explicit patch/binary receipt and separate regressions; it must repeat strict M0 acceptance/rejection. Installer archive verification does not establish checker soundness or hermetic Cargo wrapper installation. |
 
 Local M0 probe functions: `addition`, `slice_read`, `pointer_copy`. No trusted or
 ignored annotations exist in that harness. They are checker tests, not extracted
@@ -23,8 +24,10 @@ or reimplemented models of production functions. The successful case's three
 contracts, the ordinary Rust compilation of all variants, and the specific
 negative Flux diagnostics must all pass before using this candidate checker.
 
-The production trust/ignore inventory is currently empty because no production
-checker run exists, not because all dependencies have been verified. In
+There are no explicitly trusted/ignored production annotations. Flux counts
+functions excluded by an include selector as trusted; all such bodies remain
+unverified here. The local empty explicit-annotation inventory never means all
+dependencies have been verified. In
 particular, `first_non_empty_iovec`, validation, raw slice formation, atomics,
 file adapter, direct caller, Vec worker, streams, cancellation, selected memory
 identity across await and generated ABI stores are all open. Host-only descriptor

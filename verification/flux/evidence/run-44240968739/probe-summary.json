@@ -1,0 +1,590 @@
+{
+  "claim": "Checker feasibility only; original bodies, no spatial theorem",
+  "source_revision": "72b5eeb8aa3df73a02fa3ec6e9c7ca69d9ee99d5",
+  "pins": {
+    "baseline": "7c83a428028b44e1a73b40aa6a912d6700983624",
+    "historical_experiment": "c6a59fc114302c2f6438893994138a0cbcfe2b12",
+    "flux_revision": "b68c177c5ace7cb3644fdeea140dc5d18669c6cc",
+    "toolchain": "nightly-2026-10-22",
+    "target": "x86_64-unknown-linux-gnu",
+    "runner": "ubuntu-24.04",
+    "wasi_features": [
+      "p1",
+      "p2"
+    ],
+    "wasi_default_features": false,
+    "z3_version": "5.3.3",
+    "z3_archive_sha256": "d56f60b06f432f33de5810f7f1a384a339131f361e2d54d08ea83eea14326880",
+    "fixpoint_release_asset": 648710606,
+    "fixpoint_archive_sha256": "7f23b085b848d42ce91618c722cf867ca16e2b570d5d2427138ed80a99d80f9a",
+    "reviewed_flux_spec_git_blobs": {
+      "lib/flux-core/src/slice/mod.rs": "c8922ac0482a0cffe1ddec5de06528072fc1d95b",
+      "lib/flux-core/src/slice/index.rs": "bf5942da3c72407fb36c9be23551179f8f6cf5fb",
+      "lib/flux-core/src/ptr/mod.rs": "bbdca5c0b76889aec726d4c292301e639eac1743",
+      "lib/flux-core/src/num/mod.rs": "f7269aaf58028f8d898edc858e3d75fb0a73f452"
+    },
+    "proof_flags": [
+      "--cfg",
+      "flux",
+      "-Fcheck-overflow=strict",
+      "-Fallow-raw-deref=none"
+    ],
+    "bootstrap_limitation": "Upstream cargo xtask install may resolve wrapper dependencies; bootstrap is not hermetic. Historical success is not this branch's M0 result."
+  },
+  "target": "x86_64-unknown-linux-gnu",
+  "trusted_local_bodies": [],
+  "ignored_local_bodies": [],
+  "unchecked": "Every body/dependency outside each exact selected crate/span; no caller contract is discharged",
+  "cases": [
+    {
+      "name": "range",
+      "package": "wiggle",
+      "features": [
+        "--all-features"
+      ],
+      "source": "crates/wiggle/src/lib.rs",
+      "source_sha256_lf": "9fee3c8755490b2aac5409ca2e9cd4ac4e98786619e09e7ecd5e0ff6b3f93b91",
+      "selector": "span:crates/wiggle/src/lib.rs:338:5",
+      "ordinary_command": [
+        "cargo",
+        "check",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wiggle",
+        "--all-features",
+        "--lib"
+      ],
+      "flux_command": [
+        "cargo",
+        "rustc",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wiggle",
+        "--all-features",
+        "--lib",
+        "--",
+        "--cfg",
+        "fd_read_probe_range"
+      ],
+      "exit_code": 101,
+      "status": "blocked-before-spatial-contract-check",
+      "log": "range/flux.log",
+      "blocking_diagnostic": "error: internal compiler error: /rustc-dev/1a2c4797ef2570bd76ca5dee34449169bc7dc457/compiler/rustc_ast_lowering/src/lib.rs:728:13: DefId(0:419 ~ wiggle[9429]::{impl#4}::iter::{opaque#0}::'_) does not appear in children of DefId(0:127 ~ wiggle[9429]::{impl#4}::iter)",
+      "category": "checker-limitation"
+    },
+    {
+      "name": "typed-read-range",
+      "package": "wiggle",
+      "features": [
+        "--all-features"
+      ],
+      "source": "crates/wiggle/src/lib.rs",
+      "source_sha256_lf": "9fee3c8755490b2aac5409ca2e9cd4ac4e98786619e09e7ecd5e0ff6b3f93b91",
+      "selector": "span:crates/wiggle/src/lib.rs:254:5",
+      "ordinary_command": [
+        "cargo",
+        "check",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wiggle",
+        "--all-features",
+        "--lib"
+      ],
+      "flux_command": [
+        "cargo",
+        "rustc",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wiggle",
+        "--all-features",
+        "--lib",
+        "--",
+        "--cfg",
+        "fd_read_probe_typed_read_range"
+      ],
+      "exit_code": 101,
+      "status": "blocked-before-spatial-contract-check",
+      "log": "typed-read-range/flux.log",
+      "blocking_diagnostic": "error: internal compiler error: /rustc-dev/1a2c4797ef2570bd76ca5dee34449169bc7dc457/compiler/rustc_ast_lowering/src/lib.rs:728:13: DefId(0:419 ~ wiggle[9429]::{impl#4}::iter::{opaque#0}::'_) does not appear in children of DefId(0:127 ~ wiggle[9429]::{impl#4}::iter)",
+      "category": "checker-limitation"
+    },
+    {
+      "name": "typed-write-range",
+      "package": "wiggle",
+      "features": [
+        "--all-features"
+      ],
+      "source": "crates/wiggle/src/lib.rs",
+      "source_sha256_lf": "9fee3c8755490b2aac5409ca2e9cd4ac4e98786619e09e7ecd5e0ff6b3f93b91",
+      "selector": "span:crates/wiggle/src/lib.rs:277:5",
+      "ordinary_command": [
+        "cargo",
+        "check",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wiggle",
+        "--all-features",
+        "--lib"
+      ],
+      "flux_command": [
+        "cargo",
+        "rustc",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wiggle",
+        "--all-features",
+        "--lib",
+        "--",
+        "--cfg",
+        "fd_read_probe_typed_write_range"
+      ],
+      "exit_code": 101,
+      "status": "blocked-before-spatial-contract-check",
+      "log": "typed-write-range/flux.log",
+      "blocking_diagnostic": "error: internal compiler error: /rustc-dev/1a2c4797ef2570bd76ca5dee34449169bc7dc457/compiler/rustc_ast_lowering/src/lib.rs:728:13: DefId(0:419 ~ wiggle[9429]::{impl#4}::iter::{opaque#0}::'_) does not appear in children of DefId(0:127 ~ wiggle[9429]::{impl#4}::iter)",
+      "category": "checker-limitation"
+    },
+    {
+      "name": "align-cells",
+      "package": "wiggle",
+      "features": [
+        "--all-features"
+      ],
+      "source": "crates/wiggle/src/lib.rs",
+      "source_sha256_lf": "9fee3c8755490b2aac5409ca2e9cd4ac4e98786619e09e7ecd5e0ff6b3f93b91",
+      "selector": "span:crates/wiggle/src/lib.rs:314:5",
+      "ordinary_command": [
+        "cargo",
+        "check",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wiggle",
+        "--all-features",
+        "--lib"
+      ],
+      "flux_command": [
+        "cargo",
+        "rustc",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wiggle",
+        "--all-features",
+        "--lib",
+        "--",
+        "--cfg",
+        "fd_read_probe_align_cells"
+      ],
+      "exit_code": 101,
+      "status": "blocked-before-spatial-contract-check",
+      "log": "align-cells/flux.log",
+      "blocking_diagnostic": "error: internal compiler error: /rustc-dev/1a2c4797ef2570bd76ca5dee34449169bc7dc457/compiler/rustc_ast_lowering/src/lib.rs:728:13: DefId(0:419 ~ wiggle[9429]::{impl#4}::iter::{opaque#0}::'_) does not appear in children of DefId(0:127 ~ wiggle[9429]::{impl#4}::iter)",
+      "category": "checker-limitation"
+    },
+    {
+      "name": "payload-slice",
+      "package": "wiggle",
+      "features": [
+        "--all-features"
+      ],
+      "source": "crates/wiggle/src/lib.rs",
+      "source_sha256_lf": "9fee3c8755490b2aac5409ca2e9cd4ac4e98786619e09e7ecd5e0ff6b3f93b91",
+      "selector": "span:crates/wiggle/src/lib.rs:159:5",
+      "ordinary_command": [
+        "cargo",
+        "check",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wiggle",
+        "--all-features",
+        "--lib"
+      ],
+      "flux_command": [
+        "cargo",
+        "rustc",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wiggle",
+        "--all-features",
+        "--lib",
+        "--",
+        "--cfg",
+        "fd_read_probe_payload_slice"
+      ],
+      "exit_code": 101,
+      "status": "blocked-before-spatial-contract-check",
+      "log": "payload-slice/flux.log",
+      "blocking_diagnostic": "error: internal compiler error: crates/flux-refineck/src/ghost_statements/fold_unfold.rs:567:26: implicit downcast of non-struct: `Alias (Projection, Pointee::Pointer, <[u8]>)`",
+      "category": "checker-limitation"
+    },
+    {
+      "name": "copy-back",
+      "package": "wiggle",
+      "features": [
+        "--all-features"
+      ],
+      "source": "crates/wiggle/src/lib.rs",
+      "source_sha256_lf": "9fee3c8755490b2aac5409ca2e9cd4ac4e98786619e09e7ecd5e0ff6b3f93b91",
+      "selector": "span:crates/wiggle/src/lib.rs:211:5",
+      "ordinary_command": [
+        "cargo",
+        "check",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wiggle",
+        "--all-features",
+        "--lib"
+      ],
+      "flux_command": [
+        "cargo",
+        "rustc",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wiggle",
+        "--all-features",
+        "--lib",
+        "--",
+        "--cfg",
+        "fd_read_probe_copy_back"
+      ],
+      "exit_code": 101,
+      "status": "blocked-before-spatial-contract-check",
+      "log": "copy-back/flux.log",
+      "blocking_diagnostic": "error: internal compiler error: crates/flux-refineck/src/ghost_statements/fold_unfold.rs:567:26: implicit downcast of non-struct: `Alias (Projection, Pointee::Pointer, <[T]>)`",
+      "category": "checker-limitation"
+    },
+    {
+      "name": "pointer-add",
+      "package": "wiggle",
+      "features": [
+        "--all-features"
+      ],
+      "source": "crates/wiggle/src/lib.rs",
+      "source_sha256_lf": "9fee3c8755490b2aac5409ca2e9cd4ac4e98786619e09e7ecd5e0ff6b3f93b91",
+      "selector": "span:crates/wiggle/src/lib.rs:460:5",
+      "ordinary_command": [
+        "cargo",
+        "check",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wiggle",
+        "--all-features",
+        "--lib"
+      ],
+      "flux_command": [
+        "cargo",
+        "rustc",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wiggle",
+        "--all-features",
+        "--lib",
+        "--",
+        "--cfg",
+        "fd_read_probe_pointer_add"
+      ],
+      "exit_code": 101,
+      "status": "blocked-before-spatial-contract-check",
+      "log": "pointer-add/flux.log",
+      "blocking_diagnostic": "error: internal compiler error: /rustc-dev/1a2c4797ef2570bd76ca5dee34449169bc7dc457/compiler/rustc_ast_lowering/src/lib.rs:728:13: DefId(0:419 ~ wiggle[9429]::{impl#4}::iter::{opaque#0}::'_) does not appear in children of DefId(0:127 ~ wiggle[9429]::{impl#4}::iter)",
+      "category": "checker-limitation"
+    },
+    {
+      "name": "pointer-iter",
+      "package": "wiggle",
+      "features": [
+        "--all-features"
+      ],
+      "source": "crates/wiggle/src/lib.rs",
+      "source_sha256_lf": "9fee3c8755490b2aac5409ca2e9cd4ac4e98786619e09e7ecd5e0ff6b3f93b91",
+      "selector": "span:crates/wiggle/src/lib.rs:502:5",
+      "ordinary_command": [
+        "cargo",
+        "check",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wiggle",
+        "--all-features",
+        "--lib"
+      ],
+      "flux_command": [
+        "cargo",
+        "rustc",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wiggle",
+        "--all-features",
+        "--lib",
+        "--",
+        "--cfg",
+        "fd_read_probe_pointer_iter"
+      ],
+      "exit_code": 101,
+      "status": "blocked-before-spatial-contract-check",
+      "log": "pointer-iter/flux.log",
+      "blocking_diagnostic": "error: internal compiler error: /rustc-dev/1a2c4797ef2570bd76ca5dee34449169bc7dc457/compiler/rustc_ast_lowering/src/lib.rs:728:13: DefId(0:419 ~ wiggle[9429]::{impl#4}::iter::{opaque#0}::'_) does not appear in children of DefId(0:127 ~ wiggle[9429]::{impl#4}::iter)",
+      "category": "checker-limitation"
+    },
+    {
+      "name": "pointer-subrange",
+      "package": "wiggle",
+      "features": [
+        "--all-features"
+      ],
+      "source": "crates/wiggle/src/lib.rs",
+      "source_sha256_lf": "9fee3c8755490b2aac5409ca2e9cd4ac4e98786619e09e7ecd5e0ff6b3f93b91",
+      "selector": "span:crates/wiggle/src/lib.rs:531:5",
+      "ordinary_command": [
+        "cargo",
+        "check",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wiggle",
+        "--all-features",
+        "--lib"
+      ],
+      "flux_command": [
+        "cargo",
+        "rustc",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wiggle",
+        "--all-features",
+        "--lib",
+        "--",
+        "--cfg",
+        "fd_read_probe_pointer_subrange"
+      ],
+      "exit_code": 101,
+      "status": "blocked-before-spatial-contract-check",
+      "log": "pointer-subrange/flux.log",
+      "blocking_diagnostic": "error: internal compiler error: /rustc-dev/1a2c4797ef2570bd76ca5dee34449169bc7dc457/compiler/rustc_ast_lowering/src/lib.rs:728:13: DefId(0:419 ~ wiggle[9429]::{impl#4}::iter::{opaque#0}::'_) does not appear in children of DefId(0:127 ~ wiggle[9429]::{impl#4}::iter)",
+      "category": "checker-limitation"
+    },
+    {
+      "name": "memory-slice",
+      "package": "wasmtime",
+      "features": [
+        "--no-default-features",
+        "--features",
+        "runtime,std,component-model,async"
+      ],
+      "source": "crates/wasmtime/src/runtime/memory.rs",
+      "source_sha256_lf": "798642cb7abb69d209f00f89700dbcc887b221648a836ee06ecb649078dfda18",
+      "selector": "span:crates/wasmtime/src/runtime/memory.rs:1771:5",
+      "ordinary_command": [
+        "cargo",
+        "check",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wasmtime",
+        "--no-default-features",
+        "--features",
+        "runtime,std,component-model,async",
+        "--lib"
+      ],
+      "flux_command": [
+        "cargo",
+        "rustc",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wasmtime",
+        "--no-default-features",
+        "--features",
+        "runtime,std,component-model,async",
+        "--lib",
+        "--",
+        "--cfg",
+        "fd_read_probe_memory_slice"
+      ],
+      "exit_code": 101,
+      "status": "blocked-before-spatial-contract-check",
+      "log": "memory-slice/flux.log",
+      "blocking_diagnostic": "error: internal compiler error: crates/flux-refineck/src/type_env/place_ty.rs:917:47: Query(Bug { def_id: None, location: \"crates/flux-infer/src/infer.rs:1142:22\", msg: \"incompatible base types: `InternalBitFlags` - `<Categories as PublicFlags>::Internal`\" })",
+      "category": "checker-limitation"
+    },
+    {
+      "name": "iovec-selector",
+      "package": "wasmtime-wasi",
+      "features": [
+        "--no-default-features",
+        "--features",
+        "p1"
+      ],
+      "source": "crates/wasi/src/p1.rs",
+      "source_sha256_lf": "c735fc98a6eaa582b4821c54fdb3a69b3d970c0ab8444a4709bb9ce2afd03093",
+      "selector": "span:crates/wasi/src/p1.rs:203:5",
+      "ordinary_command": [
+        "cargo",
+        "check",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wasmtime-wasi",
+        "--no-default-features",
+        "--features",
+        "p1",
+        "--lib"
+      ],
+      "flux_command": [
+        "cargo",
+        "rustc",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wasmtime-wasi",
+        "--no-default-features",
+        "--features",
+        "p1",
+        "--lib",
+        "--",
+        "--cfg",
+        "fd_read_probe_iovec_selector"
+      ],
+      "exit_code": 101,
+      "status": "blocked-before-spatial-contract-check",
+      "log": "iovec-selector/flux.log",
+      "blocking_diagnostic": "error: internal compiler error: crates/flux-refineck/src/type_env/place_ty.rs:917:47: Query(Bug { def_id: None, location: \"crates/flux-infer/src/infer.rs:1142:22\", msg: \"incompatible base types: `InternalBitFlags` - `<OpenMode as PublicFlags>::Internal`\" })",
+      "category": "checker-limitation"
+    },
+    {
+      "name": "fd-read-caller",
+      "package": "wasmtime-wasi",
+      "features": [
+        "--no-default-features",
+        "--features",
+        "p1"
+      ],
+      "source": "crates/wasi/src/p1.rs",
+      "source_sha256_lf": "c735fc98a6eaa582b4821c54fdb3a69b3d970c0ab8444a4709bb9ce2afd03093",
+      "selector": "span:crates/wasi/src/p1.rs:1665:5",
+      "ordinary_command": [
+        "cargo",
+        "check",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wasmtime-wasi",
+        "--no-default-features",
+        "--features",
+        "p1",
+        "--lib"
+      ],
+      "flux_command": [
+        "cargo",
+        "rustc",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wasmtime-wasi",
+        "--no-default-features",
+        "--features",
+        "p1",
+        "--lib",
+        "--",
+        "--cfg",
+        "fd_read_probe_fd_read_caller"
+      ],
+      "exit_code": 101,
+      "status": "blocked-before-spatial-contract-check",
+      "log": "fd-read-caller/flux.log",
+      "blocking_diagnostic": "error: internal compiler error: crates/flux-refineck/src/type_env/place_ty.rs:917:47: Query(Bug { def_id: None, location: \"crates/flux-infer/src/infer.rs:1142:22\", msg: \"incompatible base types: `InternalBitFlags` - `<OpenMode as PublicFlags>::Internal`\" })",
+      "category": "checker-limitation"
+    },
+    {
+      "name": "unix-read-adapter",
+      "package": "wasmtime-wasi",
+      "features": [
+        "--no-default-features",
+        "--features",
+        "p1"
+      ],
+      "source": "crates/wasi/src/filesystem/unix.rs",
+      "source_sha256_lf": "c4032ed7b80f9b52871df7a5effc70647ff896320502f5dc67642a3052e17fc2",
+      "selector": "span:crates/wasi/src/filesystem/unix.rs:98:1",
+      "ordinary_command": [
+        "cargo",
+        "check",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wasmtime-wasi",
+        "--no-default-features",
+        "--features",
+        "p1",
+        "--lib"
+      ],
+      "flux_command": [
+        "cargo",
+        "rustc",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wasmtime-wasi",
+        "--no-default-features",
+        "--features",
+        "p1",
+        "--lib",
+        "--",
+        "--cfg",
+        "fd_read_probe_unix_read_adapter"
+      ],
+      "exit_code": 101,
+      "status": "blocked-before-spatial-contract-check",
+      "log": "unix-read-adapter/flux.log",
+      "blocking_diagnostic": "error: internal compiler error: crates/flux-refineck/src/type_env/place_ty.rs:917:47: Query(Bug { def_id: None, location: \"crates/flux-infer/src/infer.rs:1142:22\", msg: \"incompatible base types: `InternalBitFlags` - `<OpenMode as PublicFlags>::Internal`\" })",
+      "category": "checker-limitation"
+    }
+  ],
+  "run_url": "https://github.com/sji005/wasmtime/actions/runs/44240968739",
+  "artifact_digests": {
+    "probes.zip": "897b2710ceecbe9a4238b0e00a52f8c86b80fb9c2be7b7106ecadde9fc4b4409",
+    "environment.zip": "270c1439245698fb7b46c14127830a82381d5f72586a590c9d4116a45a40a08a",
+    "generated-glue.zip": "1bde634067e9392a2d57829b1e593ccf44c41fafcede0ed0cdcb6137965d92cc"
+  }
+}

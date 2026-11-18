@@ -24,6 +24,8 @@
     "crates/wasi-io/src/impls.rs": "4684abc7147a10a601f344c320a16d5c601bd0e70b8003bb9da30720c1d4b0b4",
     "crates/wasi-io/src/streams.rs": "0911d8de54526b5cf9086de6336ab71e748aa16f2c5426c2a57be4f22a6f5ba7",
     "crates/wasi/witx/p1/wasi_snapshot_preview1.witx": "7bcedd2dc45f952ffe36266ca59b9e3a55f94e648ed82f6c4864d003b2f260b4",
-    "crates/wasi/witx/p1/typenames.witx": "838d37c5bb36c55d378eb3ebdd83ef56ef0b6eeec08ffc028647a04a92e30ac0"
+    "crates/wasi/witx/p1/typenames.witx": "838d37c5bb36c55d378eb3ebdd83ef56ef0b6eeec08ffc028647a04a92e30ac0",
+    "crates/wasmtime/src/runtime/store.rs": "dd09c3f146c2e43a531a787bc4baad8f036dc11e3e7f623b85e039fb2a673505",
+    "crates/wasmtime/src/runtime/vm/vmcontext.rs": "b8df30c2a5e2cdd33b0c9a476a05e1604d38df31047d25583dd33a47954c06f9"
   }
 }
