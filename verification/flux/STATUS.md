@@ -53,6 +53,20 @@ as unsound because it erases refinements for unresolved associated type projecti
 Sort-only normalization remains separate. Inspect the next run before advancing.
 The compatibility driver cache is keyed by patch/build-script/pins hashes.
 
+Run 44245526231 then built the checker successfully and passed selection tests,
+but the associated-field regression still crashed. The normalization context
+used the ADT's generic environment instead of the actual MIR owner's environment;
+the patch now threads that real owner through structural fold/unfold analysis.
+This normalization only handles unrefined Rust structural shapes. Refinement
+normalization remains separate, with its unsafe erasing fallback disabled.
+
+The next source candidate also adds specifications (no behavior changes) for
+GuestPtr's associated Pointer field, construction, offset/cast, array formation
+and base/length/accessor identities. These are not yet checked. The source guard
+registers exact insertions, allows only a single balanced sig/refined_by/field
+attribute per insertion, and rejects all runtime changes. Full-crate pointer
+contract proof and mutations remain to run after checker compatibility.
+
 Local paths useful for diagnosis (outside Git, within the shared workspace):
 
 - `../.tooling/flux-source`: pinned Flux source with the patches applied locally.

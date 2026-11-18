@@ -25,6 +25,13 @@ FLAGS = ["-Fcheck-overflow=strict", "-Fallow-raw-deref=none", "-Fstd-extern-spec
 # Exact original-source anchors select a function, not an incidental substring
 # such as fd_readdir when the intended function is fd_read.
 CASES = [
+    ("pointer-new", "wiggle", "crates/wiggle/src/lib.rs", "    pub fn new(pointer: T::Pointer)", ["--all-features"]),
+    ("pointer-offset", "wiggle", "crates/wiggle/src/lib.rs", "    pub fn offset(&self)", ["--all-features"]),
+    ("pointer-cast", "wiggle", "crates/wiggle/src/lib.rs", "    pub fn cast<U>", ["--all-features"]),
+    ("pointer-array", "wiggle", "crates/wiggle/src/lib.rs", "    pub fn as_array(&self", ["--all-features"]),
+    ("pointer-base", "wiggle", "crates/wiggle/src/lib.rs", "    /// This is similar to `<[T]>::as_ptr()`\n    pub fn offset_base", ["--all-features"]),
+    ("pointer-len", "wiggle", "crates/wiggle/src/lib.rs", "    /// For slices, returns the length of the slice, in elements.\n    pub fn len", ["--all-features"]),
+    ("pointer-as-ptr", "wiggle", "crates/wiggle/src/lib.rs", "    pub fn as_ptr(&self)", ["--all-features"]),
     ("range", "wiggle", "crates/wiggle/src/lib.rs", "    fn validate_range<T>", ["--all-features"]),
     ("typed-read-range", "wiggle", "crates/wiggle/src/lib.rs", "    fn validate_size_align<T>", ["--all-features"]),
     ("typed-write-range", "wiggle", "crates/wiggle/src/lib.rs", "    pub(crate) fn validate_size_align_mut<T>", ["--all-features"]),
@@ -110,8 +117,9 @@ def main():
         text = (ROOT / source).read_text()
         if text.count(anchor) != 1:
             raise RuntimeError(f"Original source anchor changed or ambiguous: {name}")
-        line = text[:text.index(anchor)].count("\n") + 1
-        column = len(anchor) - len(anchor.lstrip()) + 1
+        line = text[:text.index(anchor)].count("\n") + 1 + anchor.count("\n")
+        last_line = anchor.split("\n")[-1]
+        column = len(last_line) - len(last_line.lstrip()) + 1
         selector = f"span:{source}:{line}:{column}"
         case_dir = output / name
         case_dir.mkdir(exist_ok=True)

@@ -22,6 +22,27 @@ def digest(data):
     return hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
 
 
+def specification_only(annotation):
+    text = annotation.strip()
+    prefix = "#[cfg_attr(flux, flux::"
+    if not text.startswith(prefix) or any(token in text for token in ('"', '//', '/*')):
+        return False
+    kind = text[len(prefix):].split("(", 1)[0]
+    if kind not in ("sig", "refined_by", "field"):
+        return False
+    stack = []
+    pairs = {')': '(', ']': '[', '}': '{'}
+    for index, char in enumerate(text[1:], 1):
+        if char in "([{":
+            stack.append(char)
+        elif char in ")]}":
+            if not stack or stack.pop() != pairs[char]:
+                return False
+            if not stack and index != len(text) - 1:
+                return False
+    return not stack
+
+
 def main():
     manifest = json.loads((HERE / "sources.json").read_text())
     baseline = manifest["baseline"]
@@ -35,9 +56,15 @@ def main():
         annotated = original
         for addition in annotations.get(path, []):
             anchor, annotation = addition["anchor"], addition["annotation"]
-            assert annotation.startswith("#[cfg_attr(flux, flux::sig("), "only Flux signatures are allowed"
-            assert annotated.count(anchor) == 1, f"ambiguous specification site: {path}"
-            annotated = annotated.replace(anchor, annotation + anchor)
+            assert specification_only(annotation), "only a single whitelisted Flux specification attribute is allowed"
+            expected_count = addition.get("expected_count", 1)
+            occurrence = addition.get("occurrence", 0)
+            assert annotated.count(anchor) == expected_count, f"ambiguous specification site: {path}"
+            assert 0 <= occurrence < expected_count, "invalid specification occurrence"
+            at = -1
+            for _ in range(occurrence + 1):
+                at = annotated.index(anchor, at + 1)
+            annotated = annotated[:at] + annotation + annotated[at:]
         assert (ROOT / path).read_text(encoding="utf-8") == annotated, f"non-specification production change: {path}"
     paths = set(git("diff", "--name-only", baseline, "--").decode().splitlines())
     paths.update(git("ls-files", "--others", "--exclude-standard").decode().splitlines())
@@ -54,7 +81,7 @@ def main():
         ids.add(row["id"])
         assert row["source"] in manifest["files"], f"unfrozen edge source: {row['source']}"
         assert row["status"] in ("open", "excluded", "trusted-boundary"), "M0 has no checked production bodies"
-    print(f"PASS: {len(manifest['files'])} frozen inputs; {len(ids)} recorded fd_read edges; production differs only by {sum(map(len, annotations.values()))} registered Flux signature(s)")
+    print(f"PASS: {len(manifest['files'])} frozen inputs; {len(ids)} recorded fd_read edges; production differs only by {sum(map(len, annotations.values()))} registered Flux specification attribute(s)")
 
 
 if __name__ == "__main__":

@@ -416,7 +416,9 @@ impl<'a> GuestMemory<'a> {
 /// writing `unsafe` code when working with a `GuestPtr` if you're not using one
 /// of the already-attached helper methods.
 #[repr(transparent)]
+#[cfg_attr(flux, flux::refined_by(pointer: T::Pointer))]
 pub struct GuestPtr<T: ?Sized + Pointee> {
+    #[cfg_attr(flux, flux::field(T::Pointer[pointer]))]
     pointer: T::Pointer,
 }
 
@@ -426,6 +428,7 @@ impl<T: ?Sized + Pointee> GuestPtr<T> {
     /// Note that for sized types like `u32`, `GuestPtr<T>`, etc, the `pointer`
     /// value is a `u32` offset into guest memory. For slices and strings,
     /// `pointer` is a `(u32, u32)` offset/length pair.
+    #[cfg_attr(flux, flux::sig(fn(T::Pointer[@p]) -> GuestPtr<T>[p]))]
     pub fn new(pointer: T::Pointer) -> GuestPtr<T> {
         GuestPtr { pointer }
     }
@@ -434,6 +437,7 @@ impl<T: ?Sized + Pointee> GuestPtr<T> {
     ///
     /// Note that for sized types this returns a `u32`, but for slices and
     /// strings it returns a `(u32, u32)` pointer/length pair.
+    #[cfg_attr(flux, flux::sig(fn(&GuestPtr<T>[@p]) -> T::Pointer[p]))]
     pub fn offset(&self) -> T::Pointer {
         self.pointer
     }
@@ -444,6 +448,7 @@ impl<T: ?Sized + Pointee> GuestPtr<T> {
     /// parameter on this `GuestPtr`. Note that this is a safe method, where
     /// again there's no guarantees about alignment, validity, in-bounds-ness,
     /// etc of the returned pointer.
+    #[cfg_attr(flux, flux::sig(fn(&GuestPtr<T>[@p]) -> GuestPtr<U>[p]))]
     pub fn cast<U>(&self) -> GuestPtr<U>
     where
         U: Pointee<Pointer = T::Pointer> + ?Sized,
@@ -473,6 +478,7 @@ impl<T: ?Sized + Pointee> GuestPtr<T> {
 
     /// Returns a `GuestPtr` for an array of `T`s using this pointer as the
     /// base.
+    #[cfg_attr(flux, flux::sig(fn(&GuestPtr<T>[@p], elems: u32) -> GuestPtr<[T]>[(p, elems)]))]
     pub fn as_array(&self, elems: u32) -> GuestPtr<[T]>
     where
         T: GuestType + Pointee<Pointer = u32>,
@@ -486,11 +492,13 @@ impl<T> GuestPtr<[T]> {
     /// array.
     ///
     /// This is similar to `<[T]>::as_ptr()`
+    #[cfg_attr(flux, flux::sig(fn(&GuestPtr<[T]>[@p]) -> u32[p.0]))]
     pub fn offset_base(&self) -> u32 {
         self.pointer.0
     }
 
     /// For slices, returns the length of the slice, in elements.
+    #[cfg_attr(flux, flux::sig(fn(&GuestPtr<[T]>[@p]) -> u32[p.1]))]
     pub fn len(&self) -> u32 {
         self.pointer.1
     }
@@ -509,6 +517,7 @@ impl<T> GuestPtr<[T]> {
 
     /// Returns a `GuestPtr` pointing to the base of the array for the interior
     /// type `T`.
+    #[cfg_attr(flux, flux::sig(fn(&GuestPtr<[T]>[@p]) -> GuestPtr<T>[p.0]))]
     pub fn as_ptr(&self) -> GuestPtr<T> {
         GuestPtr::new(self.offset_base())
     }
