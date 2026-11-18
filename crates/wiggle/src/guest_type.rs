@@ -63,8 +63,10 @@ macro_rules! integer_primitives {
     ($([$ty:ident, $ty_atomic:ident],)*) => ($(
         impl GuestType for $ty {
             #[inline]
+            #[cfg_attr(flux, flux::sig(fn() -> u32[Self::size_of()]))]
             fn guest_size() -> u32 { mem::size_of::<Self>() as u32 }
             #[inline]
+            #[cfg_attr(flux, flux::sig(fn() -> usize[Self::align_of()]))]
             fn guest_align() -> usize { mem::align_of::<Self>() }
 
             #[inline]

@@ -24,6 +24,8 @@ CASES = (
     ("pointer-as-ptr", "    pub fn as_ptr(&self)", "GuestPtr::new(self.offset_base())", "GuestPtr::new(0)"),
     ("range", "    fn validate_range<T>", "let range = offset..offset + byte_len;", "let range = offset + 1..offset + byte_len;"),
     ("range-no-bounds-check", "    fn validate_range<T>", "if oob {", "if false {"),
+    ("guest-size", "            fn guest_size() -> u32", "mem::size_of::<Self>() as u32", "0"),
+    ("guest-align", "            fn guest_align() -> usize", "mem::align_of::<Self>()", "0"),
 )
 
 
@@ -32,15 +34,15 @@ def main():
     output.mkdir(parents=True, exist_ok=True)
     positive = json.loads((ROOT / "artifacts/fd-read/compat-original-body-probes/original-body-probes.json").read_text())
     observed = {case["name"]: case for case in positive["cases"]}
-    report = {"claim": "Pointer identities and slice-variant range contract only; binding's Ranges path, typed accesses and effects remain open",
+    report = {"claim": "Pointer identities, scalar layout, and slice-variant range contracts only; binding's Ranges path, typed accesses and effects remain open",
               "positive": positive, "cases": [], "status": "open"}
     clone = json.loads((ROOT / "artifacts/fd-read/clone-primitive-specs/clone.json").read_text())
-    source = ROOT / "crates/wiggle/src/lib.rs"
-    original = source.read_text()
     for name, anchor, before, after in CASES:
         result_case = {"name": name, "runs": []}
         report["cases"].append(result_case)
         checked = observed["range" if name == "range-no-bounds-check" else name]
+        source = ROOT / checked["source"]
+        original = source.read_text()
         if checked["source_sha256_lf"] != hashlib.sha256(original.encode()).hexdigest():
             raise RuntimeError("Proof and mutation source hashes differ")
         expected = ("conditional-slice-bound-checked-mutations-required" if name.startswith("range")
@@ -58,15 +60,16 @@ def main():
             # The selected methods have a single original expression of interest.
             # Restrict replacement to the selected method rather than another
             # identically named string accessor elsewhere in the original crate.
-            end = original.index("\n    }", start) + len("\n    }")
+            end = original.index("\n" if name.startswith("guest-") else "\n    }", start)
             body = original[start:end]
             if body.count(before) != 1:
                 raise RuntimeError("Mutation site changed or is ambiguous: " + name)
             mutated = original[:start] + body.replace(before, after) + original[end:]
-            mutant = copied / "src/lib.rs"
+            mutant = copied / "src" / source.name
             mutant.write_text(mutated)
             line = mutated[:mutated.index(anchor)].count("\n") + 1
-            selector = f"span:{mutant.relative_to(ROOT).as_posix()}:{line}:5"
+            selector = (checked["selector"] if name.startswith("guest-")
+                        else f"span:{mutant.relative_to(ROOT).as_posix()}:{line}:5")
             case_dir = output / name
             case_dir.mkdir(exist_ok=True)
             wrapper = case_dir / "rustc-wrapper"
@@ -91,7 +94,7 @@ def main():
                         raise RuntimeError("Expected a refinement rejection of " + name)
                     if any(s in log for s in ("internal compiler error", "internal flux error", "unsupported", "timed out")):
                         raise RuntimeError("A checker limitation is not a mutation rejection: " + name)
-            (case_dir / "mutated-lib.rs").write_text(mutated)
+            (case_dir / f"mutated-{source.name}").write_text(mutated)
             result_case["mutation"] = {"before": before, "after": after, "source_sha256_lf": hashlib.sha256(mutated.encode()).hexdigest()}
             result_case["status"] = "original-contract-checked-well-typed-body-mutation-rejected"
             print(name + ": " + result_case["status"], flush=True)

@@ -66,5 +66,19 @@
       "anchor": "    fn validate_range<T>(&self, offset: u32, len: u32) -> Result<Range<usize>, GuestError>\n",
       "annotation": "    #[cfg_attr(flux, flux::sig(fn(&GuestMemory[@m], offset: u32, u32) -> Result<Range<usize>{r: r.start == offset && r.start <= r.end && r.end - r.start <= u32::MAX && (m.kind != 2 => r.end <= m.slice_len)}, GuestError>))]\n"
     }
+  ],
+  "crates/wiggle/src/guest_type.rs": [
+    {
+      "anchor": "            fn guest_size() -> u32 { mem::size_of::<Self>() as u32 }\n",
+      "annotation": "            #[cfg_attr(flux, flux::sig(fn() -> u32[Self::size_of()]))]\n",
+      "expected_count": 2,
+      "occurrence": 0
+    },
+    {
+      "anchor": "            fn guest_align() -> usize { mem::align_of::<Self>() }\n",
+      "annotation": "            #[cfg_attr(flux, flux::sig(fn() -> usize[Self::align_of()]))]\n",
+      "expected_count": 2,
+      "occurrence": 0
+    }
   ]
 }

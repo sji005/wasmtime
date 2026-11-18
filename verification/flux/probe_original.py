@@ -42,6 +42,8 @@ CASES = [
     ("pointer-iter", "wiggle", "crates/wiggle/src/lib.rs", "    pub fn iter(", ["--all-features"]),
     ("pointer-subrange", "wiggle", "crates/wiggle/src/lib.rs", "    pub fn get_range(", ["--all-features"]),
     ("memory-slice", "wasmtime", "crates/wasmtime/src/runtime/memory.rs", "    fn into_range_mut(", ["--no-default-features", "--features", "runtime,std,component-model,async"]),
+    ("guest-size", "wiggle", "crates/wiggle/src/guest_type.rs", "def:>::guest_size", ["--all-features"]),
+    ("guest-align", "wiggle", "crates/wiggle/src/guest_type.rs", "def:>::guest_align", ["--all-features"]),
     ("iovec-selector", "wasmtime-wasi", "crates/wasi/src/p1.rs", "    fn first_non_empty_iovec(", ["--no-default-features", "--features", "p1"]),
     ("fd-read-caller", "wasmtime-wasi", "crates/wasi/src/p1.rs", "    async fn fd_read(", ["--no-default-features", "--features", "p1"]),
     ("unix-read-adapter", "wasmtime-wasi", "crates/wasi/src/filesystem/unix.rs", "pub(crate) fn read_at_cursor_unspecified(", ["--no-default-features", "--features", "p1"]),
@@ -131,13 +133,18 @@ def main():
         if args.case and name not in args.case:
             continue
         text = (ROOT / source).read_text()
-        expected_count = 2 if name in ("pointer-base", "pointer-len") else 1
-        if text.count(anchor) != expected_count:
-            raise RuntimeError(f"Original source anchor changed or ambiguous: {name}")
-        line = text[:text.index(anchor)].count("\n") + 1 + anchor.count("\n")
-        last_line = anchor.split("\n")[-1]
-        column = len(last_line) - len(last_line.lstrip()) + 1
-        selector = f"span:{source}:{line}:{column}"
+        if anchor.startswith("def:"):
+            # Integer primitive methods share a macro callsite. Select the
+            # expanded impl methods by name rather than the whole invocation.
+            selector = anchor
+        else:
+            expected_count = 2 if name in ("pointer-base", "pointer-len") else 1
+            if text.count(anchor) != expected_count:
+                raise RuntimeError(f"Original source anchor changed or ambiguous: {name}")
+            line = text[:text.index(anchor)].count("\n") + 1 + anchor.count("\n")
+            last_line = anchor.split("\n")[-1]
+            column = len(last_line) - len(last_line.lstrip()) + 1
+            selector = f"span:{source}:{line}:{column}"
         case_dir = output / name
         case_dir.mkdir(exist_ok=True)
         env = dict(os.environ, RUSTUP_TOOLCHAIN="nightly-2026-10-22", CARGO_INCREMENTAL="0", CARGO_TERM_COLOR="never")
