@@ -71,6 +71,7 @@ def main():
     for path in paths:
         assert (path.startswith("verification/flux/") or path in annotations or path in (
             ".github/workflows/flux-fd-read.yml",
+            ".github/workflows/flux-sequential.yml",
             "crates/wiggle/tests/fd_read_memory.rs",
             "crates/wasi/tests/fd_read_memory.rs",
         )), f"unregistered production change: {path}"

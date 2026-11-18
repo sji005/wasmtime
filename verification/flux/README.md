@@ -1,5 +1,11 @@
 # Original fd_read memory-isolation investigation
 
+Current scope revision: scheduling, suspension/resumption and faithful task
+result forwarding are explicitly trusted; see [the exact boundary](SCHEDULING.md).
+The worker body and all guest-memory operations remain proof targets. This
+decision adds no new verified result and does not change historical checker
+provenance. Future accepted runs should use the unmodified pinned checker.
+
 Execution of [the supplied plan](PLAN.md), starting from clean Wasmtime
 `7c83a428028b44e1a73b40aa6a912d6700983624`, on branch
 `flux/fd-read-memory-isolation`. Production changes consist of Flux annotations.
@@ -27,7 +33,7 @@ The unpatched checker remains available for comparison.
 | M0: freeze/environment | Passed; 25 frozen inputs and 30 inspected edges | Preserve exact environment/evidence |
 | M1: range/metadata | Arithmetic, exact integer width and slice-backed range bound checked. `MemoryRanges`, pointer refinements and typed access open | Check the selected allocation and original metadata reads |
 | M2: direct file | Original adapter count checked in the full WASI crate. Slice and caller proof open | Compose original caller, range and slice contracts with external file confinement |
-| M3: worker/stdin | Open | Check source/destination capacities, await ownership, cancellation and selected-memory stability |
+| M3: worker/stdin | Open; scheduler internals trusted under T-TASK | Check source/destination capacities, owned captures and selected-memory validity; compose results using the declared forwarding assumption |
 | M4: generated ABI/errors | Fresh expansion inspected; proof open | Prove captured output store, selection, aliases and all error exits |
 | M5: other configurations | Assessed as separate open obligations | Shared-memory concurrency/atomics/raw copies, Windows adapter and 32-bit arithmetic |
 

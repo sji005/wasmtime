@@ -16,7 +16,7 @@ depend on the external primitive and standard-library assumptions below.
 | T-RANGE | Standard `Range<usize>` endpoint cloning and length | `Range<Idx>` clones its two fields according to `Idx::cloned`. `usize::clone` returns its input. Exact size iteration uses `end - start` with zero for an empty or reversed range. The external specifications are pinned to the reviewed Rust source and have positive and incorrect-result controls. |
 | T-VEC | Standard owned Vec behavior | Allocation, initialized elements, length/capacity and truncate semantics. Caller use of the read count, closure ownership, selected guest destination, and copy length remain obligations; no whole-worker wrapper is assumed safe. |
 | T-STREAM | Owned host stream result | Stream/Bytes/Vec ownership and valid contents; no guest buffer is supplied to the primitive. P1's explicit returned-length check remains to be verified. A dynamic embedder stream's other effects must be declared at that external boundary; debug assertions do not prove its contract. |
-| T-TASK | Tokio task/ownership semantics | Blocking closures and their return values satisfy Send + static. Aborting/dropping the handle need not stop running blocking work. The actual closure must be shown to capture only owned host buffers/file state; no general assumption that spawn_blocking makes guest borrows safe is permitted. |
+| T-TASK | Trusted scheduling and result forwarding, authorized November 18, 2026 | Inline/worker dispatch, Tokio scheduling and join/poll/drop plumbing are assumed to preserve captured inputs and forward the exact callback result and its established contracts on normal completion. Ownership/lifetimes are respected; task machinery adds no guest effects beyond the callback. Cancellation need not stop a running blocking read. Callback preconditions, its body and owned capture discipline remain obligations. See SCHEDULING.md; this is an assumption, not a scheduler proof or an implemented Flux forwarding contract. |
 | T-MACHINERY | Flux, Rust compiler model, solver and external specs | `pins.json` records the Flux revision, Rust toolchain, fixpoint and Z3. Each candidate records its patch and binary digests and repeats the strict M0 controls. Candidate support for explicit async blocks uses the default return refinement and requires checking the body. Result relationships across nested awaits and memory effects remain open. The upstream Cargo bootstrap remains non-hermetic. |
 
 Local M0 probe functions: `addition`, `slice_read`, `pointer_copy`. No trusted or
@@ -33,7 +33,11 @@ particular, `first_non_empty_iovec`, spatial validation, raw slice formation,
 atomics, the direct caller, Vec worker, streams, cancellation, selected memory
 identity across await and generated ABI stores are all open. Host-only descriptor
 initialization/lookup/fuel/error code needs narrow no-guest-effect accounting.
-No broad ignore/trust annotation discharges any of these obligations.
+Scheduler internals and result forwarding are now assumed under T-TASK, as
+authorized in [the scheduling scope decision](SCHEDULING.md). Callback capture
+discipline, guest-memory validity across suspension and all guest accesses remain
+open. No broad ignore/trust annotation discharges those obligations. The new
+policy is documented; no production trusted annotation or new proof is added.
 
 A future successful helper proof requires well-typed temporary mutations of its
 original body, including removal of its bounds check and inflated access width or

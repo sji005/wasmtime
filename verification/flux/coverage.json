@@ -265,7 +265,7 @@
       "original_check": "as_blocking_file or spawn_blocking with owned file Arc",
       "sink": "Tokio blocking task",
       "status": "open",
-      "trust": "T-RUST; T-TASK; arbitrary closure not broadly assumed guest-safe"
+      "trust": "T-RUST; T-TASK scheduling/result forwarding trusted by November 18 scope decision; callback body and owned-capture obligations remain open"
     },
     {
       "id": "E20",
@@ -277,8 +277,8 @@
       "offset_count": "no guest pointer should escape to worker",
       "original_check": "static bounds; join handle abort on drop",
       "sink": "tokio::task::spawn_blocking",
-      "status": "open",
-      "trust": "T-TASK; running blocking work may outlive abort; async proof open"
+      "status": "trusted-boundary",
+      "trust": "T-TASK under SCHEDULING.md; scheduling/poll/drop behavior assumed, including work outliving abort; no guarantee of termination or cancellation stopping a running read"
     },
     {
       "id": "E21",

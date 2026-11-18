@@ -1,5 +1,12 @@
 # Plan: Flux verification of fd_read memory isolation
 
+Current user-authorized revision (November 18, 2026): treat scheduling and
+faithful task-result forwarding as trusted, under [SCHEDULING.md](SCHEDULING.md).
+Use the unmodified pinned verifier for future accepted results. This supersedes
+the original scheduler-proof requirements below, while retaining worker-body,
+capture-discipline and guest-memory proof obligations. Historical results are
+unchanged and no new proof is claimed by this scope decision.
+
 Status: design only. No new Flux proof, bug finding or runtime change is claimed.
 
 Branch: `flux/memory-effects-plan`, based on clean `main` at
@@ -210,6 +217,9 @@ count, truncation, returned length, GuestPtr::get_range and copy_from_slice.
 Prove both source capacity and guest destination footprint. Inspect what guest
 access is dropped before await and what is reacquired at copy-back. Account for
 cancellation and work that can outlive an abort without leaking guest pointers.
+Assume dispatch/poll/wake/result-forwarding internals under T-TASK rather than
+proving the scheduler. The actual worker body, owned captures and all guest
+effects remain obligations; async stream logic is not automatically trusted.
 
 For stdin, check the existing explicit read.len() bound and subsequent subrange
 and copy. Preserve actual ordering and early exits. Track errors after partial

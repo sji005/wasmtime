@@ -1,0 +1,86 @@
+name: Baseline Flux sequential worker
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['flux/fd-read-memory-isolation']
+    paths:
+      - 'verification/flux/sequential_worker.rs'
+      - 'verification/flux/check_sequential_worker.py'
+      - '.github/workflows/flux-sequential.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  baseline:
+    if: github.repository == 'sji005/wasmtime'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Check source scope and Python syntax
+        run: |
+          python3 verification/flux/check_sources.py
+          python3 -m py_compile verification/flux/check_sequential_worker.py
+      - name: Install pinned Rust compiler
+        run: |
+          rustup toolchain install nightly-2026-10-22 --profile minimal --component rustfmt --component rust-src --component rustc-dev --component llvm-tools
+          rustup default nightly-2026-10-22
+      - name: Check sequential source formatting
+        run: rustfmt --edition 2024 --check verification/flux/sequential_worker.rs
+      - name: Restore unmodified Flux and solvers
+        id: flux-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: |
+            ~/.flux/sysroot
+            ~/.cargo/bin/flux
+            ~/.cargo/bin/cargo-flux
+            ~/.cargo/bin/z3
+            ~/.cargo/bin/fixpoint
+          key: flux-fd-read-ubuntu24-x64-${{ hashFiles('verification/flux/install.sh', 'verification/flux/pins.json') }}
+      - name: Bootstrap unmodified checker if unavailable
+        if: steps.flux-cache.outputs.cache-hit != 'true'
+        run: bash verification/flux/install.sh
+      - name: Save baseline toolchain
+        if: steps.flux-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            ~/.flux/sysroot
+            ~/.cargo/bin/flux
+            ~/.cargo/bin/cargo-flux
+            ~/.cargo/bin/z3
+            ~/.cargo/bin/fixpoint
+          key: ${{ steps.flux-cache.outputs.cache-primary-key }}
+      - name: Record baseline driver identity and run positive and negative controls
+        run: |
+          unset FLUX_DRIVER FLUX_COMPAT_RECEIPT
+          mkdir -p artifacts/fd-read/baseline-identity
+          find ~/.flux/sysroot -type f -name flux-driver -exec sha256sum {} \; > artifacts/fd-read/baseline-identity/driver.sha256
+          test -s artifacts/fd-read/baseline-identity/driver.sha256
+          python3 verification/flux/check_environment.py --output-dir artifacts/fd-read/environment-baseline
+      - name: Execute real synchronous file-read regressions
+        run: |
+          mkdir -p artifacts/fd-read/sequential-worker
+          rustc --edition=2024 --test verification/flux/sequential_worker.rs -o artifacts/fd-read/sequential-worker/runtime-tests
+          artifacts/fd-read/sequential-worker/runtime-tests | tee artifacts/fd-read/sequential-worker/runtime-tests.log
+      - name: Load existing external OS primitive contracts
+        run: |
+          unset FLUX_DRIVER FLUX_COMPAT_RECEIPT
+          python3 verification/flux/compile_primitive_specs.py
+      - name: Check sequential worker and reject an extra returned byte
+        run: python3 verification/flux/check_sequential_worker.py
+      - name: Retain complete diagnostics including failures
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: baseline-sequential-worker
+          path: artifacts/fd-read
+          if-no-files-found: warn

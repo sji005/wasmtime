@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   environment:
-    if: github.repository == 'sji005/wasmtime'
+    if: github.repository == 'sji005/wasmtime' && !contains(github.event.head_commit.message, '[baseline-only]')
     concurrency:
       group: fd-read-checker-${{ github.ref }}
       cancel-in-progress: true
@@ -161,7 +161,7 @@ jobs:
           if-no-files-found: warn
 
   integration:
-    if: github.repository == 'sji005/wasmtime'
+    if: github.repository == 'sji005/wasmtime' && !contains(github.event.head_commit.message, '[baseline-only]')
     concurrency:
       group: fd-read-integration-${{ github.ref }}
       cancel-in-progress: false

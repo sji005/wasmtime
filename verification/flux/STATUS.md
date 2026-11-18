@@ -5,6 +5,14 @@ The checked target is x86-64 Linux with WASI P1, which enables P2. The branch
 The source guard verifies that production differences consist of registered
 Flux attributes. The `fd_read` theorem remains open.
 
+Current scope decision (November 18, 2026): task scheduling and faithful result
+forwarding are explicitly trusted under [T-TASK](SCHEDULING.md). Scheduler
+internals are no longer a proof target. Worker logic, capture discipline and
+guest-memory effects remain open proof obligations. This documents an authorized
+assumption; it adds no Flux forwarding specification or positive proof result.
+Future accepted runs should use the unmodified pinned checker. Historical
+candidate-driver evidence below keeps its original scope and provenance.
+
 | Evidence | Checked result | Scope |
 | --- | --- | --- |
 | [Baseline run 44240968739](https://github.com/sji005/wasmtime/actions/runs/44240968739) | Passed M0 with three positive functions and three rejected mutations. Ordinary builds, three boundary regressions and fresh P1 expansion passed. | Environment, original behavior on tested inputs, and generated source inspection |
