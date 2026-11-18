@@ -1,0 +1,61 @@
+diff --git a/crates/flux-refineck/src/ghost_statements/fold_unfold.rs b/crates/flux-refineck/src/ghost_statements/fold_unfold.rs
+index b0191640d..b7122b228 100644
+--- a/crates/flux-refineck/src/ghost_statements/fold_unfold.rs
++++ b/crates/flux-refineck/src/ghost_statements/fold_unfold.rs
+@@ -2,9 +2,11 @@ use std::{collections::hash_map::Entry, fmt, iter};
+ 
+ use flux_common::{tracked_span_assert_eq, tracked_span_bug, tracked_span_dbg_assert_eq};
+ use flux_middle::{
+-    PlaceExt as _, def_id_to_string, global_env::GlobalEnv, queries::QueryResult, query_bug, rty,
++    PlaceExt as _, def_id_to_string, global_env::GlobalEnv, queries::{QueryErr, QueryResult}, query_bug, rty,
+ };
+ use flux_rustc_bridge::{
++    ToRustc,
++    lowering::Lower,
+     mir::{
+         BasicBlock, Body, BorrowKind, FIRST_VARIANT, FieldIdx, Local, Location,
+         NonDivergingIntrinsic, Operand, Place, PlaceElem, PlaceRef, Rvalue, Statement,
+@@ -823,7 +825,7 @@ fn downcast(
+         .fields
+         .iter()
+         .map(|field| {
+-            let ty = genv.lower_type_of(field.did)?.subst(args);
++            let ty = instantiated_field_ty(genv, adt_def, field.did, args)?;
+             QueryResult::Ok(PlaceNode::Ty(ty))
+         })
+         .try_collect()
+@@ -839,12 +841,33 @@ fn downcast_struct(
+         .fields
+         .iter()
+         .map(|field| {
+-            let ty = genv.lower_type_of(field.did)?.subst(args);
++            let ty = instantiated_field_ty(genv, adt_def, field.did, args)?;
+             QueryResult::Ok(PlaceNode::Ty(ty))
+         })
+         .try_collect()
+ }
+ 
++// Associated fields can become tuples/ADTs only after generic substitution
++// (for example <[T] as Pointee>::Pointer = (u32, u32)). Ask rustc to normalize
++// the instantiated Rust type before deriving structural ghost operations.
++// Failure preserves the original alias: it never substitutes an assumed type.
++fn instantiated_field_ty(
++    genv: GlobalEnv,
++    adt_def: &AdtDef,
++    field_id: DefId,
++    args: &GenericArgs,
++) -> QueryResult<Ty> {
++    let ty = genv.lower_type_of(field_id)?.subst(args);
++    let tcx = genv.tcx();
++    let typing_env = rustc_middle::ty::TypingEnv::non_body_analysis(tcx, adt_def.did());
++    match tcx.try_normalize_erasing_regions(typing_env, ty.to_rustc(tcx)) {
++        Ok(normalized) => normalized
++            .lower(tcx)
++            .map_err(|err| QueryErr::unsupported(field_id, err.into_err())),
++        Err(_) => Ok(ty),
++    }
++}
++
+ impl fmt::Debug for Env {
+     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+         write!(

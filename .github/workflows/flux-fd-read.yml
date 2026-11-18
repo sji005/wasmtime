@@ -73,14 +73,32 @@ jobs:
         run: python3 verification/flux/probe_original.py --case range --case memory-slice --case fd-read-caller --output-dir artifacts/fd-read/original-body-probes
       - name: Check narrow original-adapter source-slice experiment
         run: python3 verification/flux/check_adapter.py --output-dir artifacts/fd-read/adapter
+      - name: Restore separate compatibility driver
+        id: compatibility-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/.cache/fd-read-flux-compat
+          key: flux-fd-read-compat-${{ hashFiles('verification/flux/toolchain/*.patch', 'verification/flux/toolchain/build_compat.sh', 'verification/flux/pins.json') }}
       - name: Build separate Flux selection-compatibility candidate
         run: bash verification/flux/toolchain/build_compat.sh
       - name: Compare baseline and candidate selection with rejected selected mutations
         run: python3 verification/flux/toolchain/check_selection.py
+      - name: Check associated-field normalization and reject a wrong postcondition
+        run: python3 verification/flux/toolchain/check_projection.py
       - name: Require strict M0 acceptance and rejection with the candidate driver
         run: python3 verification/flux/check_environment.py --output-dir artifacts/fd-read/environment-compat
+      - name: Compile narrow external file primitive specification
+        run: python3 verification/flux/compile_primitive_specs.py
+      - name: Validate cross-crate external specification loading
+        run: python3 verification/flux/check_adapter.py --external-specs --output-dir artifacts/fd-read/adapter-external
       - name: Collect original-body diagnostics with the candidate driver
         run: python3 verification/flux/probe_original.py --output-dir artifacts/fd-read/compat-original-body-probes
+      - name: Cache validated compatibility driver
+        if: steps.compatibility-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ~/.cache/fd-read-flux-compat
+          key: ${{ steps.compatibility-cache.outputs.cache-primary-key }}
       - name: Retain complete environment diagnostics
         if: always()
         uses: actions/upload-artifact@v7
@@ -110,7 +128,10 @@ jobs:
           path: |
             artifacts/fd-read/compat-toolchain
             artifacts/fd-read/compat-selection
+            artifacts/fd-read/compat-projection
             artifacts/fd-read/environment-compat
+            artifacts/fd-read/file-primitive-specs
+            artifacts/fd-read/adapter-external
             artifacts/fd-read/compat-original-body-probes
           if-no-files-found: warn
 

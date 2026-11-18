@@ -23,6 +23,7 @@ from check_environment import ROOT, HERE, TARGET, TOOLCHAIN, DIAGNOSTIC
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--external-specs", action="store_true")
     args = parser.parse_args()
     output = args.output_dir.resolve()
     output.mkdir(parents=True, exist_ok=True)
@@ -37,9 +38,17 @@ def main():
     for line in imports.splitlines():
         assert source.count(line) == 1, f"original std import changed: {line}"
     header = "#![allow(dead_code)]\n#[cfg(flux)] extern crate flux_core;\n#[cfg(flux)] extern crate flux_rs;\n#[cfg(flux)] #[path = " + json.dumps(str(HERE / "file_read_specs.rs")) + "] mod file_read_specs;\n"
+    if args.external_specs:
+        header = "#![allow(dead_code)]\n#[cfg(flux)] extern crate flux_core;\n"
     env = dict(os.environ, RUSTUP_TOOLCHAIN=TOOLCHAIN)
     flags = ["--edition=2024", "--crate-type=lib", "--target", TARGET, "--color=never", "--out-dir", str(output)]
     proof = ["--cfg", "flux", "-Fcheck-overflow=strict", "-Fallow-raw-deref=none"]
+    if args.external_specs:
+        primitive = json.loads(Path(env["FD_READ_PRIMITIVE_MANIFEST"]).read_text())
+        proof.append("-Zunstable-options")
+        for kind in ("rmeta", "rlib"):
+            proof.extend(["--extern", "force:fd_read_file_primitive=" + primitive["artifacts"][kind]])
+        proof.extend(["-L", "dependency=" + str(Path(primitive["artifacts"]["rmeta"]).parent)])
     report = {
         "claim": "Narrow source-slice result-count experiment, not a production fd_read proof",
         "source": source_path,

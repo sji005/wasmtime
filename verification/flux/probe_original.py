@@ -51,6 +51,12 @@ def wrap(arguments):
         command = ["flux", *rustargs, *FLAGS, "-Ffull-compilation=on",
                    f"-Finclude={os.environ['FD_READ_PROBE_SELECTOR']}",
                    f"-Flog-dir={output / 'flux-log'}"]
+        if selected == "wasmtime_wasi" and "FD_READ_PRIMITIVE_MANIFEST" in os.environ:
+            primitive = json.loads(Path(os.environ["FD_READ_PRIMITIVE_MANIFEST"]).read_text())
+            command.append("-Zunstable-options")
+            for kind in ("rmeta", "rlib"):
+                command.extend(["--extern", "force:fd_read_file_primitive=" + primitive["artifacts"][kind]])
+            command.extend(["-L", "dependency=" + str(Path(primitive["artifacts"]["rmeta"]).parent)])
         (output / "compiler-invocation.json").write_text(json.dumps(command, indent=2) + "\n")
         print("FD_READ_ACTUAL_BODY: " + json.dumps(command), flush=True)
     return subprocess.run(command, close_fds=False).returncode
@@ -59,7 +65,7 @@ def wrap(arguments):
 def classify(code, log, invoked):
     if not invoked:
         return "infrastructure-no-flux-invocation"
-    if re.search(r"(?i)(unsupported|not supported|internal compiler error|panicked at|not yet implemented)", log):
+    if re.search(r"(?i)(unsupported|not supported|internal compiler error|internal flux error|panicked at|not yet implemented)", log):
         return "open-checker-limitation"
     if re.search(r"error\[E0999\]: (refinement type error|arithmetic operation may (over|under)flow|type invariant may not hold)", log):
         return "open-refinement-obligation-not-a-bug-finding"
@@ -91,6 +97,7 @@ def main():
         "source_revision": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
         "pins": json.loads((HERE / "pins.json").read_text()),
         "checker_variant": json.loads(Path(os.environ["FLUX_COMPAT_RECEIPT"]).read_text()) if "FLUX_COMPAT_RECEIPT" in os.environ else "unmodified pinned baseline",
+        "external_file_primitive": json.loads(Path(os.environ["FD_READ_PRIMITIVE_MANIFEST"]).read_text()) if "FD_READ_PRIMITIVE_MANIFEST" in os.environ else None,
         "target": TARGET,
         "explicitly_trusted_local_bodies": [],
         "explicitly_ignored_local_bodies": [],
@@ -139,7 +146,7 @@ def main():
         })
         (output / "original-body-probes.json").write_text(json.dumps(report, indent=2) + "\n")
         # Full logs remain artifacts; print diagnostics without flooding CI logs.
-        diagnostic = [s for s in log.splitlines() if any(k in s for k in ("error", "unsupported", "summary."))]
+        diagnostic = [s for s in log.splitlines() if not s.startswith("FD_READ_ACTUAL_BODY:") and any(k in s for k in ("error", "unsupported", "summary."))]
         print(f"{name}: {status}\n" + "\n".join(diagnostic[:12]), flush=True)
     print("Probe collection finished; no production spatial proof is claimed.")
     return 0

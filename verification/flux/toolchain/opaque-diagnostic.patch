@@ -1,0 +1,17 @@
+diff --git a/crates/flux-desugar/src/lib.rs b/crates/flux-desugar/src/lib.rs
+index 10b056ce9..ad85315b7 100644
+--- a/crates/flux-desugar/src/lib.rs
++++ b/crates/flux-desugar/src/lib.rs
+@@ -103,10 +103,10 @@ pub fn desugar<'genv>(
+             let item = cx.with_rust_item_ctxt(owner_id, None, |cx| cx.lift_opaque_ty(opaque_ty))?;
+             fhir::Node::OpaqueTy(genv.alloc(item))
+         }
+-        _ => {
++        node => {
+             return Err(query_bug!(
+                 def_id,
+-                "unexpected {} found in desugaring",
++                "unexpected {} found in desugaring: {node:?}",
+                 genv.tcx().def_descr(def_id.to_def_id())
+             ));
+         }
