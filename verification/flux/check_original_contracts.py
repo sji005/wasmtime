@@ -27,6 +27,7 @@ CASES = (
     ("range-wrong-byte-count", "    fn validate_range<T>", "let range = offset..offset + byte_len;", "let range = offset..offset + byte_len / 2;"),
     ("guest-size", "            fn guest_size() -> u32", "mem::size_of::<Self>() as u32", "0"),
     ("guest-align", "            fn guest_align() -> usize", "mem::align_of::<Self>()", "0"),
+    ("payload-slice-variants", "    pub fn as_slice_mut(", "&mut slice[range]", "&mut slice[range.start..range.end + 1]"),
 )
 
 
@@ -50,6 +51,8 @@ def main():
             expected = "conditional-slice-bound-checked-mutations-required"
         elif name.startswith("guest-"):
             expected = "scalar-layout-contract-checked-mutations-required"
+        elif name == "payload-slice-variants":
+            expected = "slice-backed-payload-contract-checked-mutation-required"
         else:
             expected = "feasibility-only-no-spatial-postcondition"
         if checked["exit_code"] != 0 or checked["status"] != expected:
@@ -85,7 +88,7 @@ def main():
                        FD_READ_PROBE_OUTPUT=str(case_dir), FD_READ_PROBE_SELECTOR=selector)
             for mode in ("ordinary", "flux"):
                 env["FD_READ_PROBE_MODE"] = mode
-                command = ["cargo", "rustc", "--locked", "--target", TARGET, "-p", "wiggle", "--all-features", "--lib", "--", "--cfg",
+                command = ["cargo", "rustc", "--locked", "--target", TARGET, "-p", "wiggle", *checked["features"], "--lib", "--", "--cfg",
                            "fd_read_contract_mutant_" + name.replace("-", "_") + "_" + mode]
                 run = subprocess.run(command, cwd=ROOT, env=env, text=True, capture_output=True, timeout=900)
                 log = run.stdout + run.stderr
@@ -95,7 +98,9 @@ def main():
                 if mode == "ordinary" and run.returncode:
                     raise RuntimeError("Mutation is not well typed: " + name)
                 if mode == "flux":
-                    if run.returncode == 0 or "error[E0999]: refinement type error" not in log:
+                    if run.returncode == 0 or not any(s in log for s in (
+                        "error[E0999]: refinement type error", "error[E0999]: assertion might fail:",
+                    )):
                         raise RuntimeError("Expected a refinement rejection of " + name)
                     if any(s in log for s in ("internal compiler error", "internal flux error", "unsupported", "timed out")):
                         raise RuntimeError("A checker limitation is not a mutation rejection: " + name)

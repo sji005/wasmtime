@@ -12,6 +12,7 @@ Flux attributes. The `fd_read` theorem remains open.
 | [Arithmetic run 44250912386](https://github.com/sji005/wasmtime/actions/runs/44250912386) | The original `validate_range` checked with strict overflow. Successful intervals start at the requested offset, are ordered, and have byte width at most `u32::MAX`. Shifting the start by one was rejected. | Original Wiggle crate. No memory length in that revision's postcondition. |
 | [Slice bounds run 44252707563](https://github.com/sji005/wasmtime/actions/runs/44252707563) | The original `validate_range` also proved `end <= slice_len` for `Unshared` and `Shared`. The shift and removed bounds check mutations compiled as Rust and were rejected. The external `Range<usize>::clone` control checked both endpoints and rejected the wrong end. | One of 102 functions selected for Flux. The 101 excluded bodies remain unverified. The run's integration job passed. A later, independent generic tuple sort control failed. |
 | [Integer layout and ABI run 44255286310](https://github.com/sji005/wasmtime/actions/runs/44255286310) | Original macro-expanded integer `guest_size` and `guest_align` matched the Rust size and alignment. Returning zero failed each contract. The generated P1 binding executed short read, truncated metadata, invalid result pointer and all-empty EOF cases. | One original WASI entry point tested on four concrete inputs. The typed access and end-to-end effect theorem remain open. |
+| [Exact byte count run 44256865241](https://github.com/sji005/wasmtime/actions/runs/44256865241) | Successful `validate_range` results have width equal to the element count times the layout size for types with the checked size equality. The shifted offset, removed guard and halved width mutations were rejected. | Layout equality checked for the original integer implementations. Width and slice-backed bounds still need composition at the effects. |
 
 The immutable Action archives and their SHA-256 receipts are retained under
 `evidence/`. The range bound for `Shared` concerns the validator's returned
@@ -45,7 +46,13 @@ tried to compare an implementation lifetime with the trait's `Self` type.
 The next candidate uses the existing projection-bound checker for corresponding
 trait/implementation opaques, including the `Future::Output` contract. Its
 regression includes an implementation that satisfies its own weaker output
-contract but violates its trait's contract.
+contract but violates its trait's contract. The native and explicit
+`impl Future + Send` trait controls passed. The weakened implementation and
+wrong body results were rejected. The original `fd_read` then reached a
+`Future::Output` projection for tracing's nested async block. The new candidate
+checks explicit local async block bodies before using their compiler-provided
+default output type. A separate nested array access control requires checking
+the block itself.
 
 ## Open production obligations
 

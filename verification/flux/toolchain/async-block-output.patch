@@ -61,7 +61,7 @@ index f3c2a6690..f1ae078b0 100644
      UserDefinedImpl(DefId),
      ParamEnv(Binder<ProjectionPredicate>),
 diff --git a/crates/flux-refineck/src/checker.rs b/crates/flux-refineck/src/checker.rs
-index cfa1fc4f3..3e71c336d 100644
+index cfa1fc4f3..9a619b3ad 100644
 --- a/crates/flux-refineck/src/checker.rs
 +++ b/crates/flux-refineck/src/checker.rs
 @@ -44,5 +44,8 @@ use rustc_data_structures::{
@@ -78,7 +78,7 @@ index cfa1fc4f3..3e71c336d 100644
                      .check_operands(infcx, env, stmt_span, ops)
                      .with_span(stmt_span)?;
 -                Ok(Ty::coroutine(*did, resume_ty, upvar_tys.into(), args.clone()))
-+                let upvar_tys: List<Ty> = upvar_tys.into();
++                let upvar_tys: rty::List<Ty> = upvar_tys.into();
 +                if matches!(
 +                    self.genv.tcx().coroutine_kind(*did),
 +                    Some(CoroutineKind::Desugared(CoroutineDesugaring::Async, CoroutineSource::Block))
@@ -96,7 +96,7 @@ index cfa1fc4f3..3e71c336d 100644
 +                    };
 +                    self.check_coroutine_obligations(
 +                        infcx,
-+                        vec![Binder::bind_with_vars(obligation, List::empty())],
++                        vec![Binder::bind_with_vars(obligation, rty::List::empty())],
 +                    )?;
 +                }
 +                Ok(Ty::coroutine(*did, resume_ty, upvar_tys, args.clone()))

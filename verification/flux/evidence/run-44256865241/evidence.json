@@ -1,0 +1,14 @@
+{
+  "run_url": "https://github.com/sji005/wasmtime/actions/runs/44256865241",
+  "source_revision": "684118aac2c8072c6a22763974cf77fc2eed2dc1",
+  "artifact": {
+    "id": 14405414763,
+    "file": "compatibility.zip",
+    "sha256": "9489199dbf3cdf1879d0af2b6122497a7223ff3f4fd1fb3b64e796f1e6c85549"
+  },
+  "jobs": {
+    "environment": 134640525458,
+    "integration": 134640525833
+  },
+  "claim": "Original exact byte-count contract with rejected incorrect width. Async trait controls passed including rejected weaker implementation. Original nested async body remains open."
+}

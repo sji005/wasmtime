@@ -37,6 +37,7 @@ CASES = [
     ("typed-write-range", "wiggle", "crates/wiggle/src/lib.rs", "    pub(crate) fn validate_size_align_mut<T>", ["--all-features"]),
     ("align-cells", "wiggle", "crates/wiggle/src/lib.rs", "    fn align_cells<T>", ["--all-features"]),
     ("payload-slice", "wiggle", "crates/wiggle/src/lib.rs", "    pub fn as_slice_mut(", ["--all-features"]),
+    ("payload-slice-variants", "wiggle", "crates/wiggle/src/lib.rs", "    pub fn as_slice_mut(", ["--no-default-features"]),
     ("copy-back", "wiggle", "crates/wiggle/src/lib.rs", "    pub fn copy_from_slice<T>", ["--all-features"]),
     ("pointer-add", "wiggle", "crates/wiggle/src/lib.rs", "    pub fn add(", ["--all-features"]),
     ("pointer-iter", "wiggle", "crates/wiggle/src/lib.rs", "    pub fn iter(", ["--all-features"]),
@@ -172,6 +173,8 @@ def main():
         status = classify(code, log, (case_dir / "compiler-invocation.json").is_file())
         if name == "range" and status == "feasibility-only-no-spatial-postcondition":
             status = "conditional-slice-bound-checked-mutations-required"
+        if name == "payload-slice-variants" and status == "feasibility-only-no-spatial-postcondition":
+            status = "slice-backed-payload-contract-checked-mutation-required"
         if name in ("guest-size", "guest-align") and status == "feasibility-only-no-spatial-postcondition":
             status = "scalar-layout-contract-checked-mutations-required"
         report["cases"].append({

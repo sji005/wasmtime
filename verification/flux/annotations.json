@@ -65,6 +65,10 @@
     {
       "anchor": "    fn validate_range<T>(&self, offset: u32, len: u32) -> Result<Range<usize>, GuestError>\n",
       "annotation": "    #[cfg_attr(flux, flux::sig(fn(&GuestMemory[@m], offset: u32, len: u32) -> Result<Range<usize>{r: r.start == offset && r.start <= r.end && r.end - r.start <= u32::MAX && (m.kind != 2 => r.end <= m.slice_len) && (<T as GuestType>::guest_size_matches_layout() => r.end - r.start == len * T::size_of())}, GuestError>))]\n"
+    },
+    {
+      "anchor": "    pub fn as_slice_mut(&mut self, ptr: GuestPtr<[u8]>) -> Result<Option<&mut [u8]>, GuestError> {\n",
+      "annotation": "    #[cfg_attr(flux, flux::sig(fn(&mut GuestMemory[@m], GuestPtr<[u8]>) -> Result<Option<&mut [u8]{n: m.kind == 0 => n <= m.slice_len}>{present: m.kind != 2 => present == (m.kind == 0)}, GuestError>))]\n"
     }
   ],
   "crates/wiggle/src/guest_type.rs": [

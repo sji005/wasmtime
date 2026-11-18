@@ -160,6 +160,7 @@ impl<'a> GuestMemory<'a> {
     ///
     /// Like [`GuestMemory::as_slice`] this only works for `Unshared` memories
     /// and will not work for `Shared` memories.
+    #[cfg_attr(flux, flux::sig(fn(&mut GuestMemory[@m], GuestPtr<[u8]>) -> Result<Option<&mut [u8]{n: m.kind == 0 => n <= m.slice_len}>{present: m.kind != 2 => present == (m.kind == 0)}, GuestError>))]
     pub fn as_slice_mut(&mut self, ptr: GuestPtr<[u8]>) -> Result<Option<&mut [u8]>, GuestError> {
         let range = self.validate_range::<u8>(ptr.pointer.0, ptr.pointer.1)?;
         match self {
