@@ -17,12 +17,12 @@ pub fn count<T>(pointer: &Ptr<[T]>) -> u32 { pointer.pointer.1 }
 '''
 DIRECT = '''#![allow(dead_code)]
 #[cfg(flux)] extern crate flux_core;
-#[cfg_attr(flux, flux::refined_by(pointer: (int, int)))]
+#[cfg_attr(flux, flux::refined_by(base: int, count: int))]
 pub struct DirectPtr {
-    #[cfg_attr(flux, flux::field((u32[pointer.0], u32[pointer.1])))]
+    #[cfg_attr(flux, flux::field((u32[base], u32[count])))]
     pointer: (u32, u32),
 }
-#[cfg_attr(flux, flux::sig(fn(&DirectPtr[@p]) -> u32[p.pointer.1]))]
+#[cfg_attr(flux, flux::sig(fn(&DirectPtr[@p]) -> u32[p.count]))]
 pub fn count(pointer: &DirectPtr) -> u32 { pointer.pointer.1 }
 '''
 ASSOCIATED = '''#![allow(dead_code)]
@@ -91,7 +91,7 @@ def main():
                 raise RuntimeError("Projection-sort regression is not well typed: " + log)
             if kind == "candidate":
                 if name == "direct-sort" and (result.returncode or "1 checked; 0 trusted; 0 ignored" not in log):
-                    raise RuntimeError("Direct tuple refinement control failed: " + log)
+                    raise RuntimeError("Concrete tuple field refinement control failed: " + log)
                 if name == "direct-wrong-result" and (not result.returncode or "error[E0999]: refinement type error" not in log):
                     raise RuntimeError("Wrong direct tuple result was not rejected: " + log)
                 if name == "associated-sort":
