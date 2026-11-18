@@ -16,6 +16,7 @@ Flux attributes. The `fd_read` theorem remains open.
 | [Slice construction and nested async run 44258374102](https://github.com/sji005/wasmtime/actions/runs/44258374102) | Original `as_slice_mut` checked when built with the two slice-backed variants. The added byte at the end of the selected range failed. An index mutation inside a nested async block also failed. | The slice construction result uses the exact original body without the optional Wasmtime `Ranges` variant. The all-features probe still fails. The nested async control checks block contents, with the block's output using the default refinement. |
 | [File and alias execution run 44259617175](https://github.com/sji005/wasmtime/actions/runs/44259617175) | The generated binding passed distinct direct file and worker copy-back fixtures. It also passed a case in which the result pointer aliases the payload. | Runtime execution. The environment job reached a downstream Rust metadata loader error after the original-body checks. |
 | [Worker and range length run 44260731718](https://github.com/sji005/wasmtime/actions/runs/44260731718) | The `Range<usize>::len` specification checked and rejected an incorrect width. A small closure that owns a Vec reproduced the original worker's inference error. The controls using a mutable slice or a Vec outside a closure checked. | The original Wasmtime slice constructor still lacks the pointer provenance and return-length refinement. The standalone metadata loader error persisted. |
+| [Cargo composition and borrow run 44262624159](https://github.com/sji005/wasmtime/actions/runs/44262624159) | The real Cargo consumer used the checked Wiggle width contract. It rejected a wrong width and the otherwise identical build without Flux metadata. The borrow patch moved the original caller beyond the captured Vec inference failure. Both Actions jobs passed. | The actual caller now has two open copy-back subrange preconditions and one tracing-generated precondition. Standalone direct closure invocation still has an unresolved `FnOnce::Output` projection. |
 
 The immutable Action archives and their SHA-256 receipts are retained under
 `evidence/`. The range bound for `Shared` concerns the validator's returned
@@ -65,6 +66,10 @@ For the worker, the candidate opens a strong place's existing existential
 before introducing the callee's inference variables. It keeps the original
 subtyping check and place blocking. The regression checks that a captured
 buffer must still establish a callee's positive-length precondition.
+The original caller reaches the two subrange calls. The remaining plain
+closure projection prevented the direct-call fixture from completing. The
+strong-borrow contract check now also exercises the closure through a
+`FnOnce` parameter, as the original worker does.
 
 ## Open production obligations
 

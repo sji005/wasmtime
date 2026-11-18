@@ -1,0 +1,14 @@
+{
+  "run_url": "https://github.com/sji005/wasmtime/actions/runs/44262624159",
+  "source_revision": "bd73e0051634ebcdc29afa068541fdf9795d3208",
+  "artifact": {
+    "id": 14408224926,
+    "file": "compatibility.zip",
+    "sha256": "fda426fec161a795abb37e984ce7aed2495cd3ab947d1415f3d54e65e8ffb2ab"
+  },
+  "jobs": {
+    "environment": 134659387431,
+    "integration": 134659387192
+  },
+  "claim": "Real Cargo consumer reused original Wiggle contract. Actual fd_read worker borrow inference advances to two copy-back subrange and one tracing refinement obligation."
+}

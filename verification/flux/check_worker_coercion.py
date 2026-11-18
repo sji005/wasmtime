@@ -45,13 +45,16 @@ CASES = {
 CAPTURE_BOUNDS = """#[cfg_attr(flux, flux::sig(fn(&mut [u8]{n: n > 0})))]
 fn needs_room(_buf: &mut [u8]) {}
 
+fn invoke(work: impl FnOnce() -> Vec<u8>) -> Vec<u8> {
+    work()
+}
+
 #[cfg_attr(flux, flux::sig(fn(Vec<u8>{v: v.len > 0}) -> Vec<u8>))]
 pub fn worker(mut buf: Vec<u8>) -> Vec<u8> {
-    let read = move || {
+    invoke(move || {
         needs_room(&mut buf);
         buf
-    };
-    read()
+    })
 }
 """
 
@@ -90,7 +93,9 @@ def main():
             if tool == "flux":
                 if name == "missing-capture-bound" and result.returncode and "a precondition cannot be proved" in log:
                     case["status"] = "rejected-missing-precondition"
-                elif result.returncode == 0 and "2 checked; 0 trusted; 0 ignored" in log:
+                elif result.returncode == 0 and (
+                    "2 checked; 0 trusted; 0 ignored" in log or "3 checked; 0 trusted; 0 ignored" in log
+                ):
                     case["status"] = "checked"
                 elif "parameter inference error at function call" in log:
                     case["status"] = "open-parameter-inference"

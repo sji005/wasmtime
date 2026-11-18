@@ -51,3 +51,27 @@ through the two lookups. The next contracts must retain the relation through
 VM pointer into the raw byte pointer. Exact width alone, including a checked
 specification for `Range<usize>::len`, leaves the raw slice constructor
 obligation open. See [STATUS.md](STATUS.md) for the executable proof inventory.
+
+## Zero-start subranges in copy-back
+
+The original worker and stdin branches both call `get_range(0..returned_len)`.
+For that call shape, the range is ordered and its length is the supplied
+`returned_len`. If that length is at most the original iovec length, both
+endpoint checks succeed. The original `GuestPtr::add(0)` computes
+`0 * guest_size` and adds zero to the original offset. Both checked operations
+succeed and preserve the base. The original `as_array` then replaces the
+array length with `returned_len`.
+
+The worker allocates a host Vec with the original iovec length. The external
+file contract bounds its successful read count by that length. The closure
+truncates and returns the host Vec. It captures the Vec and file position,
+with the File supplied by the blocking task. The direct guest slice borrow
+is dropped before the worker path awaits. The stdin path checks the returned
+length explicitly before the subrange call. On x86-64, the original iovec
+length is a `u32` and that upper bound also suffices for the conversion of
+the returned count to `u32`.
+
+This is a source-level argument for those two `unwrap` premises. Flux has
+reached the original calls and still lacks the checked trait and container
+contracts needed to establish those premises there. Copy-back also needs
+the independent full guest destination and host source capacity proof.
