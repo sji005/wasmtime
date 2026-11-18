@@ -1,0 +1,303 @@
+FD_READ_ACTUAL_BODY: ["flux", "--crate-name", "wiggle", "--edition=2024", "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/slice-accessor/wiggle/src/lib.rs", "--error-format=json", "--json=diagnostic-rendered-ansi,artifacts,future-incompat,unused-externs-silent", "--crate-type", "lib", "--emit=dep-info,metadata,link", "-Z", "embed-metadata=no", "-C", "embed-bitcode=no", "-C", "debuginfo=2", "--allow=clippy::all", "--warn=clippy::useless_conversion", "--warn=unused_macro_rules", "--warn=unused_lifetimes", "--warn=unused_import_braces", "--warn=unused_extern_crates", "--warn=unstable_features", "--warn=clippy::unnecessary_to_owned", "--warn=clippy::unnecessary_mut_passed", "--warn=clippy::unnecessary_fallible_conversions", "--warn=clippy::unnecessary_cast", "--warn=clippy::uninlined_format_args", "--warn=unexpected_cfgs", "--warn=trivial_numeric_casts", "--warn=clippy::redundant_field_names", "--warn=clippy::multiple_bound_locations", "--warn=clippy::map_clone", "--warn=clippy::manual_strip", "--warn=clippy::from_over_into", "--warn=clippy::extra_unused_type_parameters", "--warn=clippy::clone_on_copy", "--warn=clippy::allow_attributes_without_reason", "--check-cfg", "cfg(pulley_tail_calls)", "--check-cfg", "cfg(pulley_assume_llvm_makes_tail_calls)", "--check-cfg", "cfg(pulley_disable_interp_simd)", "--check-cfg", "cfg(arc_try_new)", "--check-cfg", "cfg(fuzzing)", "--check-cfg", "cfg(gc_zeal)", "--check-cfg", "cfg(docsrs,test)", "--check-cfg", "cfg(feature, values(\"default\", \"tracing_log\", \"wasmtime\", \"wasmtime_async\", \"wiggle_metadata\", \"witx\"))", "-C", "metadata=86c1c5baab88e319", "-C", "extra-filename=-4522834bc5c34853", "--out-dir", "/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/wiggle/4522834bc5c34853/out", "--target", "x86_64-unknown-linux-gnu", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/debug/build/serde_derive/2e5df2f6dd1ace6d/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/debug/build/thiserror-impl/75d551a9375b1aaa/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/anyhow/308d40f63ead09df/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/bitflags/e1cc9935d3d03870/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/cranelift-bforest/2dac1eb0f5bd4572/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/cranelift-bitset/e2e45335a883ce35/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/cranelift-entity/c1c85cdf4b887109/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/equivalent/a9c03d86d7cd01bf/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/foldhash/436165cfe2c67d5f/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/hashbrown/bb7b4b772b7b252d/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/indexmap/bb52ff9a46d58243/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/libm/9333901e25932f6c/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/log/0fd272b1644249eb/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/memchr/e3de26f652aa50b3/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/object/2dce9dd68479b4bd/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/pin-project-lite/7abca9e3cbd51542/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/serde/79ecf17464d66f30/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/serde_core/bc14d5dd3b922886/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/smallvec/2e5c0cc7ebc1f856/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/target-lexicon/f1b7a5c6e7773a19/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/tracing-core/9e1db5a9e9c5d0c0/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/wasmparser/19dcadb58cc70417/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/wasmtime-internal-core/62349fc3e7064e07/out", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/target/debug/build/wiggle/4522834bc5c34853/out", "--extern", "bitflags=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/bitflags/e1cc9935d3d03870/out/libbitflags-e1cc9935d3d03870.rmeta", "--extern", "thiserror=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/thiserror/39f02a04de4fa272/out/libthiserror-39f02a04de4fa272.rmeta", "--extern", "tracing=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/tracing/cb4b3383992bf02e/out/libtracing-cb4b3383992bf02e.rmeta", "--extern", "wasmtime_environ=/home/runner/work/wasmtime/wasmtime/target/x86_64-unknown-linux-gnu/debug/build/wasmtime-environ/5bb9a7aeeb53634f/out/libwasmtime_environ-5bb9a7aeeb53634f.rmeta", "--extern", "wiggle_macro=/home/runner/work/wasmtime/wasmtime/target/debug/build/wiggle-macro/2b76600b6034a5eb/out/libwiggle_macro-2b76600b6034a5eb.so", "--cfg", "fd_read_slice_accessor_flux", "--force-warn=unused_crate_dependencies", "-Fcheck-overflow=strict", "-Fallow-raw-deref=none", "-Fstd-extern-specs=on", "-Ffixpoint-timeout=30", "-Ffull-compilation=on", "-Finclude=def:as_slice_mut", "-Finclude=def:slice_parts", "-Finclude=def:validate_range", "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/slice-accessor/flux-log", "-Zunstable-options", "--extern", "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rmeta", "--extern", "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rlib", "-L", "dependency=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs"]
+   Compiling wiggle v52.0.0-dev (/home/runner/work/wasmtime/wasmtime/crates/wiggle)
+warning: unexpected `cfg` condition name: `flux`
+  --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/slice-accessor/wiggle/src/lib.rs:43:12
+   |
+43 | #[cfg_attr(flux, flux::refined_by(slice_len: int, kind: int))]
+   |            ^^^^
+   |
+   = help: expected names are: `arc_try_new`, `docsrs`, `feature`, `fuzzing`, `gc_zeal`, `pulley_assume_llvm_makes_tail_calls`, `pulley_disable_interp_simd`, `pulley_tail_calls`, and `test` and 34 more
+   = help: consider using a Cargo feature instead
+   = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+            [lints.rust]
+            unexpected_cfgs = { level = "warn", check-cfg = ['cfg(flux)'] }
+   = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(flux)");` to the top of the `build.rs`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+   = note: requested on the command line with `-W unexpected-cfgs`
+
+warning: unexpected `cfg` condition name: `flux`
+   --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/slice-accessor/wiggle/src/lib.rs:426:12
+    |
+426 | #[cfg_attr(flux, flux::refined_by(pointer: <T as Pointee>::Pointer))]
+    |            ^^^^
+    |
+    = help: consider using a Cargo feature instead
+    = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+             [lints.rust]
+             unexpected_cfgs = { level = "warn", check-cfg = ['cfg(flux)'] }
+    = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(flux)");` to the top of the `build.rs`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `flux`
+  --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/slice-accessor/wiggle/src/guest_type.rs:25:12
+   |
+25 | #[cfg_attr(flux, flux::assoc(fn guest_size_matches_layout() -> bool { false }))]
+   |            ^^^^
+   |
+   = help: consider using a Cargo feature instead
+   = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+            [lints.rust]
+            unexpected_cfgs = { level = "warn", check-cfg = ['cfg(flux)'] }
+   = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(flux)");` to the top of the `build.rs`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `flux`
+   --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/slice-accessor/wiggle/src/guest_type.rs:66:20
+    |
+ 64 |   macro_rules! integer_primitives {
+ 65 |       ($([$ty:ident, $ty_atomic:ident],)*) => ($(
+ 66 |           #[cfg_attr(flux, flux::assoc(fn guest_size_matches_layout() -> bool { true }))]
+    |                      ^^^^
+...
+143 | / integer_primitives! {
+144 | |     // signed
+145 | |     [i8, AtomicI8], [i16, AtomicI16], [i32, AtomicI32], [i64, AtomicI64],
+...   |
+148 | | }
+    | |_- in this macro invocation
+    |
+    = help: consider using a Cargo feature instead
+    = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+             [lints.rust]
+             unexpected_cfgs = { level = "warn", check-cfg = ['cfg(flux)'] }
+    = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(flux)");` to the top of the `build.rs`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `flux`
+  --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/slice-accessor/wiggle/src/guest_type.rs:28:16
+   |
+28 |     #[cfg_attr(flux, flux::sig(fn() -> u32{n: <Self as GuestType>::guest_size_matches_layout() => n == Self::size_of()}))]
+   |                ^^^^
+   |
+   = help: consider using a Cargo feature instead
+   = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+            [lints.rust]
+            unexpected_cfgs = { level = "warn", check-cfg = ['cfg(flux)'] }
+   = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(flux)");` to the top of the `build.rs`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `flux`
+   --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/slice-accessor/wiggle/src/guest_type.rs:69:24
+    |
+ 64 |   macro_rules! integer_primitives {
+...
+ 69 |               #[cfg_attr(flux, flux::sig(fn() -> u32[Self::size_of()]))]
+    |                          ^^^^
+...
+143 | / integer_primitives! {
+144 | |     // signed
+145 | |     [i8, AtomicI8], [i16, AtomicI16], [i32, AtomicI32], [i64, AtomicI64],
+...   |
+148 | | }
+    | |_- in this macro invocation
+    |
+    = help: consider using a Cargo feature instead
+    = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+             [lints.rust]
+             unexpected_cfgs = { level = "warn", check-cfg = ['cfg(flux)'] }
+    = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(flux)");` to the top of the `build.rs`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `flux`
+   --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/slice-accessor/wiggle/src/guest_type.rs:72:24
+    |
+ 64 |   macro_rules! integer_primitives {
+...
+ 72 |               #[cfg_attr(flux, flux::sig(fn() -> usize[Self::align_of()]))]
+    |                          ^^^^
+...
+143 | / integer_primitives! {
+144 | |     // signed
+145 | |     [i8, AtomicI8], [i16, AtomicI16], [i32, AtomicI32], [i64, AtomicI64],
+...   |
+148 | | }
+    | |_- in this macro invocation
+    |
+    = help: consider using a Cargo feature instead
+    = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+             [lints.rust]
+             unexpected_cfgs = { level = "warn", check-cfg = ['cfg(flux)'] }
+    = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(flux)");` to the top of the `build.rs`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `flux`
+  --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/slice-accessor/wiggle/src/lib.rs:45:16
+   |
+45 |     #[cfg_attr(flux, flux::variant((&mut [u8][@n]) -> GuestMemory[n, 0]))]
+   |                ^^^^
+   |
+   = help: consider using a Cargo feature instead
+   = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+            [lints.rust]
+            unexpected_cfgs = { level = "warn", check-cfg = ['cfg(flux)'] }
+   = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(flux)");` to the top of the `build.rs`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `flux`
+  --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/slice-accessor/wiggle/src/lib.rs:47:16
+   |
+47 |     #[cfg_attr(flux, flux::variant((&[UnsafeCell<u8>][@n]) -> GuestMemory[n, 1]))]
+   |                ^^^^
+   |
+   = help: consider using a Cargo feature instead
+   = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+            [lints.rust]
+            unexpected_cfgs = { level = "warn", check-cfg = ['cfg(flux)'] }
+   = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(flux)");` to the top of the `build.rs`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `flux`
+   --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/slice-accessor/wiggle/src/lib.rs:163:16
+    |
+163 |     #[cfg_attr(flux, flux::sig(fn(&mut GuestMemory[@m], GuestPtr<[u8]>) -> Result<Option<&mut [u8]{n: m.kind == 0 => n <= m.slice_l...
+    |                ^^^^
+    |
+    = help: consider using a Cargo feature instead
+    = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+             [lints.rust]
+             unexpected_cfgs = { level = "warn", check-cfg = ['cfg(flux)'] }
+    = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(flux)");` to the top of the `build.rs`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `flux`
+   --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/slice-accessor/wiggle/src/lib.rs:344:16
+    |
+344 |     #[cfg_attr(flux, flux::sig(fn(&GuestMemory[@m], offset: u32, len: u32) -> Result<Range<usize>{r: r.start == offset && r.start <...
+    |                ^^^^
+    |
+    = help: consider using a Cargo feature instead
+    = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+             [lints.rust]
+             unexpected_cfgs = { level = "warn", check-cfg = ['cfg(flux)'] }
+    = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(flux)");` to the top of the `build.rs`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `flux`
+   --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/slice-accessor/wiggle/src/lib.rs:428:16
+    |
+428 |     #[cfg_attr(flux, flux::field(T::Pointer[pointer]))]
+    |                ^^^^
+    |
+    = help: consider using a Cargo feature instead
+    = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+             [lints.rust]
+             unexpected_cfgs = { level = "warn", check-cfg = ['cfg(flux)'] }
+    = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(flux)");` to the top of the `build.rs`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `flux`
+   --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/slice-accessor/wiggle/src/lib.rs:438:16
+    |
+438 |     #[cfg_attr(flux, flux::sig(fn(T::Pointer[@p]) -> GuestPtr<T>[GuestPtr { pointer: p }]))]
+    |                ^^^^
+    |
+    = help: consider using a Cargo feature instead
+    = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+             [lints.rust]
+             unexpected_cfgs = { level = "warn", check-cfg = ['cfg(flux)'] }
+    = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(flux)");` to the top of the `build.rs`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `flux`
+   --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/slice-accessor/wiggle/src/lib.rs:447:16
+    |
+447 |     #[cfg_attr(flux, flux::sig(fn(&GuestPtr<T>[@p]) -> T::Pointer[p.pointer]))]
+    |                ^^^^
+    |
+    = help: consider using a Cargo feature instead
+    = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+             [lints.rust]
+             unexpected_cfgs = { level = "warn", check-cfg = ['cfg(flux)'] }
+    = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(flux)");` to the top of the `build.rs`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `flux`
+   --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/slice-accessor/wiggle/src/lib.rs:458:16
+    |
+458 |     #[cfg_attr(flux, flux::sig(fn(&GuestPtr<T>[@p]) -> GuestPtr<U>[GuestPtr { pointer: p.pointer }]))]
+    |                ^^^^
+    |
+    = help: consider using a Cargo feature instead
+    = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+             [lints.rust]
+             unexpected_cfgs = { level = "warn", check-cfg = ['cfg(flux)'] }
+    = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(flux)");` to the top of the `build.rs`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `flux`
+   --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/slice-accessor/wiggle/src/lib.rs:488:16
+    |
+488 |     #[cfg_attr(flux, flux::sig(fn(&GuestPtr<T>[@p], elems: u32) -> GuestPtr<[T]>[GuestPtr { pointer: (p.pointer, elems) }]))]
+    |                ^^^^
+    |
+    = help: consider using a Cargo feature instead
+    = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+             [lints.rust]
+             unexpected_cfgs = { level = "warn", check-cfg = ['cfg(flux)'] }
+    = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(flux)");` to the top of the `build.rs`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `flux`
+   --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/slice-accessor/wiggle/src/lib.rs:502:16
+    |
+502 |     #[cfg_attr(flux, flux::sig(fn(&GuestPtr<[T]>[@p]) -> u32[p.pointer.0]))]
+    |                ^^^^
+    |
+    = help: consider using a Cargo feature instead
+    = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+             [lints.rust]
+             unexpected_cfgs = { level = "warn", check-cfg = ['cfg(flux)'] }
+    = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(flux)");` to the top of the `build.rs`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `flux`
+   --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/slice-accessor/wiggle/src/lib.rs:508:16
+    |
+508 |     #[cfg_attr(flux, flux::sig(fn(&GuestPtr<[T]>[@p]) -> u32[p.pointer.1]))]
+    |                ^^^^
+    |
+    = help: consider using a Cargo feature instead
+    = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+             [lints.rust]
+             unexpected_cfgs = { level = "warn", check-cfg = ['cfg(flux)'] }
+    = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(flux)");` to the top of the `build.rs`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition name: `flux`
+   --> /home/runner/work/wasmtime/wasmtime/artifacts/fd-read/slice-accessor/wiggle/src/lib.rs:527:16
+    |
+527 |     #[cfg_attr(flux, flux::sig(fn(&GuestPtr<[T]>[@p]) -> GuestPtr<T>[GuestPtr { pointer: p.pointer.0 }]))]
+    |                ^^^^
+    |
+    = help: consider using a Cargo feature instead
+    = help: or consider adding in `Cargo.toml` the `check-cfg` lint config for the lint:
+             [lints.rust]
+             unexpected_cfgs = { level = "warn", check-cfg = ['cfg(flux)'] }
+    = help: or consider adding `println!("cargo::rustc-check-cfg=cfg(flux)");` to the top of the `build.rs`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool, custom_inner_attributes)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `-W unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:27
+  |
+1 | #![feature(register_tool, custom_inner_attributes)]
+  |                           ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: feature `custom_inner_attributes` is declared but not used
+ --> <crate attribute>:1:27
+  |
+1 | #![feature(register_tool, custom_inner_attributes)]
+  |                           ^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_features)]` (part of `#[warn(unused)]`) on by default
+
+summary. 103 functions processed: 3 checked; 100 trusted; 0 ignored. 11 constraints solved. Finished in 257.93ms
+warning: `wiggle` (lib) generated 22 warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.41s

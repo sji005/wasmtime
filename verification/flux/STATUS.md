@@ -33,6 +33,18 @@ The existing Range clone/length controls passed too. The subsequent original
 not scheduling. Further proof attempts stopped for user review, with no trust
 expansion. Exact diagnostics and mutation evidence are in `evidence/run-44396215837`.
 
+The [accessor experiment](https://github.com/sji005/wasmtime/actions/runs/44400890395)
+replaced the two nested tuple field accesses in a full Wiggle source snapshot
+with `let (offset, len) = ptr.slice_parts()`. The accessor returns `self.pointer`
+directly. Ordinary Cargo compilation passed. Unmodified Flux checked the accessor,
+mutable slice construction, and range validator together, with 11 constraints
+solved and 100 unselected bodies counted as trusted. No local proof body was
+explicitly trusted. The Linux check used `--no-default-features`. This result
+covers the refactored slice-backed path. The accessor has no separate Flux
+contract for tuple identity; the exact forwarding is visible in its body.
+The frozen production source and the Wasmtime `MemoryRanges` path are outside
+this result. Logs and the compiler invocation are in `evidence/run-44400890395`.
+
 | Evidence | Checked result | Scope |
 | --- | --- | --- |
 | [Baseline run 44240968739](https://github.com/sji005/wasmtime/actions/runs/44240968739) | Passed M0 with three positive functions and three rejected mutations. Ordinary builds, three boundary regressions and fresh P1 expansion passed. | Environment, original behavior on tested inputs, and generated source inspection |

@@ -1,0 +1,45 @@
+{
+  "scope": "Refactored snapshot, slice-backed Wiggle only; no accessor or local proof body explicitly trusted",
+  "source_revision": "e4a8c8e82b4c9b813e2c58e86d842ca741b08eca",
+  "original_sha256_lf": "f324a99a1454ff76aa7dc9be32d022c1afa236b5094271581823649102c0243a",
+  "snapshot_sha256_lf": "145e4a54e7cc611305e41dd7ef54a9f53799e8f06fbfbab6a061e4ca961c44d1",
+  "status": "accessor-slice-and-range-checked",
+  "runs": [
+    {
+      "mode": "ordinary",
+      "command": [
+        "cargo",
+        "rustc",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wiggle",
+        "--no-default-features",
+        "--lib",
+        "--",
+        "--cfg",
+        "fd_read_slice_accessor_ordinary"
+      ],
+      "exit_code": 0
+    },
+    {
+      "mode": "flux",
+      "command": [
+        "cargo",
+        "rustc",
+        "--locked",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "-p",
+        "wiggle",
+        "--no-default-features",
+        "--lib",
+        "--",
+        "--cfg",
+        "fd_read_slice_accessor_flux"
+      ],
+      "exit_code": 0
+    }
+  ]
+}
