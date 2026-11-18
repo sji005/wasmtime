@@ -1,0 +1,305 @@
+{
+  "scope": "Checker diagnostics for a minimal worker-shaped Rust program",
+  "cases": [
+    {
+      "name": "slice",
+      "runs": [
+        {
+          "command": [
+            "rustc",
+            "--edition=2024",
+            "--crate-type=lib",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "--color=never",
+            "--out-dir",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion/slice.rs"
+          ],
+          "log": "slice-rustc.log",
+          "exit_code": 0
+        },
+        {
+          "command": [
+            "flux",
+            "--edition=2024",
+            "--crate-type=lib",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "--color=never",
+            "--out-dir",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion",
+            "--cfg",
+            "flux",
+            "-Fcheck-overflow=strict",
+            "-Fstd-extern-specs=on",
+            "-Fdump-rty=on",
+            "-Fallow-raw-deref=none",
+            "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion/slice",
+            "-Zunstable-options",
+            "--extern",
+            "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rlib",
+            "--extern",
+            "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rmeta",
+            "-L",
+            "dependency=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion/slice.rs"
+          ],
+          "log": "slice-flux.log",
+          "exit_code": 0
+        }
+      ],
+      "status": "checked"
+    },
+    {
+      "name": "vec",
+      "runs": [
+        {
+          "command": [
+            "rustc",
+            "--edition=2024",
+            "--crate-type=lib",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "--color=never",
+            "--out-dir",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion/vec.rs"
+          ],
+          "log": "vec-rustc.log",
+          "exit_code": 0
+        },
+        {
+          "command": [
+            "flux",
+            "--edition=2024",
+            "--crate-type=lib",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "--color=never",
+            "--out-dir",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion",
+            "--cfg",
+            "flux",
+            "-Fcheck-overflow=strict",
+            "-Fstd-extern-specs=on",
+            "-Fdump-rty=on",
+            "-Fallow-raw-deref=none",
+            "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion/vec",
+            "-Zunstable-options",
+            "--extern",
+            "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rlib",
+            "--extern",
+            "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rmeta",
+            "-L",
+            "dependency=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion/vec.rs"
+          ],
+          "log": "vec-flux.log",
+          "exit_code": 0
+        }
+      ],
+      "status": "checked"
+    },
+    {
+      "name": "allocated-vec",
+      "runs": [
+        {
+          "command": [
+            "rustc",
+            "--edition=2024",
+            "--crate-type=lib",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "--color=never",
+            "--out-dir",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion/allocated_vec.rs"
+          ],
+          "log": "allocated-vec-rustc.log",
+          "exit_code": 0
+        },
+        {
+          "command": [
+            "flux",
+            "--edition=2024",
+            "--crate-type=lib",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "--color=never",
+            "--out-dir",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion",
+            "--cfg",
+            "flux",
+            "-Fcheck-overflow=strict",
+            "-Fstd-extern-specs=on",
+            "-Fdump-rty=on",
+            "-Fallow-raw-deref=none",
+            "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion/allocated-vec",
+            "-Zunstable-options",
+            "--extern",
+            "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rlib",
+            "--extern",
+            "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rmeta",
+            "-L",
+            "dependency=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion/allocated_vec.rs"
+          ],
+          "log": "allocated-vec-flux.log",
+          "exit_code": 0
+        }
+      ],
+      "status": "checked"
+    },
+    {
+      "name": "captured-vec",
+      "runs": [
+        {
+          "command": [
+            "rustc",
+            "--edition=2024",
+            "--crate-type=lib",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "--color=never",
+            "--out-dir",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion/captured_vec.rs"
+          ],
+          "log": "captured-vec-rustc.log",
+          "exit_code": 0
+        },
+        {
+          "command": [
+            "flux",
+            "--edition=2024",
+            "--crate-type=lib",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "--color=never",
+            "--out-dir",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion",
+            "--cfg",
+            "flux",
+            "-Fcheck-overflow=strict",
+            "-Fstd-extern-specs=on",
+            "-Fdump-rty=on",
+            "-Fallow-raw-deref=none",
+            "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion/captured-vec",
+            "-Zunstable-options",
+            "--extern",
+            "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rlib",
+            "--extern",
+            "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rmeta",
+            "-L",
+            "dependency=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion/captured_vec.rs"
+          ],
+          "log": "captured-vec-flux.log",
+          "exit_code": 1
+        }
+      ],
+      "status": "open-other-diagnostic"
+    },
+    {
+      "name": "nonempty-capture",
+      "runs": [
+        {
+          "command": [
+            "rustc",
+            "--edition=2024",
+            "--crate-type=lib",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "--color=never",
+            "--out-dir",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion/nonempty_capture.rs"
+          ],
+          "log": "nonempty-capture-rustc.log",
+          "exit_code": 0
+        },
+        {
+          "command": [
+            "flux",
+            "--edition=2024",
+            "--crate-type=lib",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "--color=never",
+            "--out-dir",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion",
+            "--cfg",
+            "flux",
+            "-Fcheck-overflow=strict",
+            "-Fstd-extern-specs=on",
+            "-Fdump-rty=on",
+            "-Fallow-raw-deref=none",
+            "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion/nonempty-capture",
+            "-Zunstable-options",
+            "--extern",
+            "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rlib",
+            "--extern",
+            "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rmeta",
+            "-L",
+            "dependency=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion/nonempty_capture.rs"
+          ],
+          "log": "nonempty-capture-flux.log",
+          "exit_code": 0
+        }
+      ],
+      "status": "checked"
+    },
+    {
+      "name": "missing-capture-bound",
+      "runs": [
+        {
+          "command": [
+            "rustc",
+            "--edition=2024",
+            "--crate-type=lib",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "--color=never",
+            "--out-dir",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion/missing_capture_bound.rs"
+          ],
+          "log": "missing-capture-bound-rustc.log",
+          "exit_code": 0
+        },
+        {
+          "command": [
+            "flux",
+            "--edition=2024",
+            "--crate-type=lib",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "--color=never",
+            "--out-dir",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion",
+            "--cfg",
+            "flux",
+            "-Fcheck-overflow=strict",
+            "-Fstd-extern-specs=on",
+            "-Fdump-rty=on",
+            "-Fallow-raw-deref=none",
+            "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion/missing-capture-bound",
+            "-Zunstable-options",
+            "--extern",
+            "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rlib",
+            "--extern",
+            "force:fd_read_file_primitive=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs/libfd_read_file_primitive.rmeta",
+            "-L",
+            "dependency=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/file-primitive-specs",
+            "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/worker-coercion/missing_capture_bound.rs"
+          ],
+          "log": "missing-capture-bound-flux.log",
+          "exit_code": 1
+        }
+      ],
+      "status": "rejected-missing-precondition"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "scope": "Use of the original scoped Wiggle size proof in a Cargo consumer",
+  "status": "passed",
+  "runs": [
+    {
+      "name": "ordinary",
+      "command": [
+        "cargo",
+        "check",
+        "--offline",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--lib"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "positive",
+      "command": [
+        "cargo",
+        "check",
+        "--offline",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--lib",
+        "--locked"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "wrong-width",
+      "command": [
+        "cargo",
+        "check",
+        "--offline",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--lib",
+        "--locked"
+      ],
+      "exit_code": 101
+    },
+    {
+      "name": "without-metadata",
+      "command": [
+        "cargo",
+        "check",
+        "--offline",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--lib",
+        "--locked"
+      ],
+      "exit_code": 101
+    }
+  ]
+}

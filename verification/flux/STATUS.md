@@ -17,6 +17,7 @@ Flux attributes. The `fd_read` theorem remains open.
 | [File and alias execution run 44259617175](https://github.com/sji005/wasmtime/actions/runs/44259617175) | The generated binding passed distinct direct file and worker copy-back fixtures. It also passed a case in which the result pointer aliases the payload. | Runtime execution. The environment job reached a downstream Rust metadata loader error after the original-body checks. |
 | [Worker and range length run 44260731718](https://github.com/sji005/wasmtime/actions/runs/44260731718) | The `Range<usize>::len` specification checked and rejected an incorrect width. A small closure that owns a Vec reproduced the original worker's inference error. The controls using a mutable slice or a Vec outside a closure checked. | The original Wasmtime slice constructor still lacks the pointer provenance and return-length refinement. The standalone metadata loader error persisted. |
 | [Cargo composition and borrow run 44262624159](https://github.com/sji005/wasmtime/actions/runs/44262624159) | The real Cargo consumer used the checked Wiggle width contract. It rejected a wrong width and the otherwise identical build without Flux metadata. The borrow patch moved the original caller beyond the captured Vec inference failure. Both Actions jobs passed. | The actual caller now has two open copy-back subrange preconditions and one tracing-generated precondition. Standalone direct closure invocation still has an unresolved `FnOnce::Output` projection. |
+| [Captured precondition run 44264393737](https://github.com/sji005/wasmtime/actions/runs/44264393737) | The positive captured-buffer call checked through a `FnOnce` parameter. Removing the known positive length caused a refinement rejection at the mutable slice call. Both Actions jobs passed. | Checker regression. The original caller and `MemoryRanges` still have the open obligations below. |
 
 The immutable Action archives and their SHA-256 receipts are retained under
 `evidence/`. The range bound for `Shared` concerns the validator's returned
@@ -69,7 +70,8 @@ buffer must still establish a callee's positive-length precondition.
 The original caller reaches the two subrange calls. The remaining plain
 closure projection prevented the direct-call fixture from completing. The
 strong-borrow contract check now also exercises the closure through a
-`FnOnce` parameter, as the original worker does.
+`FnOnce` parameter, as the original worker does. The positive-length
+case checked and the negative case was rejected at the missing precondition.
 
 ## Open production obligations
 

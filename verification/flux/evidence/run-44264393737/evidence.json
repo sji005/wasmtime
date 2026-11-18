@@ -1,0 +1,14 @@
+{
+  "run_url": "https://github.com/sji005/wasmtime/actions/runs/44264393737",
+  "source_revision": "8a9e3358b9c8264795d66d114652170c4664205f",
+  "artifact": {
+    "id": 14409966620,
+    "file": "compatibility.zip",
+    "sha256": "ab95bc78b0033efe41b6adc5670806aa4216536ffb6539441a814ce91adfbead"
+  },
+  "jobs": {
+    "environment": 134665200564,
+    "integration": 134665200092
+  },
+  "claim": "Captured buffer checks through FnOnce with the declared length. Removing the length precondition is rejected at the original-shaped mutable slice call."
+}
