@@ -100,11 +100,13 @@ pub(super) fn define_struct(name: &witx::Id, s: &witx::RecordDatatype) -> TokenS
 
         impl wiggle::GuestType for #ident {
             #[inline]
+            #[wiggle::no_panic]
             fn guest_size() -> u32 {
                 #size
             }
 
             #[inline]
+            #[wiggle::no_panic]
             fn guest_align() -> usize {
                 #align
             }

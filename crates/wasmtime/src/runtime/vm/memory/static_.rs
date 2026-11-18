@@ -100,7 +100,10 @@ unsafe impl LinearMemory for StaticMemory {
     fn grow_to(&mut self, new_byte_size: usize) -> Result<()> {
         // Never exceed the static memory size; this check should have been made
         // prior to arriving here.
-        assert!(new_byte_size <= self.capacity);
+        if new_byte_size > self.capacity {
+            bail!("Memory maximum size exceeded");
+        }
+        flux_rs::assert(new_byte_size <= self.capacity);
 
         // Let the slot make the new bytes accessible, then update our
         // accounting of the available size.

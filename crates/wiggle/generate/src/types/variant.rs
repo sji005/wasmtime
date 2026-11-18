@@ -147,11 +147,13 @@ pub(super) fn define_variant(
 
         impl wiggle::GuestType for #ident {
             #[inline]
+            #[wiggle::no_panic]
             fn guest_size() -> u32 {
                 #size
             }
 
             #[inline]
+            #[wiggle::no_panic]
             fn guest_align() -> usize {
                 #align
             }

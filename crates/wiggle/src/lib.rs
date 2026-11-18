@@ -1,3 +1,4 @@
+use flux_rs::{attrs::*, extern_spec};
 use std::borrow::Cow;
 use std::cell::UnsafeCell;
 use std::fmt;
@@ -6,12 +7,138 @@ use std::ops::Range;
 use std::str;
 use wasmtime_environ::error::{Result, bail};
 
+#[doc(hidden)]
+pub use flux_rs::no_panic;
 pub use wiggle_macro::from_witx;
 
 pub use wasmtime_environ::error;
 pub use wiggle_macro::wasmtime_integration;
 
 pub use bitflags;
+
+#[extern_spec(core::slice)]
+impl<T> [T] {
+    #[spec(fn(&[T][@len]) -> usize[len])]
+    fn len(slice: &[T]) -> usize;
+
+    #[no_panic]
+    #[spec(fn(&[T][@n], mid: usize{mid <= n}) -> (&[T][mid], &[T][n - mid]))]
+    fn split_at(&self, mid: usize) -> (&[T], &[T]);
+
+    #[no_panic]
+    #[spec(fn(&mut [T][@n], mid: usize{mid <= n}) -> (&mut [T][mid], &mut [T][n - mid]))]
+    fn split_at_mut(&mut self, mid: usize) -> (&mut [T], &mut [T]);
+}
+
+#[extern_spec(core::str)]
+#[no_panic]
+fn from_utf8(value: &[u8]) -> Result<&str, core::str::Utf8Error>;
+
+#[extern_spec]
+#[refined_by(len: int)]
+#[invariant(0 <= len)]
+struct Vec<T, A: std::alloc::Allocator = std::alloc::Global>;
+
+#[extern_spec]
+impl<T> Vec<T> {
+    #[spec(fn() -> Vec<T>[0])]
+    fn new() -> Vec<T>;
+}
+
+#[extern_spec]
+impl<T, A: std::alloc::Allocator> Vec<T, A> {
+    #[spec(fn(v: &Vec<T, A>[@len]) -> usize[len])]
+    fn len(v: &Vec<T, A>) -> usize;
+
+    #[spec(
+        fn(self: &mut Vec<T, A>[@len], index: usize{index <= len}, T)
+            ensures self: Vec<T, A>[len + 1]
+    )]
+    fn insert(&mut self, index: usize, value: T);
+}
+
+#[extern_spec(core::ptr)]
+impl<T> *const T {
+    #[spec(fn(me: *const[@p] T) -> *const[p.base, p.addr, p.size] U)]
+    fn cast<U>(self) -> *const U;
+
+    #[spec(fn(me: *const[@p] T) -> *mut[p.base, p.addr, p.size] T)]
+    fn cast_mut(self) -> *mut T;
+}
+
+#[extern_spec(core::ptr)]
+impl<T> *mut T {
+    #[spec(fn(me: *mut[@p] T) -> *mut[p.base, p.addr, p.size] U)]
+    fn cast<U>(self) -> *mut U;
+}
+
+#[extern_spec(core::mem)]
+#[spec(fn() -> usize[T::size_of()])]
+fn size_of<T>() -> usize;
+
+#[extern_spec(core::mem)]
+#[no_panic]
+#[spec(fn() -> usize[T::align_of()])]
+fn align_of<T>() -> usize;
+
+#[extern_spec(core::option)]
+#[refined_by(is_some: bool)]
+enum Option<T> {
+    #[variant(Option<T>[false])]
+    None,
+    #[variant((T) -> Option<T>[true])]
+    Some(T),
+}
+
+#[extern_spec(core::result)]
+#[refined_by(is_ok: bool)]
+enum Result<T, E> {
+    #[variant((T) -> Result<T, E>[true])]
+    Ok(T),
+    #[variant((E) -> Result<T, E>[false])]
+    Err(E),
+}
+
+#[extern_spec(core::num)]
+impl usize {
+    #[no_panic]
+    #[spec(fn(num: usize[@n], rhs: usize[@r]) ->
+        Option<usize[n * r]>[n * r <= usize::MAX])]
+    fn checked_mul(self, rhs: usize) -> Option<usize>;
+}
+
+#[extern_spec(core::num)]
+impl u32 {
+    #[no_panic]
+    #[spec(fn(num: u32[@n], rhs: u32[@r]) ->
+        Option<u32[n * r]>[n * r <= u32::MAX])]
+    fn checked_mul(self, rhs: u32) -> Option<u32>;
+
+    #[no_panic]
+    #[spec(fn(num: u32[@n], rhs: u32[@r]) ->
+        Option<u32[n + r]>[n + r <= u32::MAX])]
+    fn checked_add(self, rhs: u32) -> Option<u32>;
+}
+
+#[extern_spec(core::convert)]
+#[assoc(fn succeeds(s: T, out: core::result::Result) -> bool { true })]
+#[assoc(fn from_val(s: T, into: Self) -> bool { true })]
+trait TryFrom<T>: Sized {
+    #[spec(fn(T[@s]) ->
+        core::result::Result<Self{v: Self::from_val(s, v)}, Self::Error>
+            {out: Self::succeeds(s, out)})]
+    fn try_from(value: T) -> core::result::Result<Self, Self::Error>;
+}
+
+#[cfg(any(target_pointer_width = "32", target_pointer_width = "64"))]
+#[extern_spec(core::convert)]
+#[assoc(fn succeeds(x: int, out: core::result::Result) -> bool { true })]
+#[assoc(fn from_val(x: int, into: int) -> bool { x == into })]
+impl core::convert::TryFrom<u32> for usize {
+    #[no_panic]
+    #[spec(fn(u32[@x]) -> core::result::Result<usize[x], _>[true])]
+    fn try_from(value: u32) -> core::result::Result<usize, core::num::TryFromIntError>;
+}
 
 #[cfg(feature = "wiggle_metadata")]
 pub use witx;
@@ -50,9 +177,122 @@ pub enum GuestMemory<'a> {
     Ranges(wasmtime::MemoryRanges<'a>),
 }
 
-// manual impls are needed because of the `UnsafeCell` in the `Shared` branch
-// but this otherwise upholds send/sync invariants.
+#[no_panic]
+fn byte_cells(bytes: &[u8]) -> &[UnsafeCell<u8>] {
+    // SAFETY: `UnsafeCell<u8>` has the same layout as `u8`, so the slice
+    // pointer cast preserves the byte extent and alignment.
+    unsafe { &*(bytes as *const [u8] as *const [UnsafeCell<u8>]) }
+}
+
+#[refined_by(start: int, end: int, limit: int)]
+#[invariant(start <= end && end <= limit)]
+struct ValidatedRange {
+    #[field(usize[start])]
+    start: usize,
+    #[field(usize[end])]
+    end: usize,
+    #[field(usize[limit])]
+    limit: usize,
+}
+
+#[spec(fn(start: usize, len: usize, limit: usize, region: Region) ->
+    Result<ValidatedRange[{start: start, end: start + len, limit: limit}], GuestError>)]
+#[no_panic]
+fn validate_range_bounds(
+    start: usize,
+    len: usize,
+    limit: usize,
+    region: Region,
+) -> Result<ValidatedRange, GuestError> {
+    if start > limit {
+        return Err(GuestError::PtrOutOfBounds(region));
+    }
+
+    let remaining = limit - start;
+    if len > remaining {
+        return Err(GuestError::PtrOutOfBounds(region));
+    }
+
+    let end = start + len;
+    Ok(ValidatedRange { start, end, limit })
+}
+
+#[no_panic]
+#[spec(
+    fn(bytes: &mut [u8][@cap], start: usize, len: usize, region: Region) ->
+        Result<&mut [u8][len], GuestError>
+)]
+fn bounded_byte_slice_mut<'a>(
+    bytes: &'a mut [u8],
+    start: usize,
+    len: usize,
+    region: Region,
+) -> Result<&'a mut [u8], GuestError> {
+    let range = validate_range_bounds(start, len, bytes.len(), region)?;
+    if range.limit != bytes.len() {
+        return Err(GuestError::PtrOutOfBounds(region));
+    }
+    let (_, suffix) = bytes.split_at_mut(range.start);
+    let (slice, _) = suffix.split_at_mut(len);
+    Ok(slice)
+}
+
+#[no_panic]
+#[spec(
+    fn(bytes: &[u8][@cap], start: usize, len: usize, region: Region) ->
+        Result<&[u8][len], GuestError>
+)]
+fn bounded_byte_slice<'a>(
+    bytes: &'a [u8],
+    start: usize,
+    len: usize,
+    region: Region,
+) -> Result<&'a [u8], GuestError> {
+    let range = validate_range_bounds(start, len, bytes.len(), region)?;
+    if range.limit != bytes.len() {
+        return Err(GuestError::PtrOutOfBounds(region));
+    }
+    let (_, suffix) = bytes.split_at(range.start);
+    let (slice, _) = suffix.split_at(len);
+    Ok(slice)
+}
+
+#[no_panic]
+#[spec(
+    fn(bytes: &[UnsafeCell<u8>][@cap], start: usize, len: usize, region: Region) ->
+        Result<&[UnsafeCell<u8>][len], GuestError>
+)]
+fn bounded_byte_cells<'a>(
+    bytes: &'a [UnsafeCell<u8>],
+    start: usize,
+    len: usize,
+    region: Region,
+) -> Result<&'a [UnsafeCell<u8>], GuestError> {
+    let range = validate_range_bounds(start, len, bytes.len(), region)?;
+    if range.limit != bytes.len() {
+        return Err(GuestError::PtrOutOfBounds(region));
+    }
+    let (_, suffix) = bytes.split_at(range.start);
+    let (slice, _) = suffix.split_at(len);
+    Ok(slice)
+}
+
+#[no_panic]
+fn guest_byte_len<T: GuestType>(len: u32) -> Result<usize, GuestError> {
+    let byte_len = len
+        .checked_mul(T::guest_size())
+        .ok_or(GuestError::PtrOverflow)?;
+    Ok(usize::try_from(byte_len)?)
+}
+
+// SAFETY: Moving the wrapper transfers its exclusive Unshared/Ranges borrows.
+// Shared memory can move between threads because its access paths use atomic
+// GuestType operations and never expose a raw byte slice.
 unsafe impl Send for GuestMemory<'_> {}
+
+// SAFETY: Shared-memory reads and writes go through atomic GuestType
+// operations. Raw slices are exposed only for the uniquely borrowed
+// Unshared/Ranges variants.
 unsafe impl Sync for GuestMemory<'_> {}
 
 impl<'a> GuestMemory<'a> {
@@ -115,11 +355,16 @@ impl<'a> GuestMemory<'a> {
     /// An error is returned if `ptr` is out of bounds, misaligned, or otherwise
     /// not valid to read from.
     pub fn as_cow_str(&self, ptr: GuestPtr<str>) -> Result<Cow<'_, str>, GuestError> {
-        match self.as_cow(ptr.cast::<[u8]>())? {
-            Cow::Owned(bytes) => Ok(Cow::Owned(
-                String::from_utf8(bytes).map_err(|e| e.utf8_error())?,
+        let (offset, len) = ptr.offset();
+        let byte_ptr = GuestPtr::<[u8]>::new((offset, len));
+        match self {
+            GuestMemory::Shared(_) => Ok(Cow::Owned(
+                String::from_utf8(self.to_vec(byte_ptr)?).map_err(|e| e.utf8_error())?,
             )),
-            Cow::Borrowed(bytes) => Ok(Cow::Borrowed(std::str::from_utf8(bytes)?)),
+            _ => match self.as_slice(byte_ptr)? {
+                Some(bytes) => Ok(Cow::Borrowed(std::str::from_utf8(bytes)?)),
+                None => unreachable!(),
+            },
         }
     }
 
@@ -133,17 +378,37 @@ impl<'a> GuestMemory<'a> {
     ///
     /// An error is returned if `ptr` is out of bounds, misaligned, or otherwise
     /// not valid to read from.
+    #[no_panic]
     pub fn as_slice(&self, ptr: GuestPtr<[u8]>) -> Result<Option<&[u8]>, GuestError> {
-        let range = self.validate_range::<u8>(ptr.pointer.0, ptr.pointer.1)?;
+        self.as_slice_at(ptr.offset_base(), ptr.len())
+    }
+
+    #[no_panic]
+    #[spec(fn(&Self, offset: u32, len: u32) -> Result<Option<&[u8][len]>, GuestError>)]
+    fn as_slice_at(&self, offset: u32, len: u32) -> Result<Option<&[u8]>, GuestError> {
+        let range = self.validate_range::<u8>(offset, len)?;
+        let expected_len = usize::try_from(len)?;
+        let region = Region { start: offset, len };
         match self {
-            GuestMemory::Unshared(slice) => Ok(Some(&slice[range])),
+            GuestMemory::Unshared(slice) => Ok(Some(bounded_byte_slice(
+                slice,
+                range.start,
+                expected_len,
+                region,
+            )?)),
             GuestMemory::Shared(_) => Ok(None),
             #[cfg(feature = "wasmtime")]
-            GuestMemory::Ranges(memory) => Ok(Some(&memory.data()[range])),
+            GuestMemory::Ranges(memory) => Ok(Some(bounded_byte_slice(
+                memory.data(),
+                range.start,
+                expected_len,
+                region,
+            )?)),
         }
     }
 
     /// Same as [`GuestMemory::as_slice`] but for strings.
+    #[no_panic]
     pub fn as_str(&self, ptr: GuestPtr<str>) -> Result<Option<&str>, GuestError> {
         match self.as_slice(ptr.cast())? {
             Some(bytes) => Ok(Some(std::str::from_utf8(bytes)?)),
@@ -156,15 +421,36 @@ impl<'a> GuestMemory<'a> {
     ///
     /// Like [`GuestMemory::as_slice`] this only works for `Unshared` memories
     /// and will not work for `Shared` memories.
+    #[no_panic]
     pub fn as_slice_mut(&mut self, ptr: GuestPtr<[u8]>) -> Result<Option<&mut [u8]>, GuestError> {
-        let range = self.validate_range::<u8>(ptr.pointer.0, ptr.pointer.1)?;
+        self.as_slice_mut_at(ptr.offset_base(), ptr.len())
+    }
+
+    #[no_panic]
+    #[spec(fn(&mut Self, offset: u32, len: u32) ->
+        Result<Option<&mut [u8][len]>, GuestError>)]
+    fn as_slice_mut_at(&mut self, offset: u32, len: u32) -> Result<Option<&mut [u8]>, GuestError> {
+        let range = self.validate_range::<u8>(offset, len)?;
+        let expected_len = usize::try_from(len)?;
+        let region = Region { start: offset, len };
         match self {
-            GuestMemory::Unshared(slice) => Ok(Some(&mut slice[range])),
+            GuestMemory::Unshared(slice) => Ok(Some(bounded_byte_slice_mut(
+                slice,
+                usize::try_from(offset)?,
+                expected_len,
+                region,
+            )?)),
             GuestMemory::Shared(_) => Ok(None),
             #[cfg(feature = "wasmtime")]
-            GuestMemory::Ranges(memory) => Ok(Some(
-                memory.data_range_mut(range).expect("range was validated"),
-            )),
+            GuestMemory::Ranges(memory) => {
+                let slice = memory
+                    .data_range_mut(range)
+                    .map_err(|_| GuestError::PtrOutOfBounds(region))?;
+                if slice.len() != expected_len {
+                    return Err(GuestError::SliceLengthsDiffer);
+                }
+                Ok(Some(slice))
+            }
         }
     }
 
@@ -176,23 +462,21 @@ impl<'a> GuestMemory<'a> {
     where
         T: GuestTypeTransparent + Copy,
     {
-        let guest = self.validate_size_align::<T>(ptr.pointer.0, ptr.pointer.1)?;
-        let mut host = Vec::with_capacity(guest.len());
-
-        // SAFETY: The `guest_slice` variable is already a valid pointer into
-        // the guest's memory, and it may or may not be a pointer into shared
-        // memory. We can't naively use `.to_vec(..)` which could introduce data
-        // races but all that needs to happen is to copy data into our local
-        // `vec` as all the data is `Copy` and transparent anyway. For this
-        // purpose the `ptr::copy` function should be sufficient for copying
-        // over all the data.
-        //
-        // TODO: audit that this use of `std::ptr::copy` is safe with shared
-        // memory (https://github.com/bytecodealliance/wasmtime/issues/4203)
-        unsafe {
-            std::ptr::copy(guest.as_ptr().cast(), host.as_mut_ptr(), guest.len());
-            host.set_len(guest.len());
+        let offset = ptr.offset_base();
+        let len = ptr.len();
+        let byte_len = guest_byte_len::<T>(len)?;
+        self.validate_size_align::<T>(offset, len, byte_len)?;
+        let expected_len = usize::try_from(len)?;
+        let mut host = Vec::new();
+        let base = GuestPtr::<T>::new(offset);
+        let mut index = 0u32;
+        while index < len {
+            // inv: host.len() = index
+            let value = T::read(self, base.add(index)?)?;
+            host.insert(host.len(), value);
+            index += 1;
         }
+        flux_rs::assert(host.len() == expected_len);
         Ok(host)
     }
 
@@ -212,28 +496,35 @@ impl<'a> GuestMemory<'a> {
     where
         T: GuestTypeTransparent + Copy,
     {
-        if usize::try_from(ptr.len())? != slice.len() {
+        self.copy_from_slice_at(slice, ptr.offset_base(), ptr.len())
+    }
+
+    #[spec(fn<T>(&mut Self, slice: &[T][@n], offset: u32, len: u32) -> Result<(), GuestError>)]
+    fn copy_from_slice_at<T>(
+        &mut self,
+        slice: &[T],
+        offset: u32,
+        len: u32,
+    ) -> Result<(), GuestError>
+    where
+        T: GuestTypeTransparent + Copy,
+    {
+        let expected_len = usize::try_from(len)?;
+        if expected_len != slice.len() {
             return Err(GuestError::SliceLengthsDiffer);
         }
+        flux_rs::assert(expected_len == slice.len());
         if slice.is_empty() {
+            self.validate_range::<T>(offset, len)?;
             return Ok(());
         }
 
-        let guest = self.validate_size_align_mut::<T>(ptr.pointer.0, ptr.pointer.1)?;
+        let byte_len = guest_byte_len::<T>(len)?;
+        self.validate_size_align_mut::<T>(offset, len, byte_len)?;
 
-        // SAFETY: in the shared memory case, we copy and accept that
-        // the guest data may be concurrently modified. TODO: audit that
-        // this use of `std::ptr::copy` is safe with shared memory
-        // (https://github.com/bytecodealliance/wasmtime/issues/4203)
-        //
-        // Also note that the validity of `guest_slice` has already been
-        // determined by the `as_unsafe_slice_mut` call above.
-        assert_eq!(guest.len(), slice.len());
-        unsafe {
-            let guest: &[UnsafeCell<T>] = guest;
-            let guest: *const UnsafeCell<T> = guest.as_ptr();
-            let guest = guest.cast_mut().cast::<T>();
-            std::ptr::copy(slice.as_ptr(), guest, slice.len());
+        let base = GuestPtr::<T>::new(offset);
+        for (index, value) in slice.iter().copied().enumerate() {
+            T::write(self, base.add(u32::try_from(index)?)?, value)?;
         }
         Ok(())
     }
@@ -247,94 +538,117 @@ impl<'a> GuestMemory<'a> {
     /// * `len` - this is the number of length, in units of `T`, to return
     ///   in the resulting slice.
     ///
-    /// If the parameters are valid then this function will return a slice into
-    /// `mem` for units of `T`, assuming everything is in-bounds and properly
-    /// aligned. Additionally the byte-based `Region` is returned, used for borrows
-    /// later on.
-    fn validate_size_align<T>(&self, offset: u32, len: u32) -> Result<&[UnsafeCell<T>], GuestError>
+    /// If the parameters are valid then this function returns the guest bytes
+    /// for the requested elements after checking the host layout and alignment.
+    #[no_panic]
+    #[spec(fn<T>(&Self, offset: u32, len: u32, byte_len: usize) ->
+        Result<&[UnsafeCell<u8>][byte_len], GuestError>)]
+    fn validate_size_align<T>(
+        &self,
+        offset: u32,
+        len: u32,
+        byte_len: usize,
+    ) -> Result<&[UnsafeCell<u8>], GuestError>
     where
         T: GuestTypeTransparent,
     {
-        let range = self.validate_range::<T>(offset, len)?;
+        let expected_len = usize::try_from(len)?;
+        let start = usize::try_from(offset)?;
+        let region = Region {
+            start: offset,
+            len: u32::try_from(byte_len)?,
+        };
         let cells = match self {
             GuestMemory::Unshared(s) => {
-                let s: &[u8] = s;
-                unsafe { &*(s as *const [u8] as *const [UnsafeCell<u8>]) }
+                let bytes: &[u8] = s;
+                byte_cells(bytes)
             }
             GuestMemory::Shared(s) => s,
             #[cfg(feature = "wasmtime")]
-            GuestMemory::Ranges(memory) => {
-                let s = memory.data();
-                unsafe { &*(s as *const [u8] as *const [UnsafeCell<u8>]) }
-            }
+            GuestMemory::Ranges(memory) => byte_cells(memory.data()),
         };
-        Self::align_cells(&cells[range.clone()], range)
+        let cells = bounded_byte_cells(cells, start, byte_len, region)?;
+        Self::validate_guest_layout::<T>(cells, region, expected_len)?;
+        Ok(cells)
     }
 
     /// Like `validate_size_align`, for writing: with
     /// `GuestMemory::Ranges`, only the validated range is borrowed for
     /// modification.
+    #[no_panic]
+    #[spec(fn<T>(&mut Self, offset: u32, len: u32, byte_len: usize) ->
+        Result<&[UnsafeCell<u8>][byte_len], GuestError>)]
     pub(crate) fn validate_size_align_mut<T>(
         &mut self,
         offset: u32,
         len: u32,
-    ) -> Result<&[UnsafeCell<T>], GuestError>
+        byte_len: usize,
+    ) -> Result<&[UnsafeCell<u8>], GuestError>
     where
         T: GuestTypeTransparent,
     {
+        let expected_len = usize::try_from(len)?;
         match self {
             #[cfg(feature = "wasmtime")]
             GuestMemory::Ranges(memory) => {
+                let byte_len_u32 = u32::try_from(byte_len)?;
+                let region = Region {
+                    start: offset,
+                    len: byte_len_u32,
+                };
                 let range = {
-                    let len = len
-                        .checked_mul(T::guest_size())
-                        .ok_or(GuestError::PtrOverflow)?;
-                    let region = Region { start: offset, len };
                     let start = usize::try_from(offset)?;
-                    let end = start
-                        .checked_add(usize::try_from(len)?)
-                        .ok_or(GuestError::PtrOverflow)?;
-                    if end > memory.len() {
-                        return Err(GuestError::PtrOutOfBounds(region));
-                    }
-                    start..end
+                    start.checked_add(byte_len).ok_or(GuestError::PtrOverflow)?;
+                    let range = validate_range_bounds(start, byte_len, memory.len(), region)?;
+                    range.start..range.end
                 };
                 let s: &mut [u8] = memory
                     .data_range_mut(range.clone())
-                    .expect("range was validated");
-                let cells = unsafe { &*(s as *const [u8] as *const [UnsafeCell<u8>]) };
-                Self::align_cells(cells, range)
+                    .map_err(|_| GuestError::PtrOutOfBounds(region))?;
+                let cells = bounded_byte_cells(byte_cells(s), 0, byte_len, region)?;
+                Self::validate_guest_layout::<T>(cells, region, expected_len)?;
+                Ok(cells)
             }
-            _ => self.validate_size_align(offset, len),
+            _ => self.validate_size_align::<T>(offset, len, byte_len),
         }
     }
 
-    /// Reinterprets `memory`, which holds `range` of guest memory, as `T`s,
-    /// failing if it is misaligned.
-    fn align_cells<T>(
+    #[no_panic]
+    fn validate_guest_layout<T>(
         memory: &[UnsafeCell<u8>],
-        range: Range<usize>,
-    ) -> Result<&[UnsafeCell<T>], GuestError>
+        region: Region,
+        expected_len: usize,
+    ) -> Result<(), GuestError>
     where
         T: GuestTypeTransparent,
     {
-        // ... and then align it to `T`, failing if either the head or tail slices
-        // are nonzero in length. This `unsafe` here is from the standard library
-        // and should be ok since the input slice is `UnsafeCell<u8>` and the output
-        // slice is `UnsafeCell<T>`, meaning the only guarantee of the output is
-        // that it's valid addressable memory, still unsafe to actually access.
-        assert!(mem::align_of::<T>() <= T::guest_align());
-        let (start, mid, end) = unsafe { memory.align_to() };
-        if start.len() > 0 || end.len() > 0 {
-            let region = Region {
-                start: range.start as u32,
-                len: range.len() as u32,
-            };
-            return Err(GuestError::PtrNotAligned(region, T::guest_align() as u32));
+        let host_align = mem::align_of::<T>();
+        let guest_align = T::guest_align();
+        if host_align == 0 || guest_align == 0 {
+            return Err(GuestError::SliceLengthsDiffer);
         }
-        Ok(mid)
+        if host_align > guest_align {
+            return Err(GuestError::PtrNotAligned(region, guest_align as u32));
+        }
+        let guest_size = usize::try_from(T::guest_size())?;
+        if mem::size_of::<T>() != guest_size {
+            return Err(GuestError::SliceLengthsDiffer);
+        }
+        let expected_bytes = expected_len
+            .checked_mul(guest_size)
+            .ok_or(GuestError::PtrOverflow)?;
+        if memory.len() != expected_bytes {
+            return Err(GuestError::SliceLengthsDiffer);
+        }
+        flux_rs::assert(memory.len() == expected_bytes);
+        if expected_bytes > 0 && (memory.as_ptr() as usize) % guest_align != 0 {
+            return Err(GuestError::PtrNotAligned(region, guest_align as u32));
+        }
+        Ok(())
     }
 
+    #[no_panic]
+    #[spec(fn<T>(&Self, offset: u32, len: u32) -> Result<Range<usize>, GuestError>)]
     fn validate_range<T>(&self, offset: u32, len: u32) -> Result<Range<usize>, GuestError>
     where
         T: GuestTypeTransparent,
@@ -348,19 +662,14 @@ impl<'a> GuestMemory<'a> {
         };
         let offset = usize::try_from(offset)?;
         let byte_len = usize::try_from(byte_len)?;
-
-        let range = offset..offset + byte_len;
-        let oob = match self {
-            GuestMemory::Unshared(b) => b.get(range.clone()).is_none(),
-            GuestMemory::Shared(b) => b.get(range.clone()).is_none(),
+        let memory_len = match self {
+            GuestMemory::Unshared(b) => b.len(),
+            GuestMemory::Shared(b) => b.len(),
             #[cfg(feature = "wasmtime")]
-            GuestMemory::Ranges(memory) => range.end > memory.len(),
+            GuestMemory::Ranges(memory) => memory.len(),
         };
-        if oob {
-            Err(GuestError::PtrOutOfBounds(region))
-        } else {
-            Ok(range)
-        }
+        let range = validate_range_bounds(offset, byte_len, memory_len, region)?;
+        Ok(range.start..range.end)
     }
 
     /// Returns whether this is a shared memory or not.
@@ -457,15 +766,18 @@ impl<T: ?Sized + Pointee> GuestPtr<T> {
     /// This will either return the resulting pointer or `Err` if the pointer
     /// arithmetic calculation would overflow around the end of the address
     /// space.
+    #[no_panic]
     pub fn add(&self, amt: u32) -> Result<GuestPtr<T>, GuestError>
     where
         T: GuestType + Pointee<Pointer = u32>,
     {
-        let offset = amt
-            .checked_mul(T::guest_size())
-            .and_then(|o| self.pointer.checked_add(o));
-        let offset = match offset {
-            Some(o) => o,
+        let pointer: u32 = self.pointer;
+        let byte_offset = match amt.checked_mul(T::guest_size()) {
+            Some(offset) => offset,
+            None => return Err(GuestError::PtrOverflow),
+        };
+        let offset = match pointer.checked_add(byte_offset) {
+            Some(offset) => offset,
             None => return Err(GuestError::PtrOverflow),
         };
         Ok(GuestPtr::new(offset))
@@ -487,12 +799,12 @@ impl<T> GuestPtr<[T]> {
     ///
     /// This is similar to `<[T]>::as_ptr()`
     pub fn offset_base(&self) -> u32 {
-        self.pointer.0
+        private::slice_offset(self.pointer)
     }
 
     /// For slices, returns the length of the slice, in elements.
     pub fn len(&self) -> u32 {
-        self.pointer.1
+        private::slice_len(self.pointer)
     }
 
     /// Returns an iterator over interior pointers.
@@ -513,21 +825,23 @@ impl<T> GuestPtr<[T]> {
         GuestPtr::new(self.offset_base())
     }
 
+    /// Returns the element pointer, or `None` if the index is out of bounds or
+    /// the guest offset calculation overflows.
+    #[no_panic]
     pub fn get(&self, index: u32) -> Option<GuestPtr<T>>
     where
         T: GuestType,
     {
         if index < self.len() {
-            Some(
-                self.as_ptr()
-                    .add(index)
-                    .expect("just performed bounds check"),
-            )
+            self.as_ptr().add(index).ok()
         } else {
             None
         }
     }
 
+    /// Returns the subrange pointer, or `None` if the range is out of bounds,
+    /// reversed, or its guest offset calculation overflows.
+    #[no_panic]
     pub fn get_range(&self, r: std::ops::Range<u32>) -> Option<GuestPtr<[T]>>
     where
         T: GuestType,
@@ -537,12 +851,10 @@ impl<T> GuestPtr<[T]> {
         }
         let range_length = r.end - r.start;
         if r.start <= self.len() && r.end <= self.len() {
-            Some(
-                self.as_ptr()
-                    .add(r.start)
-                    .expect("just performed bounds check")
-                    .as_array(range_length),
-            )
+            match self.as_ptr().add(r.start) {
+                Ok(ptr) => Some(ptr.as_array(range_length)),
+                Err(_) => None,
+            }
         } else {
             None
         }
@@ -553,12 +865,12 @@ impl GuestPtr<str> {
     /// For strings, returns the relative pointer to the base of the string
     /// allocation.
     pub fn offset_base(&self) -> u32 {
-        self.pointer.0
+        private::slice_offset(self.pointer)
     }
 
     /// Returns the length, in bytes, of the string.
     pub fn len(&self) -> u32 {
-        self.pointer.1
+        private::slice_len(self.pointer)
     }
 
     /// Returns a raw pointer for the underlying slice of bytes that this
@@ -593,6 +905,16 @@ mod private {
     impl<T> Sealed for T {}
     impl<T> Sealed for [T] {}
     impl Sealed for str {}
+
+    #[flux_rs::spec(fn(pointer: (u32[@base], u32)) -> u32[base])]
+    pub fn slice_offset(pointer: (u32, u32)) -> u32 {
+        pointer.0
+    }
+
+    #[flux_rs::spec(fn(pointer: (u32, u32[@len])) -> u32[len])]
+    pub fn slice_len(pointer: (u32, u32)) -> u32 {
+        pointer.1
+    }
 }
 
 /// Types that can be pointed to by `GuestPtr<T>`.
@@ -661,5 +983,386 @@ pub fn run_in_dummy_executor<F: std::future::Future>(future: F) -> Result<F::Out
         unsafe fn drop(ptr: *const ()) {
             assert_eq!(ptr as usize, 5);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[repr(align(16))]
+    struct AlignedByteMemory([UnsafeCell<u8>; 4]);
+
+    #[repr(align(16))]
+    struct AlignedGuestBytes([UnsafeCell<u8>; 8]);
+
+    #[repr(align(16))]
+    struct AlignedByteArray([u8; 4]);
+
+    #[repr(align(4))]
+    struct GuestAlignedU32(u32);
+
+    impl GuestType for GuestAlignedU32 {
+        fn guest_size() -> u32 {
+            4
+        }
+
+        fn guest_align() -> usize {
+            8
+        }
+
+        fn read(_: &GuestMemory, _: GuestPtr<Self>) -> Result<Self, GuestError> {
+            Err(GuestError::SliceLengthsDiffer)
+        }
+
+        fn write(_: &mut GuestMemory, _: GuestPtr<Self>, _: Self) -> Result<(), GuestError> {
+            Err(GuestError::SliceLengthsDiffer)
+        }
+    }
+
+    // SAFETY: the wrapper has u32's size and all bit patterns are valid; guest
+    // access requires the stricter eight-byte guest alignment.
+    unsafe impl GuestTypeTransparent for GuestAlignedU32 {}
+
+    impl GuestType for [u8; 2] {
+        fn guest_size() -> u32 {
+            1
+        }
+
+        fn guest_align() -> usize {
+            1
+        }
+
+        fn read(_: &GuestMemory, _: GuestPtr<Self>) -> Result<Self, GuestError> {
+            Err(GuestError::SliceLengthsDiffer)
+        }
+
+        fn write(_: &mut GuestMemory, _: GuestPtr<Self>, _: Self) -> Result<(), GuestError> {
+            Err(GuestError::SliceLengthsDiffer)
+        }
+    }
+
+    unsafe impl GuestTypeTransparent for [u8; 2] {}
+
+    #[test]
+    fn guest_pointer_accessors_return_none_on_offset_overflow() {
+        let add_overflow = GuestPtr::<u32>::new(u32::MAX).as_array(2);
+
+        assert!(add_overflow.get(1).is_none());
+        assert!(add_overflow.get_range(1..2).is_none());
+
+        let multiply_overflow = GuestPtr::<u32>::new(0).as_array(u32::MAX);
+        assert!(multiply_overflow.get(u32::MAX - 1).is_none());
+        assert!(
+            multiply_overflow
+                .get_range(u32::MAX - 1..u32::MAX)
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn bounded_byte_slice_mut_respects_guest_range() {
+        let mut bytes = [0, 1, 2, 3];
+
+        assert_eq!(
+            bounded_byte_slice_mut(&mut bytes, 1, 2, Region::new(1, 2))
+                .expect("range is in bounds"),
+            &[1, 2]
+        );
+        assert!(matches!(
+            bounded_byte_slice_mut(&mut bytes, 4, 1, Region::new(4, 1)),
+            Err(GuestError::PtrOutOfBounds(Region { start: 4, len: 1 }))
+        ));
+        assert!(
+            bounded_byte_slice_mut(&mut bytes, 4, 0, Region::new(4, 0))
+                .expect("empty range at the end is valid")
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn public_guest_byte_slices_validate_ranges() {
+        let mut bytes = [0, 1, 2, 3];
+        let valid: GuestPtr<[u8]> = GuestPtr::new((1, 2));
+        let invalid: GuestPtr<[u8]> = GuestPtr::new((4, 1));
+
+        assert_eq!(
+            GuestMemory::Unshared(&mut bytes)
+                .as_slice(valid)
+                .expect("valid guest slice")
+                .expect("unshared memory is borrowable"),
+            &[1, 2]
+        );
+        assert!(matches!(
+            GuestMemory::Unshared(&mut bytes).as_slice(invalid),
+            Err(GuestError::PtrOutOfBounds(Region { start: 4, len: 1 }))
+        ));
+
+        let mut guest = GuestMemory::Unshared(&mut bytes);
+        {
+            let slice = guest
+                .as_slice_mut(valid)
+                .expect("valid guest slice")
+                .expect("unshared memory is borrowable");
+            slice[0] = 9;
+        }
+        assert!(matches!(
+            guest.as_slice_mut(invalid),
+            Err(GuestError::PtrOutOfBounds(Region { start: 4, len: 1 }))
+        ));
+        drop(guest);
+        assert_eq!(bytes, [0, 9, 2, 3]);
+    }
+
+    #[test]
+    fn as_cow_str_preserves_borrowed_and_owned_paths() {
+        let ptr = GuestPtr::<str>::new((0, 2));
+        let mut unshared = *b"hi";
+        assert!(matches!(
+            GuestMemory::Unshared(&mut unshared)
+                .as_cow_str(ptr)
+                .expect("valid UTF-8"),
+            Cow::Borrowed("hi")
+        ));
+
+        let shared = [UnsafeCell::new(b'h'), UnsafeCell::new(b'i')];
+        assert!(matches!(
+            GuestMemory::Shared(&shared)
+                .as_cow_str(ptr)
+                .expect("valid UTF-8"),
+            Cow::Owned(ref text) if text == "hi"
+        ));
+
+        let mut invalid = [0xff];
+        assert!(
+            GuestMemory::Unshared(&mut invalid)
+                .as_cow_str(GuestPtr::<str>::new((0, 1)))
+                .is_err()
+        );
+    }
+
+    #[test]
+    fn to_vec_reads_guest_elements() {
+        let value = 0x1234_5678u32;
+        let mut memory = AlignedByteArray(value.to_le_bytes());
+        let ptr = GuestPtr::<[u32]>::new((0, 1));
+
+        assert_eq!(
+            GuestMemory::Unshared(&mut memory.0)
+                .to_vec(ptr)
+                .expect("one u32 fits in the guest buffer"),
+            [value]
+        );
+    }
+
+    #[test]
+    fn to_vec_checks_empty_guest_ranges() {
+        let mut memory = AlignedByteArray([0; 4]);
+        let guest = GuestMemory::Unshared(&mut memory.0);
+
+        assert_eq!(
+            guest
+                .to_vec(GuestPtr::<[u32]>::new((4, 0)))
+                .expect("an empty range at the end of memory is valid"),
+            Vec::<u32>::new()
+        );
+        assert!(matches!(
+            guest.to_vec(GuestPtr::<[u32]>::new((5, 0))),
+            Err(GuestError::PtrOutOfBounds(Region { start: 5, len: 0 }))
+        ));
+    }
+
+    #[test]
+    fn to_vec_reads_shared_guest_elements() {
+        let value = 0x1234_5678u32;
+        let bytes = value.to_le_bytes();
+        let memory = AlignedByteMemory(std::array::from_fn(|index| UnsafeCell::new(bytes[index])));
+        let ptr = GuestPtr::<[u32]>::new((0, 1));
+
+        assert_eq!(
+            GuestMemory::Shared(&memory.0)
+                .to_vec(ptr)
+                .expect("one u32 fits in the guest buffer"),
+            [value]
+        );
+    }
+
+    #[test]
+    fn shared_guest_memory_supports_concurrent_atomic_access() {
+        let memory = AlignedByteMemory(std::array::from_fn(|_| UnsafeCell::new(0)));
+        let reader = GuestMemory::Shared(&memory.0);
+
+        std::thread::scope(|scope| {
+            scope.spawn(|| {
+                for _ in 0..128 {
+                    let value = u32::read(&reader, GuestPtr::new(0))
+                        .expect("aligned shared u32 is readable");
+                    assert!(value < 128);
+                }
+            });
+
+            let mut writer = GuestMemory::Shared(&memory.0);
+            scope.spawn(move || {
+                for value in 0..128 {
+                    writer
+                        .write(GuestPtr::new(0), value)
+                        .expect("aligned shared u32 is writable");
+                }
+            });
+        });
+    }
+
+    #[test]
+    fn validate_guest_layout_checks_expected_element_count() {
+        let memory = AlignedByteMemory(std::array::from_fn(|_| UnsafeCell::new(0)));
+        let region = Region::new(0, 4);
+
+        GuestMemory::validate_guest_layout::<u32>(&memory.0, region, 1)
+            .expect("one u32 fits in four bytes");
+        assert!(matches!(
+            GuestMemory::validate_guest_layout::<u32>(&memory.0, region, 0),
+            Err(GuestError::SliceLengthsDiffer)
+        ));
+    }
+
+    #[test]
+    fn validate_guest_layout_rejects_mismatched_host_size() {
+        let memory = AlignedByteMemory(std::array::from_fn(|_| UnsafeCell::new(0)));
+
+        assert!(matches!(
+            GuestMemory::Shared(&memory.0).validate_size_align::<[u8; 2]>(0, 1, 1),
+            Err(GuestError::SliceLengthsDiffer)
+        ));
+    }
+
+    #[test]
+    fn validate_guest_layout_rejects_unaligned_bytes() {
+        let memory = AlignedByteMemory(std::array::from_fn(|_| UnsafeCell::new(0)));
+
+        assert!(matches!(
+            GuestMemory::validate_guest_layout::<u16>(&memory.0[1..3], Region::new(1, 2), 1),
+            Err(GuestError::PtrNotAligned(Region { start: 1, len: 2 }, 2))
+        ));
+    }
+
+    #[test]
+    fn validate_guest_layout_checks_stricter_guest_alignment() {
+        let memory = AlignedGuestBytes(std::array::from_fn(|_| UnsafeCell::new(0)));
+        let host = GuestAlignedU32(0);
+        assert_eq!(host.0, 0);
+
+        GuestMemory::validate_guest_layout::<GuestAlignedU32>(&memory.0[..4], Region::new(0, 4), 1)
+            .expect("the guest-aligned address is valid");
+
+        assert!(matches!(
+            GuestMemory::validate_guest_layout::<GuestAlignedU32>(
+                &memory.0[4..8],
+                Region::new(4, 4),
+                1
+            ),
+            Err(GuestError::PtrNotAligned(Region { start: 4, len: 4 }, 8))
+        ));
+    }
+
+    #[test]
+    fn copy_from_slice_rejects_out_of_bounds_guest_range() {
+        let mut memory = AlignedByteArray([0; 4]);
+        let mut guest = GuestMemory::Unshared(&mut memory.0);
+
+        assert!(matches!(
+            guest.copy_from_slice_at(&[1u32], 4, 1),
+            Err(GuestError::PtrOutOfBounds(Region { start: 4, len: 4 }))
+        ));
+        assert_eq!(memory.0, [0; 4]);
+    }
+
+    #[test]
+    fn copy_from_slice_checks_empty_guest_range() {
+        let mut memory = AlignedByteArray([0; 4]);
+        let mut guest = GuestMemory::Unshared(&mut memory.0);
+
+        guest
+            .copy_from_slice_at::<u8>(&[], 4, 0)
+            .expect("an empty range at the end of memory is valid");
+        assert!(matches!(
+            guest.copy_from_slice_at::<u8>(&[], 5, 0),
+            Err(GuestError::PtrOutOfBounds(Region { start: 5, len: 0 }))
+        ));
+    }
+
+    #[cfg(feature = "wasmtime")]
+    #[test]
+    fn ranges_guest_memory_validates_and_writes_guest_ranges() {
+        use wasmtime_crate::{Engine, Memory, MemoryType, Store};
+
+        let engine = Engine::default();
+        let mut store = Store::new(&engine, ());
+        let ty = MemoryType::new(1, Some(1)).unwrap();
+        let memory = Memory::new(&mut store, ty).unwrap();
+        let (ranges, _) = memory.data_ranges_and_store_data_mut(&mut store);
+        let mut guest = GuestMemory::Ranges(ranges);
+        let value = 0x1234_5678u32;
+
+        guest
+            .copy_from_slice_at(&[value], 0, 1)
+            .expect("one u32 fits in guest memory");
+        assert_eq!(
+            guest
+                .to_vec(GuestPtr::<[u32]>::new((0, 1)))
+                .expect("one u32 fits in guest memory"),
+            [value]
+        );
+        guest
+            .copy_from_slice_at::<u8>(&[], 65536, 0)
+            .expect("an empty range at the end of guest memory is valid");
+        assert!(matches!(
+            guest.copy_from_slice_at::<u8>(&[], 65537, 0),
+            Err(GuestError::PtrOutOfBounds(Region {
+                start: 65537,
+                len: 0
+            }))
+        ));
+        assert_eq!(
+            guest
+                .to_vec(GuestPtr::<[u32]>::new((65536, 0)))
+                .expect("an empty range at the end of guest memory is valid"),
+            Vec::<u32>::new()
+        );
+        assert!(matches!(
+            guest.to_vec(GuestPtr::<[u32]>::new((65537, 0))),
+            Err(GuestError::PtrOutOfBounds(Region {
+                start: 65537,
+                len: 0
+            }))
+        ));
+        drop(guest);
+
+        assert_eq!(&memory.data(&store)[..4], &value.to_le_bytes());
+    }
+
+    #[test]
+    fn copy_from_slice_writes_a_valid_guest_range() {
+        let mut memory = AlignedByteArray([0; 4]);
+        let value = 0x1234_5678u32;
+
+        GuestMemory::Unshared(&mut memory.0)
+            .copy_from_slice_at(&[value], 0, 1)
+            .expect("one u32 fits in the guest buffer");
+
+        assert_eq!(memory.0, value.to_le_bytes());
+    }
+
+    #[test]
+    fn copy_from_slice_writes_shared_guest_elements() {
+        let memory = AlignedByteMemory(std::array::from_fn(|_| UnsafeCell::new(0)));
+        let value = 0x1234_5678u32;
+        let ptr = GuestPtr::<[u32]>::new((0, 1));
+        let mut guest = GuestMemory::Shared(&memory.0);
+
+        guest
+            .copy_from_slice(&[value], ptr)
+            .expect("one u32 fits in the guest buffer");
+
+        assert_eq!(u32::read(&guest, GuestPtr::new(0)).unwrap(), value);
     }
 }

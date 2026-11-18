@@ -67,11 +67,13 @@ pub(super) fn define_flags(
 
         impl wiggle::GuestType for #ident {
             #[inline]
+            #[wiggle::no_panic]
             fn guest_size() -> u32 {
                 #repr::guest_size()
             }
 
             #[inline]
+            #[wiggle::no_panic]
             fn guest_align() -> usize {
                 #repr::guest_align()
             }

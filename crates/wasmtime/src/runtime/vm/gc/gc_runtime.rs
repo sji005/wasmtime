@@ -11,7 +11,35 @@ use crate::vm::VMMemoryDefinition;
 use core::ptr::NonNull;
 use core::slice;
 use core::{alloc::Layout, any::Any, marker, mem, ops::Range, ptr};
+use flux_rs::attrs::*;
 use wasmtime_environ::{GcArrayLayout, GcStructLayout, GcTypeLayouts, VMSharedTypeIndex};
+
+#[refined_by(start: int, end: int, limit: int)]
+#[invariant(start <= end && end <= limit)]
+struct ValidatedGcHeapRange {
+    #[field(usize[start])]
+    start: usize,
+    #[field(usize[end])]
+    end: usize,
+    #[field(usize[limit])]
+    limit: usize,
+}
+
+#[spec(fn(start: usize, len: usize, limit: usize) ->
+    Result<ValidatedGcHeapRange[{start: start, end: start + len, limit: limit}], crate::Error>)]
+fn validate_gc_heap_range(start: usize, len: usize, limit: usize) -> Result<ValidatedGcHeapRange> {
+    if start > limit || len > limit - start {
+        bail_bug!("gc object out-of-bounds");
+    }
+
+    let range = ValidatedGcHeapRange {
+        start,
+        end: start + len,
+        limit,
+    };
+    flux_rs::assert(range.start <= range.end && range.end <= range.limit);
+    Ok(range)
+}
 
 /// Trait for integrating a garbage collector with the runtime.
 ///
@@ -491,10 +519,10 @@ pub unsafe trait GcHeap: 'static + Send + Sync {
         let start = gc_ref.heap_index()?.get();
         let start = usize::try_from(start)?;
         let len = mem::size_of::<T>();
-        let slice = match self.heap_slice().get(start..).and_then(|s| s.get(..len)) {
-            Some(slice) => slice,
-            None => bail_bug!("gc object out-of-bounds"),
-        };
+        let heap = self.heap_slice();
+        let range = validate_gc_heap_range(start, len, heap.len())?;
+        let slice = &heap[range.start..range.end];
+        flux_rs::assert(slice.len() == len);
         if slice.as_ptr().addr() % mem::align_of::<T>() != 0 {
             bail_bug!("gc object and/or heap misaligned");
         }
@@ -518,14 +546,10 @@ pub unsafe trait GcHeap: 'static + Send + Sync {
         let start = gc_ref.heap_index()?.get();
         let start = usize::try_from(start)?;
         let len = mem::size_of::<T>();
-        let slice = match self
-            .heap_slice_mut()
-            .get_mut(start..)
-            .and_then(|s| s.get_mut(..len))
-        {
-            Some(slice) => slice,
-            None => bail_bug!("gc object out-of-bounds"),
-        };
+        let heap = self.heap_slice_mut();
+        let range = validate_gc_heap_range(start, len, heap.len())?;
+        let slice = &mut heap[range.start..range.end];
+        flux_rs::assert(slice.len() == len);
         assert!(slice.as_ptr().addr() % mem::align_of::<T>() == 0);
         Ok(unsafe { &mut *(slice.as_mut_ptr().cast::<T>()) })
     }
@@ -539,11 +563,8 @@ pub unsafe trait GcHeap: 'static + Send + Sync {
         let start = gc_ref.heap_index()?.get();
         let start = usize::try_from(start)?;
         let size = self.object_size(gc_ref)?;
-        let end = match start.checked_add(size) {
-            Some(end) => end,
-            None => bail_bug!("object size overflow"),
-        };
-        Ok(start..end)
+        let range = validate_gc_heap_range(start, size, self.heap_slice().len())?;
+        Ok(range.start..range.end)
     }
 
     /// Get a mutable borrow of the given object's data.

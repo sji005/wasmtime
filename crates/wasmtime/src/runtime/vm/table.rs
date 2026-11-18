@@ -13,9 +13,32 @@ use core::mem;
 use core::ops::Range;
 use core::ptr::NonNull;
 use core::slice;
+use flux_rs::attrs::*;
 use wasmtime_environ::{
     FUNCREF_INIT_BIT, FUNCREF_MASK, IndexType, Trap, Tunables, WasmHeapTopType, WasmRefType,
 };
+
+#[refined_by(index: int, len: int)]
+#[invariant(index < len)]
+struct ValidatedTableIndex {
+    #[field(usize[index])]
+    index: usize,
+    #[field(usize[len])]
+    len: usize,
+}
+
+#[spec(fn(index: usize, len: usize) ->
+    Result<ValidatedTableIndex[{index: index, len: len}], Trap>)]
+#[no_panic]
+fn validate_table_index(index: usize, len: usize) -> Result<ValidatedTableIndex, Trap> {
+    if index >= len {
+        return Err(Trap::TableOutOfBounds);
+    }
+
+    let index = ValidatedTableIndex { index, len };
+    flux_rs::assert(index.index < index.len);
+    Ok(index)
+}
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum TableElementType {
@@ -745,24 +768,25 @@ impl Table {
     ) -> Result<Option<Option<NonNull<VMFuncRef>>>, Trap> {
         let index = usize::try_from(index).map_err(|_| Trap::TableOutOfBounds)?;
         let (funcrefs, lazy_init) = self.funcrefs();
-        Ok(funcrefs
-            .get(index)
-            .ok_or(Trap::TableOutOfBounds)?
-            .into_funcref(lazy_init))
+        let index = validate_table_index(index, funcrefs.len())?;
+        Ok(funcrefs[index.index].into_funcref(lazy_init))
     }
 
     /// Same as [`Self::get_func`], but for GC references.
     pub fn get_gc_ref(&self, index: u64) -> Result<Option<&VMGcRef>, Trap> {
         let index = usize::try_from(index).map_err(|_| Trap::TableOutOfBounds)?;
-        let gcref = self.gc_refs().get(index).ok_or(Trap::TableOutOfBounds)?;
+        let gcrefs = self.gc_refs();
+        let index = validate_table_index(index, gcrefs.len())?;
+        let gcref = &gcrefs[index.index];
         Ok(gcref.as_ref())
     }
 
     /// Same as [`Self::get_func`], but for continuations.
     pub fn get_cont(&self, index: u64) -> Result<Option<VMContObj>, Trap> {
         let index = usize::try_from(index).map_err(|_| Trap::TableOutOfBounds)?;
-        let cont = self.contrefs().get(index).ok_or(Trap::TableOutOfBounds)?;
-        Ok(*cont)
+        let conts = self.contrefs();
+        let index = validate_table_index(index, conts.len())?;
+        Ok(conts[index.index])
     }
 
     /// Set reference to the specified element.
@@ -776,10 +800,10 @@ impl Table {
     ///
     /// Panics if `elem` is not of the right type for this table.
     pub fn set_func(&mut self, index: u64, elem: Option<NonNull<VMFuncRef>>) -> Result<(), Trap> {
-        let trap = Trap::TableOutOfBounds;
-        let index: usize = index.try_into().map_err(|_| trap)?;
+        let index: usize = index.try_into().map_err(|_| Trap::TableOutOfBounds)?;
         let (funcrefs, lazy_init) = self.funcrefs_mut();
-        *funcrefs.get_mut(index).ok_or(trap)? = MaybeTaggedFuncRef::from(elem, lazy_init);
+        let index = validate_table_index(index, funcrefs.len())?;
+        funcrefs[index.index] = MaybeTaggedFuncRef::from(elem, lazy_init);
         Ok(())
     }
 
@@ -790,13 +814,10 @@ impl Table {
         index: u64,
         elem: Option<&VMGcRef>,
     ) -> Result<()> {
-        let trap = Trap::TableOutOfBounds;
-        let index: usize = index.try_into().map_err(|_| trap)?;
-        GcStore::write_gc_ref_optional_store(
-            store,
-            self.gc_refs_mut().get_mut(index).ok_or(trap)?,
-            elem,
-        )?;
+        let index: usize = index.try_into().map_err(|_| Trap::TableOutOfBounds)?;
+        let gcrefs = self.gc_refs_mut();
+        let index = validate_table_index(index, gcrefs.len())?;
+        GcStore::write_gc_ref_optional_store(store, &mut gcrefs[index.index], elem)?;
         Ok(())
     }
 

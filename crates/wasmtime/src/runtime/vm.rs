@@ -49,6 +49,8 @@ use core::pin::pin;
 use core::ptr::NonNull;
 use core::sync::atomic::{AtomicUsize, Ordering};
 use core::task::{Context, Poll, Waker};
+#[cfg(has_virtual_memory)]
+use flux_rs::attrs::*;
 use wasmtime_environ::error::OutOfMemory;
 use wasmtime_environ::{DefinedMemoryIndex, HostPtr, VMOffsets, VMSharedTypeIndex};
 
@@ -420,6 +422,7 @@ impl ModuleRuntimeInfo {
 
 /// Returns the host OS page size, in bytes.
 #[cfg(has_virtual_memory)]
+#[spec(fn() -> usize{v: v > 0})]
 pub fn host_page_size() -> usize {
     // NB: this function is duplicated in `crates/fiber/src/unix.rs` so if this
     // changes that should probably get updated as well.

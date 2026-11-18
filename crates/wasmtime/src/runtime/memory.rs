@@ -13,9 +13,20 @@ use core::fmt;
 use core::ops::Range;
 use core::slice;
 use core::time::Duration;
+use flux_rs::{attrs::*, extern_spec};
 use wasmtime_environ::{DefinedMemoryIndex, MemoryTunables};
 
 pub use crate::runtime::vm::WaitResult;
+
+#[extern_spec(core::slice)]
+impl<T> [T] {
+    #[spec(fn(&[T][@len]) -> usize[len])]
+    fn len(slice: &[T]) -> usize;
+
+    #[no_panic]
+    #[spec(fn(&[T][@n], mid: usize{mid <= n}) -> (&[T][mid], &[T][n - mid]))]
+    fn split_at(&self, mid: usize) -> (&[T], &[T]);
+}
 
 /// Error for out of bounds [`Memory`] access.
 #[derive(Debug)]
@@ -1731,6 +1742,34 @@ pub struct MemoryRanges<'a> {
     store: &'a mut StoreOpaque,
 }
 
+#[refined_by(start: int, end: int, limit: int)]
+#[invariant(start <= end && end <= limit)]
+struct ValidatedMemoryRange {
+    #[field(usize[start])]
+    start: usize,
+    #[field(usize[end])]
+    end: usize,
+    #[field(usize[limit])]
+    limit: usize,
+}
+
+#[spec(fn(start: usize, end: usize, limit: usize) ->
+    Result<ValidatedMemoryRange[{start: start, end: end, limit: limit}], MemoryAccessError>)]
+#[no_panic]
+fn validate_memory_range(
+    start: usize,
+    end: usize,
+    limit: usize,
+) -> Result<ValidatedMemoryRange, MemoryAccessError> {
+    if start > end || end > limit {
+        return Err(MemoryAccessError { _private: () });
+    }
+
+    let range = ValidatedMemoryRange { start, end, limit };
+    flux_rs::assert(range.start <= range.end && range.end <= range.limit);
+    Ok(range)
+}
+
 impl<'a> MemoryRanges<'a> {
     /// The length of the memory, in bytes.
     pub fn len(&self) -> usize {
@@ -1753,9 +1792,11 @@ impl<'a> MemoryRanges<'a> {
     /// `range` of the memory, for reading, or an error if it is out of
     /// bounds.
     pub fn data_range(&self, range: Range<usize>) -> Result<&[u8], MemoryAccessError> {
-        self.data()
-            .get(range)
-            .ok_or(MemoryAccessError { _private: () })
+        let data = self.data();
+        let range = validate_memory_range(range.start, range.end, data.len())?;
+        let (_, tail) = data.split_at(range.start);
+        let (slice, _) = tail.split_at(range.end - range.start);
+        Ok(slice)
     }
 
     /// `range` of the memory, for modification, or an error if it is out of
@@ -1769,18 +1810,14 @@ impl<'a> MemoryRanges<'a> {
     }
 
     fn into_range_mut(self, range: Range<usize>) -> Result<&'a mut [u8], MemoryAccessError> {
-        let len = self.len();
-        if range.start > range.end || range.end > len {
-            return Err(MemoryAccessError { _private: () });
-        }
+        let range = validate_memory_range(range.start, range.end, self.len())?;
+        let len = range.end - range.start;
         let definition = self.store[self.memory.instance].memory(self.memory.index);
         // SAFETY: the range is in bounds, and the store, which owns this
         // non-shared memory, is borrowed for the slice's lifetime.
         unsafe {
-            Ok(slice::from_raw_parts_mut(
-                definition.base.as_ptr().add(range.start),
-                range.len(),
-            ))
+            let slice = slice::from_raw_parts_mut(definition.base.as_ptr().add(range.start), len);
+            Ok(slice)
         }
     }
 }

@@ -1,4 +1,5 @@
-use crate::{GuestError, GuestMemory, GuestPtr};
+use crate::{GuestError, GuestMemory, GuestPtr, Region};
+use flux_rs::no_panic;
 use std::cell::UnsafeCell;
 use std::mem;
 use std::sync::atomic::{
@@ -24,10 +25,16 @@ pub trait GuestErrorType {
 /// validation when reading/writing.
 pub trait GuestType: Sized {
     /// Returns the size, in bytes, of this type in the guest memory.
+    ///
+    /// This method must not panic because guest-memory validation depends on it.
+    #[no_panic]
     fn guest_size() -> u32;
 
     /// Returns the required alignment of this type, in bytes, for both guest
     /// and host memory.
+    ///
+    /// This method must not panic because guest-memory validation depends on it.
+    #[no_panic]
     fn guest_align() -> usize;
 
     /// Reads this value from the provided `ptr`.
@@ -55,36 +62,77 @@ pub trait GuestType: Sized {
 /// Unsafe trait because a correct `GuestTypeTransparent` implementation ensures
 /// that the `GuestPtr::as_slice` methods are safe, notably that the
 /// representation on the host matches the guest and all bit patterns are
-/// valid. This trait should only ever be implemented by
-/// wiggle_generate-produced code.
+/// valid. Wiggle implements this for primitive types with matching
+/// representations. Generated records and variants use field-by-field
+/// conversions instead and should not implement this trait.
+///
+/// # Safety
+///
+/// Implementors must guarantee that every possible guest byte representation
+/// is a valid `Self`, and that the guest layout reported by `GuestType` is
+/// compatible with the host layout for bytewise access.
 pub unsafe trait GuestTypeTransparent: GuestType {}
+
+#[no_panic]
+fn atomic_ref<A>(
+    bytes: &[UnsafeCell<u8>],
+    guest_size: u32,
+    region: Region,
+) -> Result<&A, GuestError> {
+    let atomic_size = mem::size_of::<A>();
+    let guest_size = match usize::try_from(guest_size) {
+        Ok(size) => size,
+        Err(error) => return Err(GuestError::TryFromIntError(error)),
+    };
+    if guest_size != atomic_size || bytes.len() != atomic_size {
+        return Err(GuestError::SliceLengthsDiffer);
+    }
+
+    let atomic_align = mem::align_of::<A>();
+    if atomic_align == 0 {
+        return Err(GuestError::SliceLengthsDiffer);
+    }
+    let cell = match bytes.first() {
+        Some(cell) => cell,
+        None => return Err(GuestError::SliceLengthsDiffer),
+    };
+    let cell_ptr = cell as *const UnsafeCell<u8>;
+    if (cell_ptr as usize) % atomic_align != 0 {
+        return Err(GuestError::PtrNotAligned(region, atomic_align as u32));
+    }
+
+    // SAFETY: the slice has exactly the atomic's size, and the first byte cell
+    // has the atomic's required alignment. Callers use this only for integer
+    // atomic types, for which every bit pattern is valid.
+    Ok(unsafe { &*cell.get().cast::<A>() })
+}
 
 macro_rules! integer_primitives {
     ($([$ty:ident, $ty_atomic:ident],)*) => ($(
         impl GuestType for $ty {
             #[inline]
+            #[no_panic]
             fn guest_size() -> u32 { mem::size_of::<Self>() as u32 }
             #[inline]
+            #[no_panic]
             fn guest_align() -> usize { mem::align_of::<Self>() }
 
             #[inline]
+            #[no_panic]
             fn read(mem: &GuestMemory, ptr: GuestPtr<Self>) -> Result<Self, GuestError> {
-                // Use `validate_size_align` to validate offset and alignment
-                // internally. The `host_ptr` type will be `&UnsafeCell<Self>`
-                // indicating that the memory is valid, and next safety checks
-                // are required to access it.
+                // Validate the guest range and the byte pointer's alignment
+                // before casting it to an atomic pointer.
                 let offset = ptr.offset();
-                let host_ptr = mem.validate_size_align::<Self>(offset, 1)?;
+                let byte_len = usize::try_from(Self::guest_size())?;
+                let host_ptr = mem.validate_size_align::<Self>(offset, 1, byte_len)?;
+                let region = Region::new(offset, Self::guest_size());
+                let host_ptr = atomic_ref::<$ty_atomic>(&host_ptr, Self::guest_size(), region)?;
 
                 // If the accessed memory is shared, we need to load the bytes
                 // with the correct memory consistency. We could check if the
                 // memory is shared each time, but we expect little performance
                 // difference between an additional branch and a relaxed memory
                 // access and thus always do the relaxed access here.
-                let host_ptr: &$ty_atomic = unsafe {
-                    let host_ptr: &UnsafeCell<Self> = &host_ptr[0];
-                    &*((host_ptr as *const UnsafeCell<Self>).cast::<$ty_atomic>())
-                };
                 let val = host_ptr.load(Ordering::Relaxed);
 
                 // And as a final operation convert from the little-endian wasm
@@ -93,14 +141,16 @@ macro_rules! integer_primitives {
             }
 
             #[inline]
+            #[no_panic]
             fn write(mem: &mut GuestMemory, ptr: GuestPtr<Self>, val: Self) -> Result<(), GuestError> {
                 // See `read` above for various checks here.
                 let val = val.to_le();
                 let offset = ptr.offset();
-                let host_ptr = mem.validate_size_align_mut::<Self>(offset, 1)?;
-                let host_ptr = &host_ptr[0];
-                let atomic_value_ref: &$ty_atomic =
-                    unsafe { &*(host_ptr.get().cast::<$ty_atomic>()) };
+                let byte_len = usize::try_from(Self::guest_size())?;
+                let host_ptr = mem.validate_size_align_mut::<Self>(offset, 1, byte_len)?;
+                let region = Region::new(offset, Self::guest_size());
+                let atomic_value_ref =
+                    atomic_ref::<$ty_atomic>(&host_ptr, Self::guest_size(), region)?;
                 atomic_value_ref.store(val, Ordering::Relaxed);
                 Ok(())
             }
@@ -115,16 +165,23 @@ macro_rules! float_primitives {
     ($([$ty:ident, $ty_unsigned:ident, $ty_atomic:ident],)*) => ($(
         impl GuestType for $ty {
             #[inline]
+            #[no_panic]
             fn guest_size() -> u32 { mem::size_of::<Self>() as u32 }
             #[inline]
+            #[no_panic]
             fn guest_align() -> usize { mem::align_of::<Self>() }
 
             #[inline]
+            #[no_panic]
             fn read(mem: &GuestMemory, ptr: GuestPtr<Self>) -> Result<Self, GuestError> {
-                <$ty_unsigned as GuestType>::read(mem, ptr.cast()).map($ty::from_bits)
+                match <$ty_unsigned as GuestType>::read(mem, ptr.cast()) {
+                    Ok(bits) => Ok($ty::from_bits(bits)),
+                    Err(error) => Err(error),
+                }
             }
 
             #[inline]
+            #[no_panic]
             fn write(mem:&mut GuestMemory, ptr: GuestPtr<Self>, val: Self) -> Result<(), GuestError> {
                 <$ty_unsigned as GuestType>::write(mem, ptr.cast(), val.to_bits())
             }
@@ -146,14 +203,47 @@ float_primitives! {
     [f32, u32, AtomicU32], [f64, u64, AtomicU64],
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[repr(align(16))]
+    struct AlignedBytes([UnsafeCell<u8>; 8]);
+
+    #[test]
+    fn atomic_ref_rejects_mismatched_byte_extent() {
+        let bytes = AlignedBytes(std::array::from_fn(|_| UnsafeCell::new(0)));
+
+        assert!(matches!(
+            atomic_ref::<AtomicU32>(&bytes.0[..4], 3, Region::new(0, 3)),
+            Err(GuestError::SliceLengthsDiffer)
+        ));
+    }
+
+    #[test]
+    fn atomic_ref_rejects_misaligned_bytes() {
+        let bytes = AlignedBytes(std::array::from_fn(|_| UnsafeCell::new(0)));
+
+        assert!(matches!(
+            atomic_ref::<AtomicU32>(&bytes.0[1..5], 4, Region::new(1, 4)),
+            Err(GuestError::PtrNotAligned(
+                Region { start: 1, len: 4 },
+                alignment
+            )) if alignment as usize == mem::align_of::<AtomicU32>()
+        ));
+    }
+}
+
 // Support pointers-to-pointers where pointers are always 32-bits in wasm land
 impl<T> GuestType for GuestPtr<T> {
     #[inline]
+    #[no_panic]
     fn guest_size() -> u32 {
         u32::guest_size()
     }
 
     #[inline]
+    #[no_panic]
     fn guest_align() -> usize {
         u32::guest_align()
     }
@@ -174,11 +264,13 @@ where
     T: GuestType,
 {
     #[inline]
+    #[no_panic]
     fn guest_size() -> u32 {
         u32::guest_size() * 2
     }
 
     #[inline]
+    #[no_panic]
     fn guest_align() -> usize {
         u32::guest_align()
     }

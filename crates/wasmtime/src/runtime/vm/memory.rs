@@ -566,11 +566,18 @@ impl LocalMemory {
 
         // Calculate the byte size of the new allocation. Let it overflow up to
         // `usize::MAX`, then clamp it down to `absolute_max`.
-        let new_byte_size = usize::try_from(delta_pages)
+        let candidate_byte_size = usize::try_from(delta_pages)
             .unwrap_or(usize::MAX)
             .saturating_mul(page_size)
-            .saturating_add(old_byte_size)
-            .min(absolute_max);
+            .saturating_add(old_byte_size);
+        let new_byte_size = if candidate_byte_size > absolute_max {
+            absolute_max
+        } else {
+            candidate_byte_size
+        };
+        if new_byte_size < old_byte_size {
+            return Ok(None);
+        }
 
         let maximum = self
             .ty
@@ -638,6 +645,7 @@ impl LocalMemory {
                 if new_byte_size > capacity {
                     bail!("Memory maximum size exceeded");
                 }
+                flux_rs::assert(new_byte_size <= capacity);
             }
 
             // Grow the shadow's allocation first, so that if it fails, the

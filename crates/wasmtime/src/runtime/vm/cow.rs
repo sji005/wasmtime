@@ -695,11 +695,19 @@ impl MemoryImageSlot {
         /// indexing calculations below.
         fn manually_reset_region(base_addr: usize, image: &MemoryImage, mut region: &mut [u8]) {
             let image_start = image.linear_memory_offset.byte_count();
-            let image_end = image_start + image.len.byte_count();
-            let mut region_start = region.as_ptr().addr() - base_addr;
+            let image_len = image.len.byte_count();
+            flux_rs::assert(image_start <= usize::MAX - image_len);
+            let image_end = image_start + image_len;
+            let region_addr = region.as_ptr().addr();
+            flux_rs::assert(region_addr >= base_addr);
+            let mut region_start = region_addr - base_addr;
+            flux_rs::assert(region_start <= usize::MAX - region.len());
             let region_end = region_start + region.len();
-            let image_bytes = image.module_source.wasm_data();
-            let image_bytes = &image_bytes[image.module_source_offset..][..image.len.byte_count()];
+            let source = image.module_source.wasm_data();
+            flux_rs::assert(image.module_source_offset <= source.len());
+            let source = &source[image.module_source_offset..];
+            flux_rs::assert(image_len <= source.len());
+            let image_bytes = &source[..image_len];
 
             // 1. Zero out the part before the image (if any).
             if let Some(len_before_image) = image_start.checked_sub(region_start) {
@@ -714,15 +722,19 @@ impl MemoryImageSlot {
                 }
             }
 
-            debug_assert_eq!(region_end - region_start, region.len());
-            debug_assert!(region_start >= image_start);
+            flux_rs::assert(region_end >= region_start);
+            flux_rs::assert(region_end - region_start == region.len());
+            flux_rs::assert(region_start >= image_start);
 
             // 2. Copy the original bytes from the image for the part that
             //    overlaps with the image.
             if let Some(len_in_image) = image_end.checked_sub(region_start) {
                 let len = len_in_image.min(region.len());
+                let image_offset = region_start - image_start;
+                flux_rs::assert(image_offset <= image_bytes.len());
+                flux_rs::assert(len <= image_bytes.len() - image_offset);
                 let (a, b) = region.split_at_mut(len);
-                a.copy_from_slice(&image_bytes[region_start - image_start..][..len]);
+                a.copy_from_slice(&image_bytes[image_offset..][..len]);
                 region = b;
                 region_start += len;
 
@@ -731,8 +743,9 @@ impl MemoryImageSlot {
                 }
             }
 
-            debug_assert_eq!(region_end - region_start, region.len());
-            debug_assert!(region_start >= image_end);
+            flux_rs::assert(region_end >= region_start);
+            flux_rs::assert(region_end - region_start == region.len());
+            flux_rs::assert(region_start >= image_end);
 
             // 3. Zero out the part after the image.
             region.fill(0);

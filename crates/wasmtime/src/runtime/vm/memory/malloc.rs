@@ -94,6 +94,7 @@ unsafe impl LinearMemory for MallocMemory {
             self.base_ptr =
                 SendSyncPtr::new(NonNull::new(self.storage.as_mut_ptr()).unwrap()).cast();
         }
+        flux_rs::assert(self.storage.len() >= new_element_len);
         self.byte_len = new_size;
         Ok(())
     }
@@ -122,7 +123,8 @@ fn byte_size_to_element_len(byte_size: usize) -> usize {
 /// instead.
 fn grow_storage_to(storage: &mut Vec<Align16>, new_len: usize) {
     debug_assert!(new_len > storage.len());
-    assert!(new_len <= storage.capacity());
+    flux_rs::assert(new_len <= storage.capacity());
+    flux_rs::assert(new_len > storage.len());
     let capacity_to_set = new_len - storage.len();
     let slice_to_initialize = &mut storage.spare_capacity_mut()[..capacity_to_set];
     let byte_size = mem::size_of_val(slice_to_initialize);
@@ -141,6 +143,7 @@ fn grow_storage_to(storage: &mut Vec<Align16>, new_len: usize) {
         core::ptr::write_bytes(slice_to_initialize.as_mut_ptr().cast::<u8>(), 0, byte_size);
         storage.set_len(new_len);
     }
+    flux_rs::assert(storage.len() == new_len);
 }
 
 #[cfg(test)]

@@ -55,11 +55,13 @@ pub(super) fn define_handle(name: &witx::Id, h: &witx::HandleDatatype) -> TokenS
 
         impl wiggle::GuestType for #ident {
             #[inline]
+            #[wiggle::no_panic]
             fn guest_size() -> u32 {
                 #size
             }
 
             #[inline]
+            #[wiggle::no_panic]
             fn guest_align() -> usize {
                 #align
             }

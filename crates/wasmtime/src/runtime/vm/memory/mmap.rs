@@ -174,7 +174,21 @@ unsafe impl LinearMemory for MmapMemory {
     fn grow_to(&mut self, new_size: usize) -> Result<()> {
         let new_accessible = HostAlignedByteCount::new_rounded_up(new_size)?;
         let current_capacity = self.current_capacity();
+        if self.len > current_capacity.byte_count() {
+            return Err(crate::bug!("current memory size exceeds its allocation").into());
+        }
+        flux_rs::assert(self.len <= current_capacity.byte_count());
+        if new_accessible.byte_count() < new_size {
+            return Err(
+                crate::bug!("rounded memory size is smaller than the requested size").into(),
+            );
+        }
+        flux_rs::assert(new_accessible.byte_count() >= new_size);
         if new_accessible > current_capacity {
+            if self.len > new_accessible.byte_count() {
+                return Err(crate::bug!("new allocation cannot contain the current memory").into());
+            }
+            flux_rs::assert(self.len <= new_accessible.byte_count());
             // If the new size of this heap exceeds the current size of the
             // allocation we have, then this must be a dynamic heap. Use
             // `new_size` to calculate a new size of an allocation, allocate it,
@@ -213,8 +227,16 @@ unsafe impl LinearMemory for MmapMemory {
             // or "dynamic" heaps which have some space reserved after the
             // initial allocation to grow into before the heap is moved in
             // memory.
-            assert!(new_size <= current_capacity.byte_count());
-            assert!(self.maximum.map_or(true, |max| new_size <= max));
+            if new_size > current_capacity.byte_count() {
+                return Err(crate::bug!("memory exceeds current capacity").into());
+            }
+            if let Some(max) = self.maximum {
+                if new_size > max {
+                    return Err(crate::bug!("memory exceeds its declared maximum").into());
+                }
+            }
+            flux_rs::assert(new_size <= current_capacity.byte_count());
+            flux_rs::assert(self.maximum.map_or(true, |max| new_size <= max));
 
             // If the Wasm memory's page size is smaller than the host's page
             // size, then we might not need to actually change permissions,

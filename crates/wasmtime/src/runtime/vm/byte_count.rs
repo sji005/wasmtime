@@ -1,4 +1,5 @@
 use core::fmt;
+use flux_rs::attrs::*;
 
 use super::host_page_size;
 
@@ -6,9 +7,10 @@ use super::host_page_size;
 ///
 /// This is used to manage page-aligned memory allocations.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[refined_by(bytes: int)]
 pub struct HostAlignedByteCount(
     // Invariant: this is always a multiple of the host page size.
-    usize,
+    #[field(usize[bytes])] usize,
 );
 
 impl HostAlignedByteCount {
@@ -79,6 +81,7 @@ impl HostAlignedByteCount {
 
     /// Returns the number of bytes as a `usize`.
     #[inline]
+    #[spec(fn(self: HostAlignedByteCount[@bytes]) -> usize[bytes])]
     pub fn byte_count(self) -> usize {
         self.0
     }
