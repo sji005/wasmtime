@@ -1,0 +1,14 @@
+{
+  "run_url": "https://github.com/sji005/wasmtime/actions/runs/44255286310",
+  "source_revision": "f3a24f51d64b5c5a34a6bee55613bbea5d120aac",
+  "artifact": {
+    "id": 14405972591,
+    "file": "compatibility.zip",
+    "sha256": "9a013fe5cc285b271f05fcff6aee1c2bf93d9f21ce9190948a087b8b1e83123e"
+  },
+  "jobs": {
+    "environment": 134635402782,
+    "integration": 134635402373
+  },
+  "claim": "Original macro-expanded integer guest size/alignment contracts and rejected body mutations. Generated binding boundary execution succeeded."
+}

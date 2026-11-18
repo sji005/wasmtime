@@ -172,6 +172,8 @@ def main():
         status = classify(code, log, (case_dir / "compiler-invocation.json").is_file())
         if name == "range" and status == "feasibility-only-no-spatial-postcondition":
             status = "conditional-slice-bound-checked-mutations-required"
+        if name in ("guest-size", "guest-align") and status == "feasibility-only-no-spatial-postcondition":
+            status = "scalar-layout-contract-checked-mutations-required"
         report["cases"].append({
             "name": name, "package": package, "features": features, "source": source,
             "source_sha256_lf": hashlib.sha256(text.encode()).hexdigest(),

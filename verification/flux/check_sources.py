@@ -28,7 +28,7 @@ def specification_only(annotation):
     if not text.startswith(prefix) or any(token in text for token in ('"', '//', '/*')):
         return False
     kind = text[len(prefix):].split("(", 1)[0]
-    if kind not in ("sig", "refined_by", "field", "variant"):
+    if kind not in ("sig", "refined_by", "field", "variant", "assoc"):
         return False
     stack = []
     pairs = {')': '(', ']': '[', '}': '{'}

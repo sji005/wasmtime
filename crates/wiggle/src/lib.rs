@@ -339,7 +339,7 @@ impl<'a> GuestMemory<'a> {
         Ok(mid)
     }
 
-    #[cfg_attr(flux, flux::sig(fn(&GuestMemory[@m], offset: u32, u32) -> Result<Range<usize>{r: r.start == offset && r.start <= r.end && r.end - r.start <= u32::MAX && (m.kind != 2 => r.end <= m.slice_len)}, GuestError>))]
+    #[cfg_attr(flux, flux::sig(fn(&GuestMemory[@m], offset: u32, len: u32) -> Result<Range<usize>{r: r.start == offset && r.start <= r.end && r.end - r.start <= u32::MAX && (m.kind != 2 => r.end <= m.slice_len) && (<T as GuestType>::guest_size_matches_layout() => r.end - r.start == len * T::size_of())}, GuestError>))]
     fn validate_range<T>(&self, offset: u32, len: u32) -> Result<Range<usize>, GuestError>
     where
         T: GuestTypeTransparent,

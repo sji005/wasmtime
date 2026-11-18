@@ -22,8 +22,10 @@ pub trait GuestErrorType {
 /// abstraction allows the guest representation of a type to be different from
 /// the host representation of a type, if necessary. It also allows for
 /// validation when reading/writing.
+#[cfg_attr(flux, flux::assoc(fn guest_size_matches_layout() -> bool { false }))]
 pub trait GuestType: Sized {
     /// Returns the size, in bytes, of this type in the guest memory.
+    #[cfg_attr(flux, flux::sig(fn() -> u32{n: <Self as GuestType>::guest_size_matches_layout() => n == Self::size_of()}))]
     fn guest_size() -> u32;
 
     /// Returns the required alignment of this type, in bytes, for both guest
@@ -61,6 +63,7 @@ pub unsafe trait GuestTypeTransparent: GuestType {}
 
 macro_rules! integer_primitives {
     ($([$ty:ident, $ty_atomic:ident],)*) => ($(
+        #[cfg_attr(flux, flux::assoc(fn guest_size_matches_layout() -> bool { true }))]
         impl GuestType for $ty {
             #[inline]
             #[cfg_attr(flux, flux::sig(fn() -> u32[Self::size_of()]))]

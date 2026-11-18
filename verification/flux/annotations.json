@@ -64,7 +64,7 @@
     },
     {
       "anchor": "    fn validate_range<T>(&self, offset: u32, len: u32) -> Result<Range<usize>, GuestError>\n",
-      "annotation": "    #[cfg_attr(flux, flux::sig(fn(&GuestMemory[@m], offset: u32, u32) -> Result<Range<usize>{r: r.start == offset && r.start <= r.end && r.end - r.start <= u32::MAX && (m.kind != 2 => r.end <= m.slice_len)}, GuestError>))]\n"
+      "annotation": "    #[cfg_attr(flux, flux::sig(fn(&GuestMemory[@m], offset: u32, len: u32) -> Result<Range<usize>{r: r.start == offset && r.start <= r.end && r.end - r.start <= u32::MAX && (m.kind != 2 => r.end <= m.slice_len) && (<T as GuestType>::guest_size_matches_layout() => r.end - r.start == len * T::size_of())}, GuestError>))]\n"
     }
   ],
   "crates/wiggle/src/guest_type.rs": [
@@ -77,6 +77,20 @@
     {
       "anchor": "            fn guest_align() -> usize { mem::align_of::<Self>() }\n",
       "annotation": "            #[cfg_attr(flux, flux::sig(fn() -> usize[Self::align_of()]))]\n",
+      "expected_count": 2,
+      "occurrence": 0
+    },
+    {
+      "anchor": "pub trait GuestType: Sized {\n",
+      "annotation": "#[cfg_attr(flux, flux::assoc(fn guest_size_matches_layout() -> bool { false }))]\n"
+    },
+    {
+      "anchor": "    fn guest_size() -> u32;\n",
+      "annotation": "    #[cfg_attr(flux, flux::sig(fn() -> u32{n: <Self as GuestType>::guest_size_matches_layout() => n == Self::size_of()}))]\n"
+    },
+    {
+      "anchor": "        impl GuestType for $ty {\n",
+      "annotation": "        #[cfg_attr(flux, flux::assoc(fn guest_size_matches_layout() -> bool { true }))]\n",
       "expected_count": 2,
       "occurrence": 0
     }

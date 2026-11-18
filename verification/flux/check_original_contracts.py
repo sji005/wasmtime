@@ -24,6 +24,7 @@ CASES = (
     ("pointer-as-ptr", "    pub fn as_ptr(&self)", "GuestPtr::new(self.offset_base())", "GuestPtr::new(0)"),
     ("range", "    fn validate_range<T>", "let range = offset..offset + byte_len;", "let range = offset + 1..offset + byte_len;"),
     ("range-no-bounds-check", "    fn validate_range<T>", "if oob {", "if false {"),
+    ("range-wrong-byte-count", "    fn validate_range<T>", "let range = offset..offset + byte_len;", "let range = offset..offset + byte_len / 2;"),
     ("guest-size", "            fn guest_size() -> u32", "mem::size_of::<Self>() as u32", "0"),
     ("guest-align", "            fn guest_align() -> usize", "mem::align_of::<Self>()", "0"),
 )
@@ -40,13 +41,17 @@ def main():
     for name, anchor, before, after in CASES:
         result_case = {"name": name, "runs": []}
         report["cases"].append(result_case)
-        checked = observed["range" if name == "range-no-bounds-check" else name]
+        checked = observed["range" if name.startswith("range-") else name]
         source = ROOT / checked["source"]
         original = source.read_text()
         if checked["source_sha256_lf"] != hashlib.sha256(original.encode()).hexdigest():
             raise RuntimeError("Proof and mutation source hashes differ")
-        expected = ("conditional-slice-bound-checked-mutations-required" if name.startswith("range")
-                    else "feasibility-only-no-spatial-postcondition")
+        if name.startswith("range"):
+            expected = "conditional-slice-bound-checked-mutations-required"
+        elif name.startswith("guest-"):
+            expected = "scalar-layout-contract-checked-mutations-required"
+        else:
+            expected = "feasibility-only-no-spatial-postcondition"
         if checked["exit_code"] != 0 or checked["status"] != expected:
             result_case["status"] = "open-positive-contract-did-not-check"
             continue
