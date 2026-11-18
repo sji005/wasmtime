@@ -38,8 +38,13 @@ explicit `impl Future + Send` trait and nested async examples reproduce the
 synthetic opaque failure seen in the original `fd_read`. The signature
 compatibility candidate applies rustc's mapping from a trait method's own
 synthetic return projection to its original opaque type for structural
-comparison. The positive and wrong-result checks must validate it before any
-original async proof is claimed.
+comparison. In [run 44254101472](https://github.com/sji005/wasmtime/actions/runs/44254101472)
+that candidate reached output subtyping for the original `fd_read`. Flux then
+tried to compare an implementation lifetime with the trait's `Self` type.
+The next candidate uses the existing projection-bound checker for corresponding
+trait/implementation opaques, including the `Future::Output` contract. Its
+regression includes an implementation that satisfies its own weaker output
+contract but violates its trait's contract.
 
 ## Open production obligations
 

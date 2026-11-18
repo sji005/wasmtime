@@ -17,13 +17,12 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: fd-read-verification-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   environment:
     if: github.repository == 'sji005/wasmtime'
+    concurrency:
+      group: fd-read-checker-${{ github.ref }}
+      cancel-in-progress: true
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:
@@ -157,6 +156,9 @@ jobs:
 
   integration:
     if: github.repository == 'sji005/wasmtime'
+    concurrency:
+      group: fd-read-integration-${{ github.ref }}
+      cancel-in-progress: false
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:

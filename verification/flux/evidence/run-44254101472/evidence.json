@@ -1,0 +1,14 @@
+{
+  "run_url": "https://github.com/sji005/wasmtime/actions/runs/44254101472",
+  "source_revision": "b57ef1523d39deb44303b04272eee0019b69d066",
+  "artifact": {
+    "id": 14405532289,
+    "file": "compatibility.zip",
+    "sha256": "29978b809fc71aa79b8e1778da80875b9c23bb7c3c3e34847466e066bc2e7288"
+  },
+  "jobs": {
+    "environment": 134631516549,
+    "integration": 134631516241
+  },
+  "claim": "RPITIT signature comparison reaches original trait output subtyping. Different opaque generic argument lists trigger a checker error."
+}

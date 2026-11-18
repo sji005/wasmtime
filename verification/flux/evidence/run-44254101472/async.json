@@ -1,0 +1,305 @@
+{
+  "scope": "checker regression only; no WASI/async ownership theorem",
+  "runs": [
+    {
+      "name": "free-positive",
+      "compiler": "rustc",
+      "command": [
+        "rustc",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/free_positive.rs"
+      ],
+      "exit_code": 0,
+      "log": "free-positive-rustc.log"
+    },
+    {
+      "name": "free-positive",
+      "compiler": "flux",
+      "command": [
+        "flux",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/flux-log",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/free_positive.rs"
+      ],
+      "exit_code": 0,
+      "log": "free-positive-flux.log"
+    },
+    {
+      "name": "free-wrong-result",
+      "compiler": "rustc",
+      "command": [
+        "rustc",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/free_wrong_result.rs"
+      ],
+      "exit_code": 0,
+      "log": "free-wrong-result-rustc.log"
+    },
+    {
+      "name": "free-wrong-result",
+      "compiler": "flux",
+      "command": [
+        "flux",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/flux-log",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/free_wrong_result.rs"
+      ],
+      "exit_code": 1,
+      "log": "free-wrong-result-flux.log"
+    },
+    {
+      "name": "trait-positive",
+      "compiler": "rustc",
+      "command": [
+        "rustc",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/trait_positive.rs"
+      ],
+      "exit_code": 0,
+      "log": "trait-positive-rustc.log"
+    },
+    {
+      "name": "trait-positive",
+      "compiler": "flux",
+      "command": [
+        "flux",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/flux-log",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/trait_positive.rs"
+      ],
+      "exit_code": 1,
+      "log": "trait-positive-flux.log"
+    },
+    {
+      "name": "trait-wrong-result",
+      "compiler": "rustc",
+      "command": [
+        "rustc",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/trait_wrong_result.rs"
+      ],
+      "exit_code": 0,
+      "log": "trait-wrong-result-rustc.log"
+    },
+    {
+      "name": "trait-wrong-result",
+      "compiler": "flux",
+      "command": [
+        "flux",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/flux-log",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/trait_wrong_result.rs"
+      ],
+      "exit_code": 1,
+      "log": "trait-wrong-result-flux.log"
+    },
+    {
+      "name": "rpit-trait-positive",
+      "compiler": "rustc",
+      "command": [
+        "rustc",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/rpit_trait_positive.rs"
+      ],
+      "exit_code": 0,
+      "log": "rpit-trait-positive-rustc.log"
+    },
+    {
+      "name": "rpit-trait-positive",
+      "compiler": "flux",
+      "command": [
+        "flux",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/flux-log",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/rpit_trait_positive.rs"
+      ],
+      "exit_code": 1,
+      "log": "rpit-trait-positive-flux.log"
+    },
+    {
+      "name": "rpit-trait-wrong-result",
+      "compiler": "rustc",
+      "command": [
+        "rustc",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/rpit_trait_wrong_result.rs"
+      ],
+      "exit_code": 0,
+      "log": "rpit-trait-wrong-result-rustc.log"
+    },
+    {
+      "name": "rpit-trait-wrong-result",
+      "compiler": "flux",
+      "command": [
+        "flux",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/flux-log",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/rpit_trait_wrong_result.rs"
+      ],
+      "exit_code": 1,
+      "log": "rpit-trait-wrong-result-flux.log"
+    },
+    {
+      "name": "nested-rpit-trait-positive",
+      "compiler": "rustc",
+      "command": [
+        "rustc",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/nested_rpit_trait_positive.rs"
+      ],
+      "exit_code": 0,
+      "log": "nested-rpit-trait-positive-rustc.log"
+    },
+    {
+      "name": "nested-rpit-trait-positive",
+      "compiler": "flux",
+      "command": [
+        "flux",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/flux-log",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/nested_rpit_trait_positive.rs"
+      ],
+      "exit_code": 1,
+      "log": "nested-rpit-trait-positive-flux.log"
+    },
+    {
+      "name": "nested-rpit-trait-wrong-result",
+      "compiler": "rustc",
+      "command": [
+        "rustc",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/nested_rpit_trait_wrong_result.rs"
+      ],
+      "exit_code": 0,
+      "log": "nested-rpit-trait-wrong-result-rustc.log"
+    },
+    {
+      "name": "nested-rpit-trait-wrong-result",
+      "compiler": "flux",
+      "command": [
+        "flux",
+        "--edition=2024",
+        "--crate-type=lib",
+        "--color=never",
+        "--out-dir",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async",
+        "--cfg",
+        "flux",
+        "-Fcheck-overflow=strict",
+        "-Fallow-raw-deref=none",
+        "-Flog-dir=/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/flux-log",
+        "/home/runner/work/wasmtime/wasmtime/artifacts/fd-read/compat-async/nested_rpit_trait_wrong_result.rs"
+      ],
+      "exit_code": 1,
+      "log": "nested-rpit-trait-wrong-result-flux.log"
+    }
+  ],
+  "free": "checked-with-rejected-well-typed-mutation",
+  "trait": "open-checker-limitation",
+  "rpit-trait": "open-checker-limitation",
+  "nested-rpit-trait": "open-checker-limitation",
+  "status": "classified",
+  "checker_variant": {
+    "base_revision": "b68c177c5ace7cb3644fdeea140dc5d18669c6cc",
+    "patches": {
+      "include-selection.patch": "5672857a49a8614839459980138b720a916951d4c9f69abc6d34c2720b52abd7",
+      "associated-field-normalization.patch": "5dd2d9b7cf48e5af504416af1e5ced18ac48e2fd19455123ea9512a5b03e1158",
+      "strict-type-projections.patch": "b5184ec3c226a3aa303186942d1dbc14db6a7b0fff3e8c1353c690dc10d4651c",
+      "opaque-diagnostic.patch": "bffd827befcc42ef999139c87eca7ecabacc86384af882f3e96394aeabfd68ee",
+      "rpitit-signature-shape.patch": "6d40559c1ceca5ad7b0824dcbbb8716afdf054cd9edc0308c0cabb3a75e8e0b1"
+    },
+    "driver_sha256": "9a65146753cf4a4ea9a4ba98f0cc54c5577248549fe4f7516850ff7bab475451",
+    "rustc": "rustc 1.101.0-nightly (1a2c4797e 2026-10-21)\nbinary: rustc\ncommit-hash: 1a2c4797ef2570bd76ca5dee34449169bc7dc457\ncommit-date: 2026-10-21\nhost: x86_64-unknown-linux-gnu\nrelease: 1.101.0-nightly\nLLVM version: 23.1.4\n",
+    "scope": "Function selection, Rust ghost-shape normalization, fail-closed type projections, opaque diagnostics and RPITIT signature comparison; no solver, arithmetic or primitive-spec changes",
+    "standard_specs": "Unmodified baseline Flux sysroot; see pins.json",
+    "status": "candidate; require selection regressions and strict M0 positive/negative gate"
+  }
+}
