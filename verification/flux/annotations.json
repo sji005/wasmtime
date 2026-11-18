@@ -1,0 +1,8 @@
+{
+  "crates/wasi/src/filesystem/unix.rs": [
+    {
+      "anchor": "pub(crate) fn read_at_cursor_unspecified(\n",
+      "annotation": "#[cfg_attr(flux, flux::sig(fn(&File, &mut [u8][@n], u64) -> Result<usize{v: v <= n}, io::Error>))]\n"
+    }
+  ]
+}

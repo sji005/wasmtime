@@ -41,7 +41,7 @@ jobs:
           rustup toolchain install nightly-2026-10-22 --profile minimal --component rustfmt --component rust-src --component rustc-dev --component llvm-tools
           rustup default nightly-2026-10-22
       - name: Check harness and regression formatting
-        run: rustfmt --edition 2024 --check verification/flux/smoke.rs crates/wiggle/tests/fd_read_memory.rs
+        run: rustfmt --edition 2024 --check verification/flux/smoke.rs verification/flux/file_read_specs.rs crates/wiggle/tests/fd_read_memory.rs
       - name: Restore pinned Flux and solvers
         id: flux-cache
         uses: actions/cache/restore@v6
@@ -71,6 +71,8 @@ jobs:
         run: python3 verification/flux/check_environment.py --output-dir artifacts/fd-read/environment
       - name: Collect original-body feasibility diagnostics (not a spatial proof)
         run: python3 verification/flux/probe_original.py --output-dir artifacts/fd-read/original-body-probes
+      - name: Check narrow original-adapter source-slice experiment
+        run: python3 verification/flux/check_adapter.py --output-dir artifacts/fd-read/adapter
       - name: Retain complete environment diagnostics
         if: always()
         uses: actions/upload-artifact@v7
@@ -84,6 +86,13 @@ jobs:
         with:
           name: fd-read-original-body-probes
           path: artifacts/fd-read/original-body-probes
+          if-no-files-found: warn
+      - name: Retain narrow adapter experiment and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: fd-read-adapter-experiment
+          path: artifacts/fd-read/adapter
           if-no-files-found: warn
 
   integration:

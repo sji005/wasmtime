@@ -60,6 +60,7 @@ def main():
         "working_tree": subprocess.check_output(["git", "status", "--porcelain"], cwd=ROOT, text=True),
         "expanded_source_sha256": hashlib.sha256(text.encode()).hexdigest(),
         "frozen_inputs": json.loads((ROOT / "verification/flux/sources.json").read_text()),
+        "registered_specifications": json.loads((ROOT / "verification/flux/annotations.json").read_text()),
         "expansion_command": "cargo rustc --locked --target x86_64-unknown-linux-gnu -p wasmtime-wasi --no-default-features --features p1 --lib -- -Zunpretty=expanded",
         "expanded_source_line": text[:match.start()].count("\n") + 1,
         "wrapper_sha256": hashlib.sha256(snippet.encode()).hexdigest(),

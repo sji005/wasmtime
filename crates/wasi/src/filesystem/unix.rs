@@ -95,6 +95,7 @@ pub(crate) fn write_at_cursor_unspecified(file: &File, data: &[u8], pos: u64) ->
     file.write_at(data, pos)
 }
 
+#[cfg_attr(flux, flux::sig(fn(&File, &mut [u8][@n], u64) -> Result<usize{v: v <= n}, io::Error>))]
 pub(crate) fn read_at_cursor_unspecified(
     file: &File,
     buf: &mut [u8],
