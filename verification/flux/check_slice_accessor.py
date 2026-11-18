@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Try the accessor refactor in a full Wiggle source snapshot using baseline Flux."""
 
+import argparse
 import hashlib
 import json
 import os
@@ -13,7 +14,13 @@ from probe_original import HERE, ROOT, TARGET
 
 
 def main():
-    output = ROOT / "artifacts/fd-read/slice-accessor"
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--with-wasmtime", action="store_true")
+    args = parser.parse_args()
+    configuration = "wasmtime-enabled" if args.with_wasmtime else "slice-backed"
+    suffix = "-wasmtime" if args.with_wasmtime else ""
+    features = ["--features", "wasmtime"] if args.with_wasmtime else []
+    output = ROOT / "artifacts/fd-read" / f"slice-accessor{suffix}"
     output.mkdir(parents=True, exist_ok=True)
     original = ROOT / "crates/wiggle"
     snapshot = output / "wiggle"
@@ -47,7 +54,7 @@ impl GuestPtr<[u8]> {
     env.pop("FLUX_DRIVER", None)
     env.pop("FLUX_COMPAT_RECEIPT", None)
     report = {
-        "scope": "Refactored snapshot, slice-backed Wiggle only; no accessor or local proof body explicitly trusted",
+        "scope": f"Refactored Wiggle snapshot ({configuration}); dependency bodies unchecked",
         "source_revision": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
         "original_sha256_lf": hashlib.sha256(before.encode()).hexdigest(),
         "snapshot_sha256_lf": hashlib.sha256(after.encode()).hexdigest(),
@@ -57,7 +64,8 @@ impl GuestPtr<[u8]> {
         for mode in ("ordinary", "flux"):
             env["FD_READ_PROBE_MODE"] = mode
             command = ["cargo", "rustc", "--locked", "--target", TARGET, "-p", "wiggle",
-                       "--no-default-features", "--lib", "--", "--cfg", f"fd_read_slice_accessor_{mode}"]
+                       "--no-default-features", *features, "--lib", "--", "--cfg",
+                       f"fd_read_slice_accessor_{configuration.replace('-', '_')}_{mode}"]
             result = subprocess.run(command, cwd=ROOT, env=env, text=True, capture_output=True, timeout=900)
             log = result.stdout + result.stderr
             (output / f"{mode}.log").write_text(log, encoding="utf-8")

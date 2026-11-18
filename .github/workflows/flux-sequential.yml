@@ -91,6 +91,12 @@ jobs:
         run: python3 verification/flux/check_original_contracts.py --only-range --positive-report artifacts/fd-read/baseline-original-range/original-body-probes.json
       - name: Check the slice accessor experiment and stop on a Flux crash
         run: python3 verification/flux/check_slice_accessor.py
+      - name: Check the original Wasmtime MemoryRanges slice constructor
+        run: |
+          unset FLUX_DRIVER FLUX_COMPAT_RECEIPT
+          python3 verification/flux/probe_original.py --case memory-slice --selector def:into_range_mut --stop-on-crash --environment-dir artifacts/fd-read/environment-baseline --output-dir artifacts/fd-read/baseline-memory-ranges
+      - name: Check the accessor against Wasmtime-enabled Wiggle
+        run: python3 verification/flux/check_slice_accessor.py --with-wasmtime
       - name: Retain complete diagnostics including failures
         if: always()
         uses: actions/upload-artifact@v7
