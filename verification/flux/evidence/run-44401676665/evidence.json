@@ -1,0 +1,11 @@
+{
+  "run_url": "https://github.com/sji005/wasmtime/actions/runs/44401676665",
+  "job_id": 135146065893,
+  "artifact_id": 14473856140,
+  "artifact_sha256": "e059ecd8a3e498ed64b4fc105d7a8592535ef831bec7ecef9109210e7618318a",
+  "checker": "unmodified pinned Flux",
+  "status": "stopped at checker crash",
+  "open_obligations": ["raw pointer add precondition", "returned mutable slice postcondition"],
+  "crash_site": "crates/wasmtime/src/runtime/vm/sys/unix/pagemap.rs:401",
+  "skipped": "Wasmtime-enabled Wiggle accessor probe"
+}

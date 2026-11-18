@@ -45,6 +45,15 @@ contract for tuple identity; the exact forwarding is visible in its body.
 The frozen production source and the Wasmtime `MemoryRanges` path are outside
 this result. Logs and the compiler invocation are in `evidence/run-44400890395`.
 
+The [baseline MemoryRanges run](https://github.com/sji005/wasmtime/actions/runs/44401676665)
+compiled the original Wasmtime configuration and repeated the successful
+slice-backed accessor check. In `MemoryRanges::into_range_mut`, Flux could not
+prove the pointer-add precondition or the returned-slice postcondition. It then
+crashed in the unrelated `pagemap.rs` bitflags expansion while comparing
+`InternalBitFlags` with `<Categories as PublicFlags>::Internal`. The later
+Wasmtime-enabled Wiggle check was skipped. Work stopped at the crash for user
+review. The trust boundary is unchanged. See `evidence/run-44401676665`.
+
 | Evidence | Checked result | Scope |
 | --- | --- | --- |
 | [Baseline run 44240968739](https://github.com/sji005/wasmtime/actions/runs/44240968739) | Passed M0 with three positive functions and three rejected mutations. Ordinary builds, three boundary regressions and fresh P1 expansion passed. | Environment, original behavior on tested inputs, and generated source inspection |

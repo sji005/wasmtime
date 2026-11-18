@@ -19,7 +19,7 @@ def main():
     args = parser.parse_args()
     configuration = "wasmtime-enabled" if args.with_wasmtime else "slice-backed"
     suffix = "-wasmtime" if args.with_wasmtime else ""
-    features = ["--features", "wasmtime"] if args.with_wasmtime else []
+    features = ["--features", "wasmtime,wasmtime/runtime,wasmtime/std"] if args.with_wasmtime else []
     output = ROOT / "artifacts/fd-read" / f"slice-accessor{suffix}"
     output.mkdir(parents=True, exist_ok=True)
     original = ROOT / "crates/wiggle"
