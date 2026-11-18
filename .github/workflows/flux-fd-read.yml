@@ -111,6 +111,8 @@ jobs:
         run: python3 verification/flux/probe_original.py --output-dir artifacts/fd-read/compat-original-body-probes
       - name: Reject well-typed pointer and range mutations in full source snapshots
         run: python3 verification/flux/check_original_contracts.py
+      - name: Check downstream use of the original Wiggle size contract
+        run: python3 verification/flux/check_wiggle_consumer.py
       - name: Check associated-field normalization and reject a wrong postcondition
         run: python3 verification/flux/toolchain/check_projection.py
       - name: Retain complete environment diagnostics
@@ -152,6 +154,7 @@ jobs:
             artifacts/fd-read/adapter-original-mutation
             artifacts/fd-read/compat-original-body-probes
             artifacts/fd-read/original-contract-mutations
+            artifacts/fd-read/wiggle-consumer
           if-no-files-found: warn
 
   integration:
