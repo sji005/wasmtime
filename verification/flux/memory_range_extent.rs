@@ -36,6 +36,39 @@ pub unsafe fn validated_range_width(base: NonNull<u8>, len: usize, range: Range<
     width
 }
 
+/// A model of the selected unshared VM definition after lookup. Its fields
+/// share one extent, which must be established by whoever supplies the model.
+#[cfg_attr(flux, flux::refined_by(addr: int, extent: int))]
+#[cfg_attr(flux, flux::invariant(extent <= isize::MAX))]
+pub struct MemoryDefinitionSnapshot {
+    #[cfg_attr(flux, flux::field(NonNull<u8>[addr, addr, extent]))]
+    base: NonNull<u8>,
+    #[cfg_attr(flux, flux::field(usize[extent]))]
+    current_length: usize,
+}
+
+/// # Safety
+/// The selected snapshot must describe a live, exclusive allocation as in
+/// `memory_range_extent`.
+#[cfg_attr(flux, flux::sig(fn(&MemoryDefinitionSnapshot[@m], Range<usize>[@r]) -> usize[r.end - r.start] requires r.start <= r.end && r.end <= m.extent))]
+pub unsafe fn range_width_from_snapshot(
+    definition: &MemoryDefinitionSnapshot,
+    range: Range<usize>,
+) -> usize {
+    let len = definition.current_length;
+    let base = definition.base;
+    // SAFETY: the selected allocation and valid range are supplied by the caller.
+    unsafe { validated_range_width(base, len, range) }
+}
+
+/// Probe the pointer reconstruction expression used by `VmPtr::as_non_null`.
+/// The inputs describe the address and extent of the selected allocation.
+#[cfg(provenance_probe)]
+#[cfg_attr(flux, flux::sig(fn(addr: usize{addr > 0}, extent: usize) -> *mut[addr, addr, extent] u8))]
+pub fn reconstruct_vm_base(addr: usize, _extent: usize) -> *mut u8 {
+    core::ptr::with_exposed_provenance_mut(addr)
+}
+
 /// # Safety
 /// `start` must be valid for `width` initialized bytes, exclusively borrowed
 /// for the returned lifetime, and `width` must be at most `isize::MAX`.
